@@ -5,6 +5,7 @@ import type { DemoUserId } from "@/lib/sample";
 import type { AiClient } from "@/server/ai/client";
 import type { ComposeResult } from "@/server/ai/compose";
 import type { SummaryAggregates, SummaryResult } from "@/server/ai/summary";
+import { AI_MODEL } from "@/server/config";
 import type { RouteHandler } from "@/server/http";
 import { resetRateLimits } from "@/server/ratelimit";
 import { resetMemoryStore } from "@/server/repo/memory";
@@ -342,7 +343,7 @@ describe("what the AI routes log", () => {
     expect(lines).toContain('"event":"ai_call"');
     expect(lines).toContain('"feature":"compose"');
     expect(lines).toContain('"feature":"summary"');
-    expect(lines).toContain('"model":"claude-fable-5-2"');
+    expect(lines).toContain(`"model":${JSON.stringify(AI_MODEL)}`);
     expect(lines).toContain('"stopReason":"tool_use"');
     expect(lines).toContain('"event":"ai_compose_choices"');
     expect(lines).not.toContain("trouble in Marion lately");

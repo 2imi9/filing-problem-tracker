@@ -2,6 +2,7 @@
 
 import type Anthropic from "@anthropic-ai/sdk";
 import type { AiClient } from "@/server/ai/client";
+import { AI_MODEL } from "@/server/config";
 
 type BetaMessage = Anthropic.Beta.BetaMessage;
 type CreateParams = Anthropic.Beta.MessageCreateParamsNonStreaming;
@@ -13,7 +14,7 @@ export interface FakeReply {
   toolCalls?: { name: string; input: unknown }[];
   /** Defaults to "tool_use" when there are tool calls and "end_turn" otherwise. */
   stopReason?: BetaMessage["stop_reason"];
-  /** The model that served the reply. */
+  /** The model that served the reply. Defaults to the configured one. */
   model?: string;
   /** Extra content blocks placed before the text, for example a thinking block. */
   leadingBlocks?: unknown[];
@@ -29,7 +30,7 @@ export function fakeMessage(reply: FakeReply): BetaMessage {
     id: "msg_test",
     type: "message",
     role: "assistant",
-    model: reply.model ?? "claude-fable-5-2",
+    model: reply.model ?? AI_MODEL,
     content,
     // An explicit null is kept: the API can send one.
     stop_reason: reply.stopReason !== undefined ? reply.stopReason : toolCalls.length > 0 ? "tool_use" : "end_turn",

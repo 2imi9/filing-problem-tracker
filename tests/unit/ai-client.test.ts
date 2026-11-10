@@ -2,7 +2,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { callClaude, getAiClient } from "@/server/ai/client";
 import type { ClaudeCall } from "@/server/ai/client";
+import { AI_MODEL } from "@/server/config";
 import { fakeClient, systemText, userText } from "./ai-fake";
+
+// The model the app asks for is read from the config (AI_MODEL), so changing the default there does not
+// break these tests. OTHER_MODEL is a made-up id for "a different model served this reply", which is
+// what a fallback looks like. It only has to differ from the configured one.
+const OTHER_MODEL = "another-model-id-for-tests";
 
 const SECRET_SYSTEM = "SYSTEM-PROMPT-TEXT-that-must-not-be-logged";
 const SECRET_USER = "USER-TURN-TEXT-that-must-not-be-logged";
@@ -47,7 +53,7 @@ describe("callClaude: the request", () => {
     const client = fakeClient(() => ({ text: "ok" }));
     await callClaude(call(), client);
     const { params, options } = client.calls[0];
-    expect(params.model).toBe("claude-fable-5-2");
+    expect(params.model).toBe(AI_MODEL);
     expect(params.max_tokens).toBe(1234);
     expect(params.betas).toEqual(["server-side-fallback-2026-07-01"]);
     expect(params.fallbacks).toBe("default");
@@ -91,14 +97,14 @@ describe("callClaude: reading the reply", () => {
     const client = fakeClient(() => ({
       leadingBlocks: [
         { type: "thinking", thinking: "", signature: "sig" },
-        { type: "fallback", from: { model: "claude-fable-5-2" }, to: { model: "claude-opus-4-8" } },
+        { type: "fallback", from: { model: AI_MODEL }, to: { model: OTHER_MODEL } },
       ],
       text: "Hello.",
       toolCalls: [
         { name: "open_kpi_panel", input: { title: "" } },
         { name: "open_forms_panel", input: { title: "Forms" } },
       ],
-      model: "claude-opus-4-8",
+      model: OTHER_MODEL,
     }));
     expect(await callClaude(call(), client)).toEqual({
       ok: true,
@@ -107,7 +113,7 @@ describe("callClaude: reading the reply", () => {
         { name: "open_kpi_panel", input: { title: "" } },
         { name: "open_forms_panel", input: { title: "Forms" } },
       ],
-      model: "claude-opus-4-8",
+      model: OTHER_MODEL,
     });
   });
 
@@ -164,13 +170,13 @@ describe("callClaude: logging", () => {
     expect(JSON.parse(lines[0])).toMatchObject({
       event: "ai_call",
       feature: "summary",
-      model: "claude-fable-5-2",
+      model: AI_MODEL,
       effort: "medium",
       systemChars: SECRET_SYSTEM.length,
       userChars: SECRET_USER.length,
       ok: true,
       stopReason: "end_turn",
-      servedBy: "claude-fable-5-2",
+      servedBy: AI_MODEL,
       scope: "All counties",
       usage: { input_tokens: 100, output_tokens: 20 },
     });

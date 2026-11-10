@@ -1,4 +1,5 @@
 import "server-only";
+import { io } from "next/cache";
 import { cookies } from "next/headers";
 import type { Role, SessionUser } from "@/lib/domain";
 import type { DemoUserId } from "@/lib/sample";
@@ -14,6 +15,19 @@ const nowSeconds = () => Math.floor(Date.now() / 1000);
  * cookies or the run mode themselves.
  */
 export async function getSession(): Promise<SessionUser | null> {
+  // Whether a session is still good depends on the clock (the demo cookie's expiry below, the token's
+  // expiry inside the Supabase client), so the answer belongs to one real request and never to a
+  // prerender. Reading cookies() first does not make that so. With `partialPrefetching` on, Next.js
+  // renders a signed-in page request a second time as a "runtime prerender" (the App Shell the browser
+  // keeps for the session), and cookies() resolves in that render. A clock read after it then happens
+  // inside a prerender, and Next.js logs "encountered the unstable value `Date.now()` while
+  // prerendering" for every signed-in request to a page that calls this.
+  //
+  // io() says "what follows is not for prerendering"; see 01-app/03-api-reference/04-functions/io.md
+  // under node_modules/next/dist/docs. In a prerender it never resolves, so nothing below runs there.
+  // For a real page request, in a route handler and outside Next.js (unit tests) it resolves at once.
+  // tests/unit/session-prerender.test.ts fails if this line goes.
+  await io();
   let user: SessionUser | null;
   if (APP_MODE === "demo") {
     const store = await cookies();
