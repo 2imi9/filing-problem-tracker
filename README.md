@@ -1,58 +1,37 @@
 <p align="center">
-  <img src="docs/assets/courthouse-ascii.jpg" alt="An Indiana county courthouse rendered in ASCII characters" width="720">
+  <img src="docs/assets/cover.png" alt="Filing Problem Tracker. Tag, patterns, fixes. An Indiana courthouse drawn in ASCII characters." width="960">
 </p>
 
 # Filing Problem Tracker
 
-### See why court filings from people without lawyers get rejected, and whether fixes work.
-
-Filing Problem Tracker is a small web tool for Indiana trial courts. Clerks tag what was wrong with a rejected or returned filing in a few clicks, and court leaders see which problems are most common by county, case type and form. It is a student prototype (Northeastern CS4535 AI for Impact, Team 1) and every number in it is made up.
+A small web tool for Indiana trial courts. Clerks tag why a filing from someone without a lawyer was rejected, and court leaders see which problems are most common and whether a fix helped.
 
 > [!NOTE]
-> This is not an official court system. It does not change Odyssey or e-filing, it does not give legal advice, and it stores no names or case numbers.
+> Student prototype for Northeastern CS4535 AI for Impact, Team 1. All data is made up. It is not an official court system and gives no legal advice.
 
-## Quickstart
+## What it does
 
-Try the prototype in your browser, no install:
+- **Tag a filing.** A clerk picks the county, case type and form, clicks what was wrong, and saves. No names or case numbers.
+- **Import past rejections.** Paste a spreadsheet export and the tool sorts each typed reason into the same problem list.
+- **Dashboard.** The most common problems by county, case type and form.
+- **Before and after.** Whether a change, such as a revised form, reduced a problem.
 
-- Open the hosted prototype: https://claude.ai/artifact/GKhX5hg1m8exSJxZkV5Ddk
-- Or download [`docs/prototype/filing_tracker.html`](docs/prototype/filing_tracker.html) and open it.
+It sits next to Odyssey and e-filing and never connects to them.
 
-Tag a filing on the first tab, then open the dashboard tab to see it counted.
+## Run it
 
-The full web app (Next.js, Supabase, Claude API) is being built against the [spec](specs/001-filing-problem-tracker/spec.md) and [plan](specs/001-filing-problem-tracker/plan.md) and arrives by pull request. Progress is in [tasks](specs/001-filing-problem-tracker/tasks.md).
+```bash
+sh scripts/build-site.sh
+open site/index.html
+```
 
-## What is in the tool
+The prototype is one HTML file with no dependencies. `render.yaml` deploys it to Render as a static site.
 
-- **Tag a filing**: a clerk picks county, case type and form, clicks the problems (missing signature, wrong form, wrong county, missing details and others) and saves. A few seconds, no typing required.
-- **Import past rejections**: paste a spreadsheet export and the tool sorts the clerks' typed reasons into the same problem categories. Rows it cannot sort are marked for a person to review.
-- **Dashboard**: the most common problems by county, case type and form, and a before/after view that shows whether a change such as a revised form or a self-help guide reduced a problem.
-- **Workspace**: a leader types what they want to see ("signature problems in Marion small claims") and gets live chart panels instead of a chat reply. Panels can be rearranged and saved in folders.
-- **Connector for Claude (MCP)**: the same read-only totals are available to a court leader's own Claude, so they can ask questions about the tracker there.
+## Docs
 
-## Why it is built this way
+The project follows [GitHub Spec Kit](https://github.com/github/spec-kit).
 
-- **Nothing personal is stored.** No names, no case numbers. Notes and imported text are checked for anything that looks like personal data and refused.
-- **The AI chooses, the code computes.** The model only picks which panels to open and sorts free-text reasons into fixed categories. Every number on screen is computed by ordinary, tested code, so the model cannot invent a figure.
-- **It works with the AI turned off.** Each AI feature has a plain rules-based fallback.
-- **Each county sees its own records.** Clerks see their county, leaders see totals for all counties, and those rules are enforced in the database, not only in the screens.
-- **It stays out of the court's systems.** A standalone tool next to Odyssey and e-filing, with no integration to approve.
-- **No legal advice, to anyone.** Labels describe what was wrong with a filing, never what a filer should do. Nothing AI-generated is shown to litigants.
-
----
-
-## Resources
-
-This repository follows [GitHub Spec Kit](https://github.com/github/spec-kit): the rules first, then the spec, the plan and the tasks.
-
-- [Constitution](.specify/memory/constitution.md): the seven rules every change must meet.
-- [Spec](specs/001-filing-problem-tracker/spec.md): user stories, requirements and success criteria.
-- [Plan](specs/001-filing-problem-tracker/plan.md): architecture, stack and how each rule is met.
-- [Tasks](specs/001-filing-problem-tracker/tasks.md): build steps and what is done.
-- [Research](specs/001-filing-problem-tracker/research.md): the main decisions and the alternatives.
-- [Data model](specs/001-filing-problem-tracker/data-model.md) and [contracts](specs/001-filing-problem-tracker/contracts/): access rules, HTTP API, AI features, pages and design system.
-- [Quickstart](specs/001-filing-problem-tracker/quickstart.md).
-
-## Status
-
-Prototype with made-up data. Using real court records would need the court's IT and security review, a data agreement, and approved hosting. None of that has been done, and nothing in this repository decides it for the court.
+- [Constitution](.specify/memory/constitution.md): the rules every change must meet.
+- [Spec](specs/001-filing-problem-tracker/spec.md): user stories and requirements.
+- [Plan](specs/001-filing-problem-tracker/plan.md): architecture and stack.
+- [Tasks](specs/001-filing-problem-tracker/tasks.md): build steps.
