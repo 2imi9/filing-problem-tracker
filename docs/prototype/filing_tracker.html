@@ -56,7 +56,8 @@ nav.tabs a:focus-visible { outline-offset: -3px; }
 ::placeholder { color: var(--muted); opacity: 1; }
 
 /* Header: navy band with the ASCII courthouse, then the three steps */
-header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+.tabbar { position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+html { scroll-padding-top: 68px; }
 .hero { position: relative; background: #172554; color: #ffffff; overflow: hidden; isolation: isolate; }
 .hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; z-index: -2; }
 /* Navy wash so the title and intro stay readable over the picture. */
@@ -212,6 +213,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <p>See why court filings from people without lawyers get rejected, and whether fixes work.</p>
     </div>
   </div>
+</header>
+<div class="tabbar">
   <div class="wrap">
     <nav class="tabs" aria-label="Views">
       <a href="#log"><span class="n">1</span>Tag a filing <small>clerk</small></a>
@@ -219,7 +222,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <a href="#dashboard"><span class="n">3</span>Dashboard <small>court leaders</small></a>
     </nav>
   </div>
-</header>
+</div>
 
 <main id="main">
   <div class="wrap">
@@ -418,10 +421,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function show() {
     var v = (location.hash || "#log").slice(1);
     if (VIEWS.indexOf(v) < 0) v = currentView;
+    var changed = v !== currentView;
     currentView = v;
     VIEWS.forEach(function (name) { $("view-" + name).hidden = name !== v; });
     document.querySelectorAll("nav.tabs a").forEach(function (a) { if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     if (v === "dashboard") renderDashboard();
+    var barTop = document.querySelector("header.top").offsetHeight;
+    if (changed && window.scrollY > barTop) window.scrollTo(0, barTop);
   }
   window.addEventListener("hashchange", show);
 
