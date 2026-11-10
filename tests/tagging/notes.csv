@@ -1,0 +1,49 @@
+case_type,form,clerk_note,expected
+Small claims,Small claims notice of claim,petitioner did not sign page 3,Missing signature
+Family,"Petition for dissolution, no children",signiture missing on pg 2,Missing signature
+Protective order,Petition for order of protection,forgot to put her name on the signature line,Missing signature
+Eviction,Tenant answer or request for hearing,left the bottom line blank where the filer signs,Missing signature
+Name change,Petition for change of name,typed his name only and we need it in ink by hand,Missing signature
+Small claims,Small claims notice of claim,used the old version of the form,Wrong form
+Protective order,Petition for order of protection,"this is the 2019 packet, we need the current one",Wrong form
+Eviction,Tenant answer or request for hearing,filed a small claims counterclaim but this is an eviction case,Wrong form
+Family,"Petition for dissolution, with children",brought the with children petition and they have no kids,Wrong form
+Small claims,Small claims notice of claim,"wrong county, respondent lives in Hamilton",Wrong county or court
+Family,Petition to modify child support,"has to go to circuit court, not here",Wrong county or court
+Eviction,Tenant answer or request for hearing,rental is in Lake County so we can not take it,Wrong county or court
+Small claims,Small claims notice of claim,belongs in the next county over where the defendant resides,Wrong county or court
+Protective order,Petition for order of protection,missing dates of the incidents,Missing required details
+Small claims,Small claims notice of claim,did not say how much money they are asking for,Missing required details
+Protective order,Petition for order of protection,left the what happened section empty,Missing required details
+Protective order,Petition to modify or extend order,no description of the incident,Missing required details
+Small claims,Small claims notice of claim,fee not paid,Missing fee or fee waiver
+Small claims,Small claims notice of claim,did not bring the money to file,Missing fee or fee waiver
+Family,"Petition for dissolution, no children","no check or card, says she can not afford it, gave her the waiver form",Missing fee or fee waiver
+Name change,Petition for change of name,came without the 157 dollars,Missing fee or fee waiver
+Small claims,Small claims counterclaim,cites a case that does not exist,Citation not found or wrong
+Family,Petition to modify child support,"the court opinion quoted in the motion is not real, looks computer written",Citation not found or wrong
+Eviction,Tenant answer or request for hearing,the IC number listed does not match any law,Citation not found or wrong
+Small claims,Small claims counterclaim,the statute quoted says something different,Citation not found or wrong
+Protective order,Petition for order of protection,no address for the respondent,Missing addresses for service
+Small claims,Small claims notice of claim,we have nowhere to send the papers to the other side,Missing addresses for service
+Eviction,Tenant answer or request for hearing,does not know where the landlord can be served,Missing addresses for service
+Family,"Petition for dissolution, with children",left the box for where the other parent lives empty,Missing addresses for service
+Name change,Petition for change of name,needs to be notarized,Not verified or notarized
+Protective order,Petition for order of protection,not sworn under penalty of perjury,Not verified or notarized
+Name change,Petition for change of name,no notary stamp,Not verified or notarized
+Family,Petition to modify child support,the oath paragraph at the end was crossed out,Not verified or notarized
+Protective order,Petition to modify or extend order,needs the under penalties for perjury line,Not verified or notarized
+Family,"Petition for dissolution, with children",page 2 is missing,Pages missing or unreadable
+Small claims,Small claims notice of claim,can not read the handwriting,Pages missing or unreadable
+Eviction,Tenant answer or request for hearing,copy is too dark to make out,Pages missing or unreadable
+Family,"Petition for dissolution, no children",only got the first sheet of four,Pages missing or unreadable
+Name change,Petition for change of name,scan is cut off on the right side,Pages missing or unreadable
+Small claims,Small claims notice of claim,see clerk,None of these
+Family,Petition to modify child support,returned,None of these
+Eviction,Tenant answer or request for hearing,come back tomorrow,None of these
+Protective order,Petition for order of protection,talked to filer at counter,None of these
+Small claims,Small claims counterclaim,rejected per judge,None of these
+Name change,Petition for change of name,same thing was already filed last week,None of these
+Small claims,Small claims notice of claim,paid the fee but forgot to sign,Missing signature
+Family,"Petition for dissolution, no children","address is fine, the form is the outdated one",Wrong form
+Protective order,Petition for order of protection,notary was there but page 4 never got scanned in,Pages missing or unreadable
