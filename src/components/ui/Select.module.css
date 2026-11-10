@@ -1,18 +1,11 @@
+/* The browser's own select arrow is kept, as in the demo. */
 .select {
-  appearance: none;
-  padding-right: var(--space-8);
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--color-muted-foreground) 50%),
-    linear-gradient(135deg, var(--color-muted-foreground) 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) 50%,
-    calc(100% - 12px) 50%;
-  background-size:
-    6px 6px,
-    6px 6px;
-  background-repeat: no-repeat;
   text-overflow: ellipsis;
   cursor: pointer;
+}
+
+.select:disabled {
+  cursor: not-allowed;
 }
 
 @media (hover: hover) and (pointer: fine) {

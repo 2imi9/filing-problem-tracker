@@ -1,4 +1,4 @@
-// The account button in the header: who is signed in, with what role, and the way to sign out.
+// The account button at the right end of the tab bar: who is signed in, with what role, and the way to sign out.
 // In demo mode signing out is also how you switch to another role.
 
 "use client";

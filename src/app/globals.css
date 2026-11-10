@@ -1,44 +1,77 @@
 /*
   Design tokens and base styles for the Filing Problem Tracker.
 
-  Tokens follow the table in ARCHITECTURE.md ("Design system") and design-system/MASTER.md.
-  Components use these variables only: no raw hex values in CSS Modules.
+  The values are the approved demo's (docs/prototype/filing_tracker.html): authority navy, one gold
+  action per screen, EB Garamond headings, Lato text, IBM Plex Mono for data.
+
+  Two sets of names point at the same values:
+    - the demo's short names (--bg, --surface, --ink, --muted, --quiet, --line, --accent, --cta, --field,
+      --good, --warn, --bad): use these in new CSS;
+    - the older --color-* names, kept as aliases so existing page CSS keeps working.
+  Components use these variables only: no raw hex values in CSS Modules (the header band is the one
+  exception; it is the same navy in both themes).
 
   Themes: light is the default. Dark applies when the system asks for it, unless the person picked a
-  theme with the toggle, which sets data-theme="light" or data-theme="dark" on <html>.
+  theme with the switch, which sets data-theme="light" or data-theme="dark" on <html>.
   The dark values appear twice (system preference and manual choice); keep the two blocks identical.
 */
 
 :root {
   color-scheme: light;
 
-  /* Color: the spec's token table */
-  --color-primary: #1e3a8a;
-  --color-on-primary: #ffffff;
-  --color-secondary: #1e40af;
-  --color-on-secondary: #ffffff;
-  --color-accent: #b45309;
-  --color-on-accent: #ffffff;
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
-  --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
-  --color-muted: #e9eef5;
-  --color-muted-foreground: #475569;
-  --color-border: #cbd5e1;
+  /* Color: the demo's tokens */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #475569;
+  --quiet: #e9eef5;
+  --line: #cbd5e1;
+  --accent: #1e3a8a; /* navigation, selected state, links, charts */
+  --accent-hover: #1e40af;
+  --accent-soft: #e0e8f7;
+  --on-accent: #ffffff;
+  --cta: #b45309; /* the one main action on each screen */
+  --cta-hover: #92400e;
+  --on-cta: #ffffff;
+  --field: #64748b; /* borders of inputs and selects, 3:1 or better */
+  --good: #166534;
+  --warn: #92400e;
+  --bad: #b91c1c;
+  --bad-soft: #fde8e8;
+  --good-soft: #dcf3e3;
+  --warn-soft: #fbeed5;
+
+  /* The header band: the same in both themes. */
+  --hero: #172554;
+  --hero-ink: #ffffff;
+  --hero-muted: #dbe4f5;
+  --hero-flag: #fcd34d;
+
+  /* Color: the older names, as aliases */
+  --color-primary: var(--accent);
+  --color-on-primary: var(--on-accent);
+  --color-secondary: var(--accent-hover);
+  --color-on-secondary: var(--on-accent);
+  --color-accent: var(--cta);
+  --color-on-accent: var(--on-cta);
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-muted: var(--quiet);
+  --color-muted-foreground: var(--muted);
+  --color-border: var(--line);
+  --color-border-strong: var(--field);
   --color-destructive: #dc2626;
   --color-on-destructive: #ffffff;
-  --color-success: #166534;
-  --color-ring: #1e3a8a;
-
-  /* Color: additions the table implies */
-  --color-destructive-text: #b91c1c; /* error text on light surfaces, 4.5:1 or better */
-  --color-warning: #92400e; /* "Returned to fix", cautions */
-  --color-border-strong: #64748b; /* borders of inputs and other controls, 3:1 or better */
-  --color-primary-soft: #e0e7f8; /* selected navigation item, quiet highlight */
-  --color-success-soft: #dcf3e3;
-  --color-destructive-soft: #fde8e8;
-  --color-warning-soft: #fbeed5;
+  --color-destructive-text: var(--bad);
+  --color-destructive-soft: var(--bad-soft);
+  --color-success: var(--good);
+  --color-success-soft: var(--good-soft);
+  --color-warning: var(--warn);
+  --color-warning-soft: var(--warn-soft);
+  --color-primary-soft: var(--accent-soft);
+  --color-ring: var(--accent);
   --color-overlay: rgb(15 23 42 / 0.55); /* behind dialogs */
   /* Over a photograph, the same in both themes: a dark layer, and the text that sits on it. */
   --color-scrim: rgb(8 13 26 / 0.62);
@@ -49,18 +82,30 @@
   --font-heading: var(--font-eb-garamond), "EB Garamond", Georgia, "Times New Roman", serif;
   --font-body: var(--font-lato), Lato, "Segoe UI", system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-head: var(--font-heading);
+  --font-ui: var(--font-body);
+  --font-data: var(--font-mono);
 
-  --text-xs: 0.75rem; /* 12px: tab bar labels and table column heads only */
-  --text-sm: 0.875rem; /* 14px: dense tables, hints */
+  --text-xs: 0.75rem; /* 12px: table column heads */
+  --text-sm: 0.875rem; /* 14px: hints */
   --text-base: 1rem; /* 16px: body minimum */
   --text-lg: 1.125rem;
   --text-xl: 1.375rem;
   --text-2xl: 1.75rem;
   --text-3xl: 2.25rem;
-  --text-kpi: 2.5rem; /* KPI numerals */
+  --text-kpi: 2.25rem; /* key numbers */
+  /* The demo's scale */
+  --text-hero: clamp(2.6rem, 1.5rem + 4.4vw, 4.6rem); /* the title in the header band */
+  --text-intro: clamp(1.2rem, 1rem + 0.5vw, 1.45rem); /* the sentence that opens a page */
+  --text-h2: 1.6rem; /* section headings */
+  --text-label: 0.78rem; /* small capital labels over fields and groups */
+  --text-control: 0.95rem; /* checkbox and radio rows */
+  --text-data: 0.92rem; /* tables and bar lists */
+  --text-meta: 0.78rem; /* mono detail lines */
+  --text-pill: 0.8rem; /* outcome labels */
 
   --leading-tight: 1.2;
-  --leading-normal: 1.5;
+  --leading-normal: 1.55;
   --measure: 70ch;
 
   /* Space (4px base) */
@@ -75,18 +120,22 @@
   --space-12: 3rem;
 
   /* Shape */
-  --radius-input: 4px;
-  --radius-card: 6px;
-  --radius-dialog: 10px;
-  --radius-pill: 999px;
+  --radius-input: 4px; /* fields, buttons, checkbox and radio rows */
+  --radius-card: 6px; /* the one boxed section a page may have, menus, dialogs */
+  --radius-dialog: 6px;
+  --radius-pill: 999px; /* outcome labels only */
 
   /* Layout */
-  --sidebar-width: 240px;
-  --header-height: 56px;
-  --tabbar-height: 64px;
+  --wrap-max: 1120px; /* the page column, gutters included */
+  --gutter: 16px;
+  --content-max: 1088px; /* the page column without its gutters */
+  --tabbar-height: 53px; /* the pinned tab bar */
+  --header-height: var(--tabbar-height); /* what a sticky element under the pinned bar uses as its top */
+  --section-gap: 48px; /* between the sections of a page */
+  --page-top: 56px;
+  --page-bottom: 112px;
   --target-min: 44px;
-  --row-height: 36px;
-  --content-max: 1200px;
+  --row-height: 40px;
 
   /* Motion */
   --duration-fast: 150ms;
@@ -106,63 +155,67 @@
   --z-toast: 60;
 }
 
+@media (max-width: 640px) {
+  :root {
+    --section-gap: 36px;
+    --page-top: 36px;
+    --page-bottom: 72px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --color-primary: #a5befa;
-    --color-on-primary: #0b1220;
-    --color-secondary: #c7d6fd;
-    --color-on-secondary: #0b1220;
-    --color-accent: #f5a524;
-    --color-on-accent: #1c1304;
-    --color-background: #0b1220;
-    --color-foreground: #e5eaf2;
-    --color-card: #131c2e;
-    --color-card-foreground: #e5eaf2;
-    --color-muted: #1f2a3f;
-    --color-muted-foreground: #a8b5c8;
-    --color-border: #33415a;
+    --bg: #0b1220;
+    --surface: #111a2b;
+    --ink: #e5eaf2;
+    --muted: #a3b2c9;
+    --quiet: #1a2640;
+    --line: #2c3a55;
+    --accent: #9dbbf7;
+    --accent-hover: #bcd1fa;
+    --accent-soft: #1b2a4a;
+    --on-accent: #0b1220;
+    --cta: #f0a64b;
+    --cta-hover: #f5b869;
+    --on-cta: #1a1204;
+    --field: #7c8ba3;
+    --good: #7fc28b;
+    --warn: #e6ae5a;
+    --bad: #f29a93;
+    --bad-soft: #3a2020;
+    --good-soft: #12301f;
+    --warn-soft: #372a0b;
     --color-destructive: #f87171;
     --color-on-destructive: #1f0a0a;
-    --color-success: #86efac;
-    --color-ring: #a5befa;
-    --color-destructive-text: #fca5a5;
-    --color-warning: #fcd34d;
-    --color-border-strong: #8391a7;
-    --color-primary-soft: #1e2c4d;
-    --color-success-soft: #12301f;
-    --color-destructive-soft: #3b1719;
-    --color-warning-soft: #372a0b;
     --color-overlay: rgb(2 6 15 / 0.7);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-primary: #a5befa;
-  --color-on-primary: #0b1220;
-  --color-secondary: #c7d6fd;
-  --color-on-secondary: #0b1220;
-  --color-accent: #f5a524;
-  --color-on-accent: #1c1304;
-  --color-background: #0b1220;
-  --color-foreground: #e5eaf2;
-  --color-card: #131c2e;
-  --color-card-foreground: #e5eaf2;
-  --color-muted: #1f2a3f;
-  --color-muted-foreground: #a8b5c8;
-  --color-border: #33415a;
+  --bg: #0b1220;
+  --surface: #111a2b;
+  --ink: #e5eaf2;
+  --muted: #a3b2c9;
+  --quiet: #1a2640;
+  --line: #2c3a55;
+  --accent: #9dbbf7;
+  --accent-hover: #bcd1fa;
+  --accent-soft: #1b2a4a;
+  --on-accent: #0b1220;
+  --cta: #f0a64b;
+  --cta-hover: #f5b869;
+  --on-cta: #1a1204;
+  --field: #7c8ba3;
+  --good: #7fc28b;
+  --warn: #e6ae5a;
+  --bad: #f29a93;
+  --bad-soft: #3a2020;
+  --good-soft: #12301f;
+  --warn-soft: #372a0b;
   --color-destructive: #f87171;
   --color-on-destructive: #1f0a0a;
-  --color-success: #86efac;
-  --color-ring: #a5befa;
-  --color-destructive-text: #fca5a5;
-  --color-warning: #fcd34d;
-  --color-border-strong: #8391a7;
-  --color-primary-soft: #1e2c4d;
-  --color-success-soft: #12301f;
-  --color-destructive-soft: #3b1719;
-  --color-warning-soft: #372a0b;
   --color-overlay: rgb(2 6 15 / 0.7);
 }
 
@@ -172,18 +225,23 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+  /* Nothing that takes keyboard focus, and no link target, ends up under the pinned tab bar. */
+  scroll-padding-top: calc(var(--tabbar-height) + var(--space-4));
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
@@ -207,10 +265,14 @@ h1 {
 }
 
 h2 {
-  font-size: var(--text-xl);
+  font-size: var(--text-h2);
 }
 
 h3 {
+  font-size: 1.25rem;
+}
+
+h4 {
   font-size: var(--text-lg);
 }
 
@@ -219,12 +281,12 @@ p {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--accent);
   text-underline-offset: 0.15em;
 }
 
 a:hover {
-  color: var(--color-secondary);
+  color: var(--accent-hover);
 }
 
 button,
@@ -258,7 +320,12 @@ video {
   max-width: 100%;
 }
 
-/* One focus style everywhere: a 3px ring in the ring color, never removed. */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* One focus style everywhere: a 3px ring in the accent color, never removed. */
 :focus-visible {
   outline: var(--focus-width) solid var(--color-ring);
   outline-offset: var(--focus-offset);
@@ -270,8 +337,8 @@ main:focus-visible {
 }
 
 ::selection {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 /* Utilities shared by every page. */
@@ -287,6 +354,39 @@ main:focus-visible {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+/* The page column: 1120px with a 16px gutter each side. The header, the tab bar and the footer use it. */
+.wrap {
+  width: 100%;
+  max-width: var(--wrap-max);
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+}
+
+/* The one sentence that opens a page. <Page intro> draws it; use the class for any other lead-in line. */
+.intro {
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-intro);
+  line-height: 1.35;
+}
+
+/* A small capital label over a group of controls or a figure. Field and ChipGroup labels look the same. */
+.label-sm {
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* Help text. */
+.hint {
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 /* Set on every <Icon>: an icon never shrinks inside a flex row. */
@@ -309,7 +409,26 @@ main:focus-visible {
 
 /* Secondary text. */
 .muted {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
+}
+
+/*
+  Problem labels in a row of plain text, with commas between them:
+    <ul class="tag-list"><li><TagPill tag={...} /></li>...</ul>
+  Works on any element whose direct children are the labels.
+*/
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-list > :not(:last-child)::after {
+  content: ",";
+  margin-right: 6px;
 }
 
 /* A table scrolls sideways inside its own box so the page never does. */
@@ -318,57 +437,52 @@ main:focus-visible {
   position: relative;
   overflow-x: auto;
   max-width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
 }
 
 .table-scroll:focus-visible {
   outline-offset: 0;
 }
 
-/* Dense data table: 36px rows, sticky head, 14px text. Wrap it in .table-scroll. */
+/* Data table: 40px rows, small capital column heads over a dark rule, thin rules between rows. Wrap it in .table-scroll. */
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-sm);
-  background: var(--color-card);
+  font-size: var(--text-data);
 }
 
 .data-table caption {
   text-align: left;
   padding: var(--space-2) var(--space-3);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .data-table th,
 .data-table td {
   height: var(--row-height);
-  padding: var(--space-2) var(--space-3);
+  padding: 10px var(--space-3);
   text-align: left;
-  vertical-align: top;
-  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
 }
 
 .data-table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--color-muted);
-  color: var(--color-foreground);
-  font-size: var(--text-xs);
+  /* Opaque, so rows scrolling under a pinned head do not show through. A boxed section sets --table-head-bg. */
+  background: var(--table-head-bg, var(--bg));
+  color: var(--muted);
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
   vertical-align: bottom;
+  border-bottom: 1px solid var(--ink);
 }
 
 .data-table tbody th {
   font-weight: 700;
-}
-
-.data-table tbody tr:last-child > * {
-  border-bottom: 0;
 }
 
 .data-table .num {

@@ -1,15 +1,16 @@
-// The app's destinations and who sees them. Shared by the sidebar, the bottom tab bar, the page that
-// redirects by role, and the sign-in page.
+// The app's destinations and who sees them. Shared by the tab bar, the page that redirects by role, and
+// the sign-in page. A tab's number is its place in navFor(role), counted from 1.
 
 import type { Role } from "@/lib/domain";
 import type { IconName } from "@/components/ui/Icon";
 
 export interface NavItem {
   href: string;
-  /** Full label, used in the sidebar. */
+  /** The tab's label, and the link's name. */
   label: string;
-  /** One word for the bottom tab bar. */
+  /** One word, for a place too narrow for the label. The tab bar does not use it. */
   shortLabel: string;
+  /** Not drawn in the tab bar, which shows the tab's number instead. */
   icon: IconName;
   roles: readonly Role[];
 }

@@ -1,13 +1,6 @@
 .frame {
-  display: grid;
-  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-.bareFrame {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -15,271 +8,309 @@
 /* Skip link: off screen until it has keyboard focus. */
 .skip {
   position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
+  top: 12px;
+  left: 12px;
   z-index: calc(var(--z-toast) + 1);
-  padding: var(--space-3) var(--space-4);
+  padding: 10px 14px;
   border-radius: var(--radius-input);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--surface);
+  color: var(--accent);
   font-weight: 700;
-  transform: translateY(-200%);
+  transform: translateY(-300%);
 }
 
 .skip:focus {
   transform: translateY(0);
-  color: var(--color-on-primary);
 }
 
-/* Sidebar (820px and wider) */
-.sidebar {
-  position: sticky;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  height: 100vh;
-  height: 100dvh;
-  padding: var(--space-4) var(--space-3);
-  overflow-y: auto;
-  border-right: 1px solid var(--color-border);
-  background: var(--color-card);
+/* It sits on the navy header band, where the usual navy ring would not show. */
+.skip:focus-visible {
+  outline-color: var(--hero-ink);
+  outline-offset: 3px;
 }
 
-.brand {
+/* Header: a navy band with the courthouse picture under a navy wash. The same in light and dark. */
+.hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--hero);
+  color: var(--hero-ink);
+}
+
+.heroPicture {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+/* The wash keeps the title and the intro readable over the picture. The only gradient in the app. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    var(--hero) 0%,
+    color-mix(in srgb, var(--hero) 97%, transparent) 50%,
+    color-mix(in srgb, var(--hero) 70%, transparent) 74%,
+    color-mix(in srgb, var(--hero) 35%, transparent) 100%
+  );
+}
+
+.heroIn {
   display: grid;
-  gap: 2px;
-  padding: var(--space-1) var(--space-3) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  justify-items: start;
+  gap: 12px;
+  padding-top: 72px;
+  padding-bottom: 76px;
 }
 
-.brandName {
+/* On wide screens the header text sits a little left of the page column, clear of the picture. */
+@media (min-width: 1280px) {
+  .heroIn {
+    transform: translateX(-48px);
+  }
+}
+
+/* The prototype notice: yellow on the navy. Two classes, so it wins over DemoFlag's own color. */
+.hero .heroFlag {
+  color: var(--hero-flag);
+}
+
+/* The name of the app. Not a heading: each page has its own <h1>. */
+.title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.32em;
   font-family: var(--font-heading);
-  font-size: var(--text-xl);
+  font-size: var(--text-hero);
   font-weight: 600;
-  line-height: var(--leading-tight);
+  letter-spacing: -0.005em;
+  line-height: 1.04;
+  text-wrap: balance;
 }
 
-.brandSub {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
+.mark {
+  width: 0.74em;
+  height: 0.74em;
+  margin-top: 0.16em;
 }
 
-.sideList,
-.tabList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.lede {
+  max-width: 40ch;
+  color: var(--hero-muted);
+  line-height: 1.5;
 }
 
-.sideList {
-  display: grid;
-  gap: var(--space-1);
+/* The bar under the header. With tabs (signed in) it pins to the top of the window. */
+.bar {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
-.sideLink {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--target-min);
-  padding: var(--space-2) var(--space-3);
-  border-left: 3px solid transparent;
-  border-radius: var(--radius-input);
-  color: var(--color-foreground);
-  font-weight: 700;
-  text-decoration: none;
-  transition:
-    background-color var(--duration-fast) var(--ease),
-    color var(--duration-fast) var(--ease);
-}
-
-.sideLink:hover {
-  background: var(--color-muted);
-  color: var(--color-primary);
-}
-
-/* Selected: a soft fill, the primary color and a bar on the left, so it does not rely on color alone. */
-.sideLink[aria-current="page"] {
-  border-left-color: var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-}
-
-.sideNote {
-  margin-top: auto;
-  padding: var(--space-3);
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
-}
-
-/* Column: header, main, footer */
-.column {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-.header {
+.pinned {
   position: sticky;
   top: 0;
   z-index: var(--z-header);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-4);
-  min-height: var(--header-height);
-  padding: var(--space-1) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-card);
 }
 
-/* The sidebar already shows the name on wide screens. */
-.headerBrand {
+.barIn {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  min-height: 52px;
+}
+
+.tabsRow {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Tabs never wrap. When they do not fit, this row scrolls sideways and the page does not. */
+.tabs {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 4px;
+  min-width: 0;
+  /* A tab given keyboard focus scrolls clear of the arrows at the ends of the row. */
+  scroll-padding-inline: 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
   display: none;
 }
 
-.headerBrand,
-.headerBrandAlways {
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: 600;
-  line-height: var(--leading-tight);
+.tabs li {
+  display: flex;
+  flex: none;
 }
 
-.headerTools {
+.tab {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 16px;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+/* The tab's position among the pages this person can open. */
+.number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.tab:hover {
+  color: var(--accent);
+}
+
+/* Current page: the accent color, a filled circle and a bar underneath, so it does not rely on color alone. */
+.tab[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+.tab[aria-current="page"] .number {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Inside the tab: the row clips anything drawn outside it. */
+.tab:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+}
+
+/* An arrow over an end of the row, shown only while more tabs lie that way. */
+.more {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  padding: 0;
+  border: 0;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.more:hover {
+  color: var(--accent);
+}
+
+.moreLeft {
+  left: 0;
+  border-right: 1px solid var(--line);
+}
+
+.moreRight {
+  right: 0;
+  border-left: 1px solid var(--line);
+}
+
+/* Theme switch and account menu, at the right end. */
+.tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
   margin-left: auto;
 }
 
-.main {
-  flex: 1;
+.main,
+.bareMain {
+  flex: 1 0 auto;
+  width: 100%;
   min-width: 0;
-  padding: var(--space-6);
+  padding: var(--page-top) max(var(--gutter), env(safe-area-inset-right, 0px)) var(--page-bottom) max(var(--gutter), env(safe-area-inset-left, 0px));
 }
 
+/* At least a window tall under the tab bar, so the bar can always pin, also while a page is still loading. */
+.main {
+  min-height: calc(100vh - var(--tabbar-height));
+  min-height: calc(100dvh - var(--tabbar-height));
+}
+
+/* Sign-in pages: the content starts at the left edge of the page column, under the header text. */
 .bareMain {
-  flex: 1;
   display: grid;
   align-content: start;
-  justify-items: center;
-  min-width: 0;
-  padding: var(--space-8) var(--space-4);
+  justify-items: start;
+  max-width: var(--wrap-max);
+  margin: 0 auto;
 }
 
 .footer {
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
 }
 
-.footer p {
-  max-width: var(--measure);
+.footerText {
+  padding-top: 28px;
+  padding-bottom: 40px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-wrap: balance;
 }
 
-/* Bottom tab bar (under 820px) */
-.tabbar {
-  display: none;
-}
-
-@media (max-width: 819.98px) {
-  .frame {
-    grid-template-columns: minmax(0, 1fr);
+/* Tighter tabs before they would have to scroll. */
+@media (max-width: 1100px) {
+  .tab {
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 0.92rem;
   }
+}
 
-  .sidebar {
+@media (max-width: 900px) {
+  .hero::after {
+    background: color-mix(in srgb, var(--hero) 90%, transparent);
+  }
+}
+
+@media (max-width: 640px) {
+  .heroPicture {
     display: none;
   }
 
-  .header {
-    padding: var(--space-1) var(--space-4);
+  .heroIn {
+    padding-top: 40px;
+    padding-bottom: 44px;
   }
 
-  .headerBrand {
-    display: block;
-    font-size: var(--text-lg);
-  }
-
-  /* The notice takes its own row under the name and tools. */
-  .flag {
-    order: 3;
-    width: 100%;
-    margin-bottom: var(--space-1);
-    text-align: center;
-  }
-
-  .main {
-    padding: var(--space-4);
-  }
-
-  .footer {
-    padding: var(--space-4);
-    /* Leave room for the fixed tab bar. */
-    padding-bottom: calc(var(--tabbar-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
-  }
-
-  .tabbar {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: var(--z-tabbar);
-    display: block;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    border-top: 1px solid var(--color-border-strong);
-    background: var(--color-card);
-  }
-
-  .tabList {
-    display: flex;
-    height: var(--tabbar-height);
-  }
-
-  .tabList li {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .tabLink {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    height: 100%;
-    min-width: var(--target-min);
-    padding: var(--space-1) 2px;
-    border-top: 3px solid transparent;
-    color: var(--color-muted-foreground);
-    /* 11px: six one-word labels have to fit side by side at 375px. Each sits under its icon. */
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: var(--leading-tight);
-    text-decoration: none;
-  }
-
-  .tabLink span {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .tabLink:hover {
-    color: var(--color-primary);
-  }
-
-  .tabLink[aria-current="page"] {
-    border-top-color: var(--color-primary);
-    background: var(--color-primary-soft);
-    color: var(--color-primary);
-  }
-
-  .tabLink:focus-visible {
-    outline-offset: calc(-1 * var(--focus-width));
+  .lede {
+    font-size: 0.95rem;
   }
 }

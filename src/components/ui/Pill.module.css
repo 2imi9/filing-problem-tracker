@@ -1,39 +1,91 @@
-.pill {
+/* Outcome: a coloured dot and one short word in a thin neutral outline. The only capsule in the app. */
+.outcome {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: 2px var(--space-2);
-  border: 1px solid currentColor;
+  gap: 6px;
+  padding: 1px 10px 1px 8px;
+  border: 1px solid var(--line);
   border-radius: var(--radius-pill);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  line-height: 1.3;
+  color: var(--ink);
+  font-size: var(--text-pill);
+  line-height: 1.5;
   white-space: nowrap;
 }
 
+.outcome::before {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dot, currentColor);
+}
+
+.reject {
+  --dot: var(--bad);
+}
+
+.fix {
+  --dot: var(--cta);
+}
+
+.pass {
+  --dot: var(--good);
+}
+
+/* Each outline hugs its word. An unseen copy of the longest word holds the slot's width, so the dots line up. */
+.slot {
+  display: inline-grid;
+  flex: none;
+  /* Holds the screen-reader-only full name. */
+  position: relative;
+}
+
+.slot > .outcome {
+  grid-area: 1 / 1;
+  justify-self: start;
+}
+
+.slot > .sizer {
+  visibility: hidden;
+}
+
+/* A problem, as text. */
+.tag {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+/* "Needs review": no problem was chosen. */
+.none {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+/* Any other status: plain text in the color of its tone. */
+.text {
+  font-size: var(--text-sm);
+}
+
 .neutral {
-  background: var(--color-muted);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .primary {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  border-color: transparent;
-  font-weight: 400;
+  color: var(--ink);
 }
 
 .danger {
-  background: var(--color-destructive-soft);
-  color: var(--color-destructive-text);
+  color: var(--bad);
+  font-weight: 700;
 }
 
 .warning {
-  background: var(--color-warning-soft);
-  color: var(--color-warning);
+  color: var(--warn);
+  font-weight: 700;
 }
 
 .success {
-  background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--good);
+  font-weight: 700;
 }

@@ -77,7 +77,7 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: strin
   return (
     <div
       ref={root}
-      className={[styles.toast, styles[tone]].join(" ")}
+      className={styles.toast}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

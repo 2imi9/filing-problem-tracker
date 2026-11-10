@@ -19,8 +19,16 @@ describe("navigation by role", () => {
     expect(hrefs("admin")).toContain("/admin");
   });
 
-  it("keeps the bottom tab bar labels to one short word", () => {
+  it("keeps a one-word short label for every destination", () => {
     for (const item of NAV_ITEMS) expect(item.shortLabel).toMatch(/^\S{1,9}$/);
+  });
+
+  // The tab bar prints each tab's place in this list, counted from 1.
+  it("numbers the tabs by position among the pages the role can open", () => {
+    const numbered = (role: "clerk" | "leader" | "admin") => navFor(role).map((item, index) => `${index + 1} ${item.label}`);
+    expect(numbered("clerk")).toEqual(["1 Tag a filing", "2 Import", "3 Dashboard", "4 Workspace", "5 How it's used"]);
+    expect(numbered("leader")).toEqual(["1 Dashboard", "2 Workspace", "3 How it's used"]);
+    expect(numbered("admin")).toEqual(["1 Tag a filing", "2 Import", "3 Dashboard", "4 Workspace", "5 How it's used", "6 Admin"]);
   });
 
   it("lands clerks on Tag a filing and everyone else on the dashboard", () => {

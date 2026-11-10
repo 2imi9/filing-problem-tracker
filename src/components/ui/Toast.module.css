@@ -12,36 +12,27 @@
 /* The region is never hidden while empty: a live region has to be in the accessibility tree before a
    message is added, or the message may not be read out. Empty, it has no height and takes no clicks. */
 
-/* Under 820px the bottom tab bar is showing: sit above it. */
-@media (max-width: 819.98px) {
+@media (max-width: 640px) {
   .region {
     right: var(--space-4);
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
     left: var(--space-4);
-    bottom: calc(var(--tabbar-height) + var(--space-3) + env(safe-area-inset-bottom, 0px));
     width: auto;
   }
 }
 
+/* A dark bar on light themes and a light bar on dark themes, so it stands clear of the page without a shadow. */
 .toast {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border: 1px solid var(--color-foreground);
-  border-left-width: 4px;
-  border-radius: var(--radius-card);
-  background: var(--color-foreground);
-  color: var(--color-background);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+  border-radius: var(--radius-input);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.95rem;
   pointer-events: auto;
   animation: enter var(--duration) var(--ease);
-}
-
-.success {
-  border-left-color: var(--color-success-soft);
-}
-
-.error {
-  border-left-color: var(--color-destructive);
 }
 
 .icon {
@@ -67,24 +58,25 @@
   background: transparent;
   color: inherit;
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease);
+  transition: background-color var(--duration-fast) ease;
 }
 
 .action {
   padding: 0 var(--space-3);
-  border-color: currentColor;
   font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .action:hover,
 .close:hover {
-  background: color-mix(in srgb, var(--color-background) 18%, transparent);
+  background: color-mix(in srgb, var(--bg) 18%, transparent);
 }
 
 /* The toast is dark on light themes and light on dark themes, so the focus ring flips too. */
 .action:focus-visible,
 .close:focus-visible {
-  outline-color: var(--color-background);
+  outline-color: var(--bg);
 }
 
 @keyframes enter {

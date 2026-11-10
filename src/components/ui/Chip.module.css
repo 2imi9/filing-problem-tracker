@@ -1,16 +1,17 @@
 .group {
   display: grid;
-  gap: var(--space-2);
+  gap: 10px;
   min-width: 0;
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-input);
 }
 
+/* The look comes from the global .label-sm. */
 .groupLabel {
-  font-weight: 700;
+  margin: 0;
 }
 
 .groupHint {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
   font-size: var(--text-sm);
 }
 
@@ -18,7 +19,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  color: var(--color-destructive-text);
+  color: var(--bad);
   font-size: var(--text-sm);
   font-weight: 700;
 }
@@ -29,29 +30,28 @@
   gap: var(--space-2);
 }
 
+/* A row with a mark at its left: a square for "choose any", a circle for "choose one". */
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 10px;
   min-height: var(--target-min);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-card);
-  color: var(--color-foreground);
-  font-size: var(--text-base);
+  padding: 8px 14px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-input);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-control);
   line-height: var(--leading-tight);
   text-align: left;
   cursor: pointer;
   transition:
-    background-color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease),
-    color var(--duration-fast) var(--ease);
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
 }
 
-.chip:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
+.chip:not([aria-pressed="true"]):hover:not(:disabled) {
+  border-color: var(--accent);
 }
 
 .chip:disabled {
@@ -59,71 +59,89 @@
   cursor: not-allowed;
 }
 
+/* Pressed: a soft fill and an accent outline, as well as the mark. */
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--muted);
+  border-radius: 3px;
+}
+
+/* Checkbox row, pressed: the square gives way to a tick in the accent color. */
+.check[aria-pressed="true"] .mark {
+  border: 0;
+  border-radius: 0;
+  color: var(--accent);
+}
+
+/* Radio row: a round mark; pressed, a thick ring in the color of the chip's tone. */
+.radio .mark {
+  border-radius: 50%;
+}
+
+.radio[aria-pressed="true"] .mark {
+  border: 5px solid var(--ring);
+  background: var(--surface);
+}
+
+.primary {
+  --ring: var(--accent);
+}
+
+.danger {
+  --ring: var(--bad);
+}
+
+.warning {
+  --ring: var(--cta);
+}
+
+.success {
+  --ring: var(--good);
+}
+
+/* The key that toggles the chip, when the page offers number keys. */
 .key {
   display: inline-grid;
   place-items: center;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 var(--space-1);
-  border: 1px solid currentColor;
-  border-radius: var(--radius-input);
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 3px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
-  opacity: 0.85;
 }
 
-.chip[aria-pressed="true"] {
-  font-weight: 700;
+.chip[aria-pressed="true"] .key {
+  border-color: var(--field);
 }
 
-.primary[aria-pressed="true"],
-.primary[aria-pressed="true"]:hover:not(:disabled) {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.danger[aria-pressed="true"],
-.danger[aria-pressed="true"]:hover:not(:disabled) {
-  background: var(--color-destructive-soft);
-  border-color: var(--color-destructive-text);
-  color: var(--color-destructive-text);
-}
-
-.warning[aria-pressed="true"],
-.warning[aria-pressed="true"]:hover:not(:disabled) {
-  background: var(--color-warning-soft);
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-}
-
-.success[aria-pressed="true"],
-.success[aria-pressed="true"]:hover:not(:disabled) {
-  background: var(--color-success-soft);
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
-
-/* A second, non-color cue for the pressed state of toned chips: a thicker border. */
-.danger[aria-pressed="true"],
-.warning[aria-pressed="true"],
-.success[aria-pressed="true"] {
-  box-shadow: inset 0 0 0 1px currentColor;
-}
-
+/* An active filter. One button: pressing it removes the filter. */
 .removable {
+  gap: var(--space-2);
   min-height: 36px;
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-1) 10px var(--space-1) var(--space-3);
   font-size: var(--text-sm);
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
 }
 
 .removable:hover {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.removable :global(.icon) {
+  color: var(--muted);
 }
 
 @media (pointer: coarse) {

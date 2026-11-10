@@ -7,7 +7,8 @@
 //           options={months.map((m) => ({ value: m, label: monthLabel(m) }))} />
 //
 // `options` takes plain strings, or { value, label } pairs. `placeholder` adds a first option with the
-// value "" (use it for "All counties" style filters). onChange receives the new value as a string.
+// value "": the general choice a dropdown starts on ("Select case type", "Select form", "All counties").
+// onChange receives the new value as a string. The browser's own arrow is used; the border is --field.
 // Takes the same label, hint, error, id and hideLabel props as the other fields.
 
 "use client";

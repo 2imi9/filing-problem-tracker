@@ -1,4 +1,4 @@
-// The light / dark switch in the header. One button: its label says what pressing it will do.
+// The light / dark switch at the right end of the tab bar. One button: its label says what pressing it will do.
 
 "use client";
 

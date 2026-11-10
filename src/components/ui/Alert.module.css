@@ -1,17 +1,15 @@
+/* A line of text with an icon in the tone's color. No box, no fill, no colored edge. */
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-left-width: 4px;
-  border-radius: var(--radius-card);
-  background: var(--color-card);
-  color: var(--color-foreground);
+  gap: var(--space-2);
+  color: var(--ink);
+  font-size: 0.95rem;
 }
 
 .icon {
   margin-top: 2px;
+  color: var(--tone);
 }
 
 .text {
@@ -21,7 +19,9 @@
   overflow-wrap: anywhere;
 }
 
+/* The first line carries the tone as well as the icon, so the message does not rely on the icon alone. */
 .title {
+  color: var(--tone);
   font-weight: 700;
 }
 
@@ -30,37 +30,24 @@
 }
 
 .info {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
-}
-
-.info .icon {
-  color: var(--color-primary);
+  --tone: var(--accent);
 }
 
 .success {
-  border-color: var(--color-success);
-  background: var(--color-success-soft);
-}
-
-.success .icon {
-  color: var(--color-success);
+  --tone: var(--good);
 }
 
 .warning {
-  border-color: var(--color-warning);
-  background: var(--color-warning-soft);
-}
-
-.warning .icon {
-  color: var(--color-warning);
+  --tone: var(--warn);
 }
 
 .error {
-  border-color: var(--color-destructive-text);
-  background: var(--color-destructive-soft);
+  --tone: var(--bad);
 }
 
-.error .icon {
-  color: var(--color-destructive-text);
+/* Without a title the text itself is the message: success and error lines are bold, as the demo's status line. */
+.success .text > div:first-child,
+.error .text > div:first-child {
+  color: var(--tone);
+  font-weight: 700;
 }

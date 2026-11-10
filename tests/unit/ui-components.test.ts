@@ -7,6 +7,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { BeforeAfterIllustration, CounterIllustration, LeaderIllustration } from "@/app/how-it-works/illustrations";
 import { DEMO_FLAG_TEXT, DemoFlag } from "@/components/shell/DemoFlag";
+import { aiUseText, footerText } from "@/components/shell/footerText";
+import { Mark } from "@/components/shell/Mark";
 import { Page } from "@/components/shell/Page";
 import { Alert } from "@/components/ui/Alert";
 import { Card } from "@/components/ui/Card";
@@ -15,7 +17,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorSummary } from "@/components/ui/ErrorSummary";
 import { Checkbox, TextInput } from "@/components/ui/Field";
 import { ICON_NAMES, Icon } from "@/components/ui/Icon";
-import { OutcomePill, TagPill } from "@/components/ui/Pill";
+import { OutcomePill, Pill, TagPill } from "@/components/ui/Pill";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -54,10 +56,32 @@ describe("Chip", () => {
     expect(off).toContain('aria-pressed="false"');
     expect(off).toContain('aria-keyshortcuts="1"');
     expect(off).toContain("<kbd");
+    // An empty box until it is pressed.
+    expect(off).not.toContain("<svg");
     const on = html(withChildren(Chip, { pressed: true, onPressedChange: noop }, "Missing signature"));
     expect(on).toContain('aria-pressed="true"');
-    // A check mark, so the pressed state does not rely on color.
+    // A tick, so the pressed state does not rely on color.
     expect(on).toContain("<svg");
+  });
+
+  it("draws a checkbox row by default and a radio row for an outcome", () => {
+    const check = html(withChildren(Chip, { pressed: true, onPressedChange: noop }, "Wrong form"));
+    expect(check).toMatch(/class="[^"]*check/);
+    expect(check).not.toMatch(/class="[^"]*radio/);
+    // A tone other than the default marks a choose-one row: a ring, not a tick.
+    const radio = html(withChildren(Chip, { pressed: true, onPressedChange: noop, tone: "danger" }, "Rejected"));
+    expect(radio).toMatch(/class="[^"]*radio/);
+    expect(radio).toMatch(/class="[^"]*danger/);
+    expect(radio).not.toContain("<svg");
+    expect(radio).toContain('aria-pressed="true"');
+    // The prop decides when it is given.
+    expect(html(withChildren(Chip, { pressed: false, onPressedChange: noop, radio: true }, "Rejected"))).toMatch(/class="[^"]*radio/);
+    expect(html(withChildren(Chip, { pressed: false, onPressedChange: noop, tone: "danger", radio: false }, "x"))).toMatch(/class="[^"]*check/);
+  });
+
+  it("keeps the key hint out of the chip's name", () => {
+    const markup = html(withChildren(Chip, { pressed: false, onPressedChange: noop, shortcut: "3" }, "Wrong county or court"));
+    expect(markup).toMatch(/<kbd[^>]*aria-hidden="true"[^>]*>3<\/kbd>/);
   });
 
   it("groups chips under a label and ties the error to the group", () => {
@@ -148,6 +172,23 @@ describe("status components", () => {
     expect(html(createElement(TagPill, { tag: "Needs review" }))).toContain("Needs review");
   });
 
+  it.each([
+    ["Fixed at counter", "Pass"],
+    ["Returned to fix", "Fix"],
+    ["Rejected", "Reject"],
+  ] as const)("shows %s as the short word %s and keeps the full name for screen readers", (outcome, word) => {
+    const markup = html(createElement(OutcomePill, { outcome }));
+    expect(markup).toContain(`>${word}<span class="visually-hidden"> (${outcome})</span>`);
+    expect(markup).toContain(`title="${outcome}"`);
+    // An unseen copy of the longest word holds the width, so the dots line up down a list. It is not read out.
+    expect(markup).toMatch(/aria-hidden="true"[^>]*>Reject<\/span>/);
+  });
+
+  it("prints any other status as plain text", () => {
+    const markup = html(withChildren(Pill, { tone: "warning" }, "Low"));
+    expect(markup).toMatch(/^<span class="[^"]*">Low<\/span>$/);
+  });
+
   it("announces a live alert as an alert for errors and a status otherwise", () => {
     expect(html(createElement(Alert, { tone: "error", live: true }, "Could not load."))).toContain('role="alert"');
     expect(html(createElement(Alert, { tone: "success", live: true }, "Added 9 rows."))).toContain('role="status"');
@@ -160,19 +201,30 @@ describe("status components", () => {
     expect(markup).toContain("Saving");
   });
 
-  it("shows an empty state's title and explanation", () => {
-    const markup = html(createElement(EmptyState, { title: "No entries yet" }, "Entries you save appear here."));
+  it("shows an empty state's title and explanation, as text with no picture", () => {
+    const markup = html(createElement(EmptyState, { title: "No entries yet", icon: "tag" }, "Entries you save appear here."));
     expect(markup).toContain("No entries yet");
     expect(markup).toContain("Entries you save appear here.");
+    expect(markup).not.toContain("<svg");
+    // Not a heading: it must not disturb the page outline.
+    expect(markup).not.toMatch(/<h[1-6]/);
   });
 });
 
 describe("page building blocks", () => {
-  it("gives a page exactly one h1, with the intro under it", () => {
+  it("gives a page exactly one h1, for screen readers, and draws the intro", () => {
     const markup = html(withChildren(Page, { title: "Tag a filing", intro: "Pick what was wrong and save." }, "content"));
     expect(markup.match(/<h1/g)).toHaveLength(1);
-    expect(markup).toContain("<h1>Tag a filing</h1>");
-    expect(markup).toContain("Pick what was wrong and save.");
+    // The highlighted tab names the page on screen, so the title is not drawn a second time.
+    expect(markup).toContain('<h1 class="visually-hidden">Tag a filing</h1>');
+    expect(markup).toMatch(/<p class="intro [^"]*">Pick what was wrong and save.<\/p>/);
+    expect(markup.indexOf("<h1")).toBeLessThan(markup.indexOf("Pick what was wrong"));
+  });
+
+  it("keeps the h1 when a page has no intro", () => {
+    const markup = html(withChildren(Page, { title: "Admin" }, "content"));
+    expect(markup).toContain('<h1 class="visually-hidden">Admin</h1>');
+    expect(markup).not.toContain("<p");
   });
 
   it("names a titled card by its heading, at the level asked for", () => {
@@ -182,9 +234,42 @@ describe("page building blocks", () => {
     expect(html(withChildren(Card, {}, "content"))).not.toContain("<section");
   });
 
+  it("draws a card as a ruled section, and as a box only when asked", () => {
+    const plain = html(withChildren(Card, { title: "Recent entries" }, "content"));
+    expect(plain).toMatch(/class="[^"]*ruled/);
+    expect(plain).not.toMatch(/class="[^"]*boxed/);
+    const boxed = html(withChildren(Card, { title: "Tag a filing problem", boxed: true }, "content"));
+    expect(boxed).toMatch(/class="[^"]*boxed/);
+    expect(boxed).not.toMatch(/class="[^"]*ruled/);
+    // Without a heading there is nothing for a rule to sit over.
+    expect(html(withChildren(Card, {}, "content"))).not.toMatch(/class="[^"]*ruled/);
+  });
+
   it("uses the demo notice wording from the spec", () => {
     expect(DEMO_FLAG_TEXT).toBe("Prototype. All data is made up.");
     expect(html(createElement(DemoFlag))).toContain("Prototype. All data is made up.");
+  });
+
+  it("draws the courthouse mark as decoration", () => {
+    const markup = html(createElement(Mark));
+    expect(markup).toContain('viewBox="0 0 32 32"');
+    expect(markup).toContain('aria-hidden="true"');
+    expect(markup).not.toContain("style=");
+  });
+
+  it("says in the footer that the data is made up only where it is", () => {
+    expect(footerText(true)).toBe(
+      "Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice.",
+    );
+    expect(footerText(false)).toBe("Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. This tool does not give legal advice.");
+  });
+
+  it("says in the footer which features use AI, with the model's name, and that numbers are counted by code", () => {
+    expect(aiUseText(false, "any-model")).toBe("AI use: none on this copy. Import sorts with keyword rules, and every number is counted by code.");
+    const on = aiUseText(true, "example-model-1");
+    expect(on).toMatch(/^AI use: the example-model-1 model /);
+    for (const feature of ["Import", "dashboard summary", "workspace"]) expect(on).toContain(feature);
+    expect(on).toContain("every number is counted by code");
   });
 
   it("describes each line illustration for screen readers and uses no inline styles", () => {

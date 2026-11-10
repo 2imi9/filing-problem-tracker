@@ -2,27 +2,29 @@
   position: relative;
 }
 
+/* Quiet, like the tabs it sits beside: no border, secondary text until it is pointed at or open. */
 .trigger {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: var(--target-min);
   min-width: var(--target-min);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-strong);
+  padding: var(--space-2);
+  border: 0;
   border-radius: var(--radius-input);
-  background: var(--color-card);
-  color: var(--color-foreground);
-  font-weight: 700;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--text-sm);
   cursor: pointer;
   transition:
     background-color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease);
+    color var(--duration-fast) var(--ease);
 }
 
-.trigger:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .triggerLabel {
@@ -32,8 +34,17 @@
   white-space: nowrap;
 }
 
-/* On narrow screens the button is the icon alone; the label stays for screen readers. */
-@media (max-width: 599.98px) {
+/* Where the tabs need the room the button is the person icon alone; the label stays for screen readers. */
+@media (max-width: 1100px) {
+  .trigger {
+    justify-content: center;
+  }
+
+  /* The arrow that follows the label. */
+  .triggerLabel + :global(.icon) {
+    display: none;
+  }
+
   .triggerLabel {
     position: absolute;
     width: 1px;
@@ -46,21 +57,17 @@
 
 .panel {
   position: absolute;
-  top: calc(100% + var(--space-2));
+  top: calc(100% + var(--space-1));
   right: 0;
   z-index: var(--z-menu);
   display: grid;
   gap: var(--space-4);
   width: min(300px, calc(100vw - 2 * var(--space-4)));
   padding: var(--space-4);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--field);
   border-radius: var(--radius-card);
-  background: var(--color-card);
-  color: var(--color-card-foreground);
-}
-
-.panel[hidden] {
-  display: none;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .details {
@@ -70,13 +77,15 @@
 }
 
 .details dt {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .details dd {
   margin: 0;
-  font-weight: 700;
 }
 
 .email {

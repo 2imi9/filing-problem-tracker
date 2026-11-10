@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { io } from "next/cache";
 import localFont from "next/font/local";
+import { Suspense } from "react";
 import { DataProvider } from "@/components/data/DataProvider";
 import { AppShell } from "@/components/shell/AppShell";
+import { aiUseText } from "@/components/shell/footerText";
 import { THEME_INIT_SCRIPT } from "@/components/shell/theme";
 import { ToastProvider } from "@/components/ui/Toast";
+import { AI_ENABLED, AI_MODEL } from "@/server/config";
 import "./globals.css";
 
 // Fonts are self-hosted so a build needs no network. Each sets a CSS variable that globals.css maps to
@@ -49,11 +53,17 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
-  ],
+  // The navy of the header band, which is what sits under the browser's own bar in both themes.
+  themeColor: "#172554",
 };
+
+// The footer says which features use AI and names the model. Only the running server knows both (the
+// settings can differ from the ones the app was built with), so this is left out of the prerendered page
+// and filled in for each request: io() never resolves during a prerender.
+async function AiUse() {
+  await io();
+  return aiUseText(AI_ENABLED, AI_MODEL);
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -65,7 +75,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <DataProvider>
           <ToastProvider>
-            <AppShell>{children}</AppShell>
+            <AppShell
+              aiUse={
+                <Suspense fallback={null}>
+                  <AiUse />
+                </Suspense>
+              }
+            >
+              {children}
+            </AppShell>
           </ToastProvider>
         </DataProvider>
       </body>
