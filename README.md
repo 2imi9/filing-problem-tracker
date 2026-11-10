@@ -2,12 +2,12 @@
   <img src="docs/assets/cover.png" alt="Filing Problem Tracker. Tag, patterns, fixes. An Indiana courthouse drawn in ASCII characters." width="960">
 </p>
 
-# <img src="docs/assets/mark.svg" alt="" width="28"> Filing Problem Tracker
+# Filing Problem Tracker
 
 A small web tool for Indiana trial courts. Clerks tag why a filing from someone without a lawyer was rejected, and court leaders see which problems are most common and whether a fix helped.
 
 > [!NOTE]
-> Student prototype for Northeastern CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. All data is made up, and it gives no legal advice.
+> Student prototype for Northeastern CS4535 AI for Impact, Team 1. All data is made up. It is not an official court system and gives no legal advice.
 
 ## What it does
 
