@@ -20,6 +20,7 @@
   --cta: #b45309;           /* the one main action on each view */
   --cta-hover: #92400e;
   --on-cta: #ffffff;
+  --field: #64748b;
   --good: #166534;
   --warn: #92400e;
   --bad: #b91c1c;
@@ -33,7 +34,7 @@
     --bg: #0b1220; --surface: #111a2b; --ink: #e5eaf2; --muted: #a3b2c9; --quiet: #1a2640; --line: #2c3a55;
     --accent: #9dbbf7; --accent-hover: #bcd1fa; --accent-soft: #1b2a4a;
     --cta: #f0a64b; --cta-hover: #f5b869; --on-cta: #1a1204;
-    --good: #7fc28b; --warn: #e6ae5a; --bad: #f29a93; --bad-soft: #3a2020;
+    --field: #7c8ba3; --good: #7fc28b; --warn: #e6ae5a; --bad: #f29a93; --bad-soft: #3a2020;
     color-scheme: dark;
   }
 }
@@ -41,7 +42,7 @@
   --bg: #0b1220; --surface: #111a2b; --ink: #e5eaf2; --muted: #a3b2c9; --quiet: #1a2640; --line: #2c3a55;
   --accent: #9dbbf7; --accent-hover: #bcd1fa; --accent-soft: #1b2a4a;
   --cta: #f0a64b; --cta-hover: #f5b869; --on-cta: #1a1204;
-  --good: #7fc28b; --warn: #e6ae5a; --bad: #f29a93; --bad-soft: #3a2020;
+  --field: #7c8ba3; --good: #7fc28b; --warn: #e6ae5a; --bad: #f29a93; --bad-soft: #3a2020;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -50,7 +51,9 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f
 .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 10; background: var(--surface); color: var(--accent); padding: 10px 14px; border-radius: 4px; font-weight: 700; }
 .skip:focus { top: 12px; }
-a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, label.btn:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, label.btn:focus-within, .table-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+nav.tabs a:focus-visible { outline-offset: -3px; }
+::placeholder { color: var(--muted); opacity: 1; }
 
 /* Header: navy band with the ASCII courthouse, then the three steps */
 header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
@@ -61,7 +64,7 @@ header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
 @media (max-width: 900px) { .hero::after { background: rgba(23, 37, 84, 0.9); } }
 .hero-in { padding-block: 72px 76px; display: grid; gap: 12px; justify-items: start; }
 /* On wide screens the header text sits a little left of the page column, clear of the picture. */
-@media (min-width: 1200px) { .hero-in { transform: translateX(-48px); } }
+@media (min-width: 1280px) { .hero-in { transform: translateX(-48px); } }
 h1 { font-family: var(--font-head); font-weight: 600; font-size: clamp(2.6rem, 1.5rem + 4.4vw, 4.6rem); line-height: 1.04; margin: 0; letter-spacing: -0.005em; text-wrap: balance; display: flex; align-items: flex-start; gap: 0.32em; }
 /* The courthouse mark is our own drawing, not a court seal or logo. */
 .mark { width: 0.74em; height: 0.74em; flex: none; margin-top: 0.16em; }
@@ -91,7 +94,7 @@ section.view { display: grid; gap: 48px; }
 label.f, .label-sm { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
 label.f { display: grid; gap: 6px; }
 .label-sm { margin: 0; }
-select, input[type="text"], textarea { font: inherit; font-size: 1rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; min-height: 44px; width: 100%; text-transform: none; letter-spacing: 0; font-weight: 400; transition: border-color 0.15s ease; }
+select, input[type="text"], textarea { font: inherit; font-size: 1rem; color: var(--ink); background: var(--surface); border: 1px solid var(--field); border-radius: 4px; padding: 10px 12px; min-height: 44px; width: 100%; text-transform: none; letter-spacing: 0; font-weight: 400; transition: border-color 0.15s ease; }
 select { cursor: pointer; }
 select:hover, input[type="text"]:hover, textarea:hover { border-color: var(--accent); }
 textarea { font-family: var(--font-data); font-size: 0.82rem; line-height: 1.55; resize: vertical; }
@@ -129,16 +132,16 @@ th.num { font-family: inherit; }
 label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.recent { list-style: none; margin: 0; padding: 0; display: grid; }
-.recent li { padding: 18px 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.recent { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.recent li { padding: 18px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .recent li:first-child { border-top: 0; padding-top: 0; }
-.recent .meta { font-family: var(--font-data); font-size: 0.78rem; color: var(--muted); }
+.recent .meta { font-family: var(--font-data); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
 .recent .tags, td .tags { display: flex; flex-wrap: wrap; column-gap: 0; row-gap: 2px; }
 .tag { font-size: 0.9rem; color: var(--ink); }
 .tag:not(:last-child)::after { content: ","; margin-right: 6px; }
 .tag.none { color: var(--bad); font-weight: 700; }
 /* Outcome: a coloured dot and one short word. */
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; min-width: 5.9em; flex: none; }
 .pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .pill.r::before { color: var(--bad); } .pill.f::before { color: var(--cta); } .pill.a::before { color: var(--good); }
 .recent .head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
@@ -232,11 +235,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
             <label class="f">Case type<select id="logCase"></select></label>
             <label class="f">Form<select id="logForm1"></select></label>
           </div>
+          <p class="status err" id="logErr" role="alert" hidden></p>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
           <div class="label-sm" id="outLabel">What happened to the filing?</div>
           <div class="outcomes" id="logOutcome" role="group" aria-labelledby="outLabel"></div>
-          <label class="f">Optional note<input type="text" id="logNote" placeholder="Short note. Do not include names or case numbers."></label>
+          <label class="f">Optional note<input type="text" id="logNote" maxlength="200" placeholder="Short note. Do not include names or case numbers."></label>
           <div class="actions">
             <button class="btn" type="submit" id="logSave" disabled>Save tags</button>
             <button class="btn secondary" type="button" id="logClear">Clear</button>
@@ -260,14 +264,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         <label class="f">CSV text<textarea id="csvText" rows="11" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
-          <label class="btn secondary" for="csvFile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Upload a CSV file</label>
-          <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+          <label class="btn secondary" for="csvFile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Upload a CSV file<input type="file" id="csvFile" class="sr" accept=".csv,text/csv"></label>
           <span class="status" id="csvStatus" role="status"></span>
         </div>
       </div>
       <div class="panel plain" id="previewPanel" hidden>
         <h2>Preview <small id="previewSummary"></small></h2>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Preview of sorted rows">
           <table>
             <thead><tr><th>Date</th><th>County</th><th>Case type</th><th>Clerk's reason (as typed)</th><th>Sorted into</th></tr></thead>
             <tbody id="previewBody"></tbody>
@@ -306,11 +309,11 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       </div>
       <div class="panel plain">
         <h2>Problems by county <small>flagged filings with each problem</small></h2>
-        <div class="table-wrap"><table id="heat"></table></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Problems by county"><table id="heat"></table></div>
       </div>
       <div class="panel plain">
         <h2>Problems by form</h2>
-        <div class="table-wrap"><table id="forms"></table></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Problems by form"><table id="forms"></table></div>
       </div>
       <div class="panel">
         <h2>Before and after a change</h2>
@@ -411,10 +414,11 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function outcomeShort(o) { return o === "Rejected" ? "Reject" : (o === "Returned to fix" ? "Fix" : "Pass"); }
 
   // ---------- View routing ----------
-  var VIEWS = ["log", "import", "dashboard"];
+  var VIEWS = ["log", "import", "dashboard"], currentView = "log";
   function show() {
     var v = (location.hash || "#log").slice(1);
-    if (VIEWS.indexOf(v) < 0) v = "log";
+    if (VIEWS.indexOf(v) < 0) v = currentView;
+    currentView = v;
     VIEWS.forEach(function (name) { $("view-" + name).hidden = name !== v; });
     document.querySelectorAll("nav.tabs a").forEach(function (a) { if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     if (v === "dashboard") renderDashboard();
@@ -460,25 +464,37 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     $("logNote").value = "";
     $("logSave").disabled = true;
   }
-  $("logClear").addEventListener("click", function () { clearLog(); $("logStatus").textContent = ""; });
+  ["logCounty", "logCase", "logForm1"].forEach(function (id) {
+    $(id).addEventListener("change", function () {
+      if ($("logErr").hidden) return;
+      if ($(id).value) { $(id).removeAttribute("aria-invalid"); $(id).removeAttribute("aria-describedby"); }
+      if ($("logCounty").value && $("logCase").value && $("logForm1").value) $("logErr").hidden = true;
+    });
+  });
+  $("logClear").addEventListener("click", function () { clearLog(); $("logStatus").textContent = ""; $("logErr").hidden = true; });
   $("logForm").addEventListener("submit", function (e) {
     e.preventDefault();
     if (!selTags.length) return;
-    var missing = ["logCounty", "logCase", "logForm1"].filter(function (id) { return !$(id).value; });
+    var FIELD_IDS = ["logCounty", "logCase", "logForm1"];
+    var missing = FIELD_IDS.filter(function (id) { return !$(id).value; });
+    FIELD_IDS.forEach(function (id) { $(id).removeAttribute("aria-invalid"); $(id).removeAttribute("aria-describedby"); });
     if (missing.length) {
-      $("logStatus").className = "status err";
-      $("logStatus").textContent = "Choose a county, case type and form first.";
+      $("logStatus").textContent = "";
+      $("logErr").textContent = "Choose a county, case type and form first.";
+      $("logErr").hidden = false;
+      missing.forEach(function (id) { $(id).setAttribute("aria-invalid", "true"); $(id).setAttribute("aria-describedby", "logErr"); });
       $(missing[0]).focus();
       return;
     }
-    $("logStatus").className = "status";
+    $("logErr").hidden = true;
     var secs = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : null;
     var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: $("logNote").value.trim(), source: "clerk" };
     records.push(rec);
     recent.unshift(rec);
     renderRecent();
-    $("logStatus").textContent = "Saved. " + rec.tags.length + (rec.tags.length === 1 ? " problem" : " problems") + " logged" + (secs ? " in " + secs + " seconds." : ".");
+    $("logStatus").textContent = "Saved. " + rec.tags.length + (rec.tags.length === 1 ? " problem" : " problems") + " logged" + (secs ? " in " + secs + (secs === 1 ? " second." : " seconds.") : ".");
     clearLog();
+    $("logTags").querySelector(".chip").focus({ preventScroll: true });
   });
 
   // Recent entries start with a few sample rows from the made-up desk
@@ -493,7 +509,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var li = el("li");
       var top = el("div", { "class": "head" });
       top.appendChild(el("strong", null, r.form));
-      top.appendChild(el("span", { "class": "pill " + outcomeClass(r.outcome), title: r.outcome }, outcomeShort(r.outcome)));
+      var pill = el("span", { "class": "pill " + outcomeClass(r.outcome), title: r.outcome }, outcomeShort(r.outcome));
+      pill.appendChild(el("span", { "class": "sr" }, " (" + r.outcome + ")"));
+      top.appendChild(pill);
       li.appendChild(top);
       li.appendChild(el("div", { "class": "meta" }, r.date + " · " + r.county + " · " + r.caseType + (r.source === "clerk" ? " · just added" : " · sample")));
       var tg = el("div", { "class": "tags" });
@@ -531,7 +549,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     [/\bcit(e|es|ed|ation)\b|case that does not exist|statute|fake/i, "Citation not found or wrong"],
     [/\baddress\b|service/i, "Missing addresses for service"],
     [/notar|verif|sworn|affirm/i, "Not verified or notarized"],
-    [/page|scan|unreadable|illegible|blank/i, "Pages missing or unreadable"]
+    [/\bpages?\b.*\b(missing|blank)\b|\b(missing|blank)\b.*\bpages?\b|scan|unreadable|illegible/i, "Pages missing or unreadable"]
   ];
   function classify(reason) {
     var out = [];
@@ -543,7 +561,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     for (var i = 0; i < text.length; i++) {
       var c = text[i];
       if (q) { if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
-      else if (c === '"') q = true;
+      else if (c === '"' && cur === "") q = true;
       else if (c === ",") { row.push(cur); cur = ""; }
       else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
       else cur += c;
@@ -552,6 +570,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     return rows.filter(function (r) { return r.some(function (x) { return x.trim(); }); });
   }
   var pending = [];
+  var addedText = null;
   function sortCSV() {
     var rows = parseCSV($("csvText").value);
     $("csvStatus").className = "status";
@@ -562,7 +581,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     pending = rows.slice(1).map(function (r) {
       var reason = (r[idx.reason] || "").trim();
       var tags = classify(reason);
-      return { date: (r[idx.date] || "").trim(), county: (r[idx.county] || "").trim(), caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], outcome: "Rejected", source: "import" };
+      var county = (r[idx.county] || "").trim().replace(/\s+county$/i, "");
+      COUNTIES.forEach(function (c) { if (c.toLowerCase() === county.toLowerCase()) county = c; });
+      return { date: (r[idx.date] || "").trim(), county: county || "Not given", caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], outcome: "Rejected", source: "import" };
     });
     var body = $("previewBody"); body.innerHTML = "";
     var review = 0;
@@ -577,10 +598,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       td.appendChild(box); tr.appendChild(td);
       body.appendChild(tr);
     });
-    $("previewSummary").textContent = pending.length + " rows read, " + (pending.length - review) + " sorted automatically, " + review + " need review";
+    $("previewSummary").textContent = pending.length + (pending.length === 1 ? " row read, " : " rows read, ") + (pending.length - review) + " sorted automatically, " + review + " need review";
     $("previewPanel").hidden = false;
-    $("csvAdd").disabled = false;
-    $("csvStatus").textContent = "";
+    var already = $("csvText").value === addedText;
+    $("csvAdd").disabled = already;
+    $("csvStatus").className = "status";
+    $("csvStatus").textContent = already ? "These rows are already on the dashboard." : "Preview ready below.";
   }
   $("csvSort").addEventListener("click", sortCSV);
   $("csvFile").addEventListener("change", function (e) {
@@ -588,13 +611,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var r = new FileReader();
     r.onload = function () { $("csvText").value = String(r.result); sortCSV(); };
     r.readAsText(f);
+    e.target.value = "";
   });
   $("csvAdd").addEventListener("click", function () {
-    var added = pending.filter(function (p) { return /^\d{4}-\d{2}-\d{2}$/.test(p.date); });
+    var added = pending.filter(function (p) { return /^\d{4}-\d{2}-\d{2}$/.test(p.date) && monthsAll.indexOf(p.date.slice(0, 7)) >= 0; });
+    var skipped = pending.length - added.length;
     added.forEach(function (p) { records.push(p); });
+    addedText = $("csvText").value;
+    $("csvSort").focus();
     $("csvAdd").disabled = true;
-    $("csvStatus").className = "status";
-    $("csvStatus").textContent = "Added " + added.length + " rows. Open the dashboard to see them.";
+    var skipNote = skipped ? " Skipped " + skipped + (skipped === 1 ? " row" : " rows") + " with a date outside January to October 2026." : "";
+    $("csvStatus").className = added.length ? "status" : "status err";
+    $("csvStatus").textContent = added.length
+      ? "Added " + added.length + (added.length === 1 ? " row." : " rows.") + skipNote + " Open the dashboard to see them."
+      : "No rows added. Dates must be written like 2026-09-14 and fall between January and October 2026.";
   });
 
   // ---------- View 3: dashboard ----------
@@ -622,13 +652,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     });
   }
   function countTags(rs) {
-    var counts = {}; rs.forEach(function (r) { r.tags.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
+    var counts = {}; rs.forEach(function (r) { r.tags.forEach(function (t) { if (t !== NEEDS_REVIEW) counts[t] = (counts[t] || 0) + 1; }); });
     return counts;
   }
   function topEntries(counts) { return Object.keys(counts).map(function (k) { return [k, counts[k]]; }).sort(function (a, b) { return b[1] - a[1]; }); }
   function bars(container, entries, total) {
     container.innerHTML = "";
-    var max = entries.length ? entries[0][1] : 1;
+    var max = entries.reduce(function (m, e) { return Math.max(m, e[1]); }, 0) || 1;
     entries.forEach(function (e) {
       var row = el("div", { "class": "bar-row" });
       row.appendChild(el("div", null, e[0]));
@@ -669,16 +699,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     hr.appendChild(el("th", { "class": "num" }, "All flagged"));
     thead.appendChild(hr); heat.appendChild(thead);
     var tb = el("tbody"), maxCell = 1, grid = {};
-    var countiesShown = $("fCounty").value ? [$("fCounty").value] : COUNTIES;
+    var countiesShown = $("fCounty").value ? [$("fCounty").value] : COUNTIES.concat(Object.keys(byCounty).filter(function (c) { return COUNTIES.indexOf(c) < 0; }).sort());
     countiesShown.forEach(function (c) { grid[c] = countTags(rs.filter(function (r) { return r.county === c; })); cols.forEach(function (t) { maxCell = Math.max(maxCell, grid[c][t] || 0); }); });
     countiesShown.forEach(function (c) {
       var tr = el("tr"); tr.appendChild(el("td", null, c));
       cols.forEach(function (t) {
         var v = grid[c][t] || 0;
         var td = el("td", { "class": "heat" }, String(v));
-        var pct = Math.round(v / maxCell * 70);
+        var pct = Math.round(v / maxCell * 45);
         td.style.background = "color-mix(in srgb, var(--accent) " + pct + "%, var(--surface))";
-        if (pct > 40) td.style.color = "var(--surface)";
         tr.appendChild(td);
       });
       tr.appendChild(el("td", { "class": "num" }, String(byCounty[c] || 0)));
@@ -714,7 +743,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var scoped = records.filter(function (r) { return r.county === ev.county && r.caseType === ev.caseType; });
     var series = monthsAll.map(function (ym) { return [ym, scoped.filter(function (r) { return r.date.slice(0, 7) === ym && r.tags.indexOf(tag) >= 0; }).length]; });
     var evYm = ev.date.slice(0, 7);
-    var before = series.filter(function (s) { return s[0] < evYm; }), after = series.filter(function (s) { return s[0] >= evYm; });
+    var before = series.filter(function (s) { return s[0] < evYm; }), after = series.filter(function (s) { return +ev.date.slice(8, 10) > 1 ? s[0] > evYm : s[0] >= evYm; });
     // Leave out the current, partial month from the average
     var afterFull = after.filter(function (s) { return s[0] !== "2026-10"; });
     function avg(a) { return a.length ? a.reduce(function (x, s) { return x + s[1]; }, 0) / a.length : 0; }
@@ -724,7 +753,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     function box(label, v, s, cls) { var d = el("div"); d.appendChild(el("div", { "class": "label-sm" }, label)); d.appendChild(el("div", { "class": "v " + (cls || "") }, v)); d.appendChild(el("div", { "class": "s" }, s)); cmp.appendChild(d); }
     box("Before", b.toFixed(1), "per month, " + before.length + " months");
     box("After", a.toFixed(1), "per month, " + (afterFull.length || after.length) + " full months");
-    box("Change", (change > 0 ? "+" : "") + change + "%", change < 0 ? "fewer filings with this problem" : (change > 0 ? "more filings with this problem" : "no change"), change < 0 ? "down" : (change > 0 ? "up" : ""));
+    if (!b && a) box("Change", "n/a", "none before the change to compare");
+    else box("Change", (change > 0 ? "+" : "") + change + "%", change < 0 ? "fewer filings with this problem" : (change > 0 ? "more filings with this problem" : "no change"), change < 0 ? "down" : (change > 0 ? "up" : ""));
 
     // Line chart
     var svg = $("evChart"), W = 760, H = 240, L = 40, R = 16, T = 16, B = 34;
@@ -750,6 +780,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       parts.push('<circle cx="' + x(i) + '" cy="' + y(s[1]) + '" r="' + (last ? 5 : 3.5) + '" fill="' + (last ? "var(--surface)" : "var(--accent)") + '" stroke="var(--accent)" stroke-width="2"><title>' + monthLabel(s[0]) + ": " + s[1] + (last ? " (month in progress)" : "") + '</title></circle>');
     });
     svg.innerHTML = parts.join("");
+    svg.setAttribute("aria-label", "Filings with this problem per month: " + series.map(function (s) { return monthLabel(s[0]) + " " + s[1]; }).join(", "));
   }
 
   show();
