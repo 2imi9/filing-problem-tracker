@@ -705,8 +705,6 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
     ex = Math.max(L, ex);
     parts.push('<line x1="' + ex + '" x2="' + ex + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 4"/>');
     parts.push('<text x="' + (ex + 6) + '" y="' + (T + 10) + '" fill="var(--warn)" style="fill:var(--warn)">Change</text>');
-    var area = "M" + x(0) + "," + y(0) + " " + series.map(function (s, i) { return "L" + x(i) + "," + y(s[1]); }).join(" ") + " L" + x(series.length - 1) + "," + y(0) + " Z";
-    parts.push('<path d="' + area + '" fill="var(--accent-soft)" stroke="none"/>');
     parts.push('<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="' + series.map(function (s, i) { return x(i) + "," + y(s[1]); }).join(" ") + '"/>');
     series.forEach(function (s, i) {
       var last = i === series.length - 1;
