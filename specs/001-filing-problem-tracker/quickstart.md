@@ -105,3 +105,15 @@ sh scripts/build-space.sh   # collects six files into space-build/
 ```
 
 Create a Space with the Docker SDK and upload the six files. The first build downloads the model.
+
+## Score the sorting (optional)
+
+`tests/tagging/notes.csv` holds 48 made-up clerk notes with the right problem for each. Most are worded so the keyword rules miss them, because those are the notes a model would see.
+
+```bash
+python3 scripts/score-tagging.py                               # keyword rules only
+sh scripts/start-kev.sh                                        # terminal 1: Kev-0.8B on 127.0.0.1:8009 (needs uv)
+python3 scripts/score-tagging.py --url http://127.0.0.1:8009   # terminal 2: the rules, the model, and both together
+```
+
+`--url` takes any server that answers `POST /v1/systemone`, so the same command scores OpenJev on port 3000.
