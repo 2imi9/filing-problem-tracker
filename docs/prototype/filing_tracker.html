@@ -143,7 +143,11 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .tag.none { color: var(--bad); font-weight: 700; }
 .by { font-size: 0.78rem; color: var(--muted); }
 /* Outcome: a coloured dot and one short word. */
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; min-width: 5.9em; flex: none; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; }
+/* Each outline hugs its word. An unseen copy of the longest label holds the slot's width, so the dots line up. */
+.pill-slot { display: inline-grid; flex: none; }
+.pill-slot > .pill { grid-area: 1 / 1; justify-self: start; }
+.pill-slot > .pill.sizer { visibility: hidden; }
 .pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .pill.r::before { color: var(--bad); } .pill.f::before { color: var(--cta); } .pill.a::before { color: var(--good); }
 .recent .head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
@@ -519,7 +523,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       top.appendChild(el("strong", null, r.form));
       var pill = el("span", { "class": "pill " + outcomeClass(r.outcome), title: r.outcome }, outcomeShort(r.outcome));
       pill.appendChild(el("span", { "class": "sr" }, " (" + r.outcome + ")"));
-      top.appendChild(pill);
+      var slot = el("span", { "class": "pill-slot" });
+      slot.appendChild(pill);
+      slot.appendChild(el("span", { "class": "pill sizer", "aria-hidden": "true" }, "Reject"));
+      top.appendChild(slot);
       li.appendChild(top);
       li.appendChild(el("div", { "class": "meta" }, r.date + " · " + r.county + " · " + r.caseType + (r.source === "clerk" ? " · just added" : " · sample")));
       var tg = el("div", { "class": "tags" });
