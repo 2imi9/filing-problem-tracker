@@ -29,6 +29,8 @@ open site/index.html
 
 The prototype is one HTML file with no dependencies. `render.yaml` deploys it to Render as a static site.
 
+On an Apple silicon Mac, Import can also sort the reasons the keyword rules miss with a model that runs on the same computer. See the [quickstart](specs/001-filing-problem-tracker/quickstart.md).
+
 ## Docs
 
 The project follows [GitHub Spec Kit](https://github.com/github/spec-kit).

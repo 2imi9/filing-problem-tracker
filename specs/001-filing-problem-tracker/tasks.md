@@ -65,6 +65,7 @@
 
 - [ ] T018 [US4] Import page with preview, rejected rows and commit in `src/app/import/`
 - [ ] T019 [P] [US4] AI sorting of reasons with the rules fallback in `src/server/ai/classify.ts`
+- [x] T019a [US4] Prototype: local model sorting of leftover rows in `docs/prototype/filing_tracker.html`, served by `scripts/serve-local.py`
 
 ## Phase 7: User Story 5 - Ask for a view (Priority: P3)
 

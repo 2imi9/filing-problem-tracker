@@ -7,6 +7,17 @@ sh scripts/build-site.sh
 open site/index.html
 ```
 
+## Run with the local model (optional)
+
+Needs an Apple silicon Mac with 16 GB of memory. The first run downloads about 9.5 GB.
+
+```bash
+sh scripts/start-openjev.sh       # terminal 1: OpenJev Flash 9B on 127.0.0.1:3000
+python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:8080
+```
+
+On Import, rows the keyword rules cannot sort go to the model and come back marked "local model". Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
+
 ## Check it works
 
 1. On Tag a filing, pick a form, click two problems and save. The entry appears in Recent entries.
