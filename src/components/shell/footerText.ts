@@ -16,9 +16,11 @@ export function footerText(demo: boolean): string {
 
 /**
  * Which features use AI on this copy, and which model. Numbers are always counted by code.
- * `model` is the configured model's name; it is only used when `enabled` is true.
+ * `model` is the configured model's name. The browser is not told it (GET /api/me and GET /api/health
+ * say only whether AI is on), so without it the sentence names the features and not the model.
  */
-export function aiUseText(enabled: boolean, model: string): string {
+export function aiUseText(enabled: boolean, model?: string | null): string {
   if (!enabled) return "AI use: none on this copy. Import sorts with keyword rules, and every number is counted by code.";
-  return `AI use: the ${model} model sorts the Import reasons the keyword rules cannot, writes the dashboard summary when asked, and reads requests typed into the workspace. Tagging uses no AI, and every number is counted by code.`;
+  const who = model ? `the ${model} model` : "an AI model";
+  return `AI use: ${who} sorts the Import reasons the keyword rules cannot, writes the dashboard summary when asked, and reads requests typed into the workspace. Tagging uses no AI, and every number is counted by code.`;
 }

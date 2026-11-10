@@ -18,7 +18,7 @@ import { Icon } from "@/components/ui/Icon";
 import type { HealthResponse } from "@/lib/api";
 import type { AppMode } from "@/lib/domain";
 import { DemoFlag } from "./DemoFlag";
-import { footerText } from "./footerText";
+import { aiUseText, footerText } from "./footerText";
 import { Mark } from "./Mark";
 import { isSignInPath, navFor } from "./nav";
 import type { NavItem } from "./nav";
@@ -34,26 +34,32 @@ const NO_PICTURE = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAA
 
 const isCurrent = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
+/** What the shell needs to know about the server: the mode it runs in and whether AI features are on. */
+interface ServerFacts {
+  mode: AppMode;
+  ai: boolean;
+}
+
 /**
- * The sign-in pages load no account data, so the shell asks the public health check which mode the
- * server runs in. It only decides whether the prototype notice and the made-up-data sentence show.
+ * The sign-in pages load no account data, so there the shell asks the public health check. The answer
+ * only decides which notices show: the prototype line, the made-up-data sentence and the AI sentence.
  */
-function useSignInPageMode(bare: boolean): AppMode | null {
-  const [mode, setMode] = useState<AppMode | null>(null);
+function useSignInPageFacts(bare: boolean): ServerFacts | null {
+  const [facts, setFacts] = useState<ServerFacts | null>(null);
   useEffect(() => {
     if (!bare) return;
     let cancelled = false;
     apiFetch<HealthResponse>("/api/health")
       .then((health) => {
-        if (!cancelled) setMode(health.mode);
+        if (!cancelled) setFacts({ mode: health.mode, ai: health.ai });
       })
-      // Unknown mode: the notice stays off.
+      // Not known: the notices that depend on it stay off.
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
   }, [bare]);
-  return mode;
+  return facts;
 }
 
 /**
@@ -200,16 +206,23 @@ function Tabs({ items, pathname }: { items: readonly NavItem[]; pathname: string
 
 export interface AppShellProps {
   children: ReactNode;
-  /** The footer's sentence about AI use. The root layout renders it on the server, which knows the model. */
+  /**
+   * The footer's sentence about AI use, when the caller can say more than the shell can. The shell knows
+   * whether AI is on but not which model is configured; a caller that knows (a Server Component reading
+   * the server's settings) passes the sentence from aiUseText(enabled, model) here and it is shown as given.
+   */
   aiUse?: ReactNode;
 }
 
 export function AppShell({ children, aiUse }: AppShellProps) {
   const pathname = usePathname() ?? "/";
-  const { user, mode } = useData();
+  const { user, mode, ai } = useData();
   const bare = isSignInPath(pathname);
-  const signInMode = useSignInPageMode(bare);
-  const demo = (bare ? signInMode : mode) === "demo";
+  const signInFacts = useSignInPageFacts(bare);
+  // Null until the server has answered. Signed in, the mode and the AI switch arrive together with the account.
+  const facts: ServerFacts | null = bare ? signInFacts : mode ? { mode, ai } : null;
+  const demo = facts?.mode === "demo";
+  const aiSentence = aiUse ?? (facts ? aiUseText(facts.ai) : null);
   const role = !bare && user ? user.role : null;
   const items = useMemo(() => (role ? navFor(role) : []), [role]);
   const headerRef = useRef<HTMLElement>(null);
@@ -267,7 +280,7 @@ export function AppShell({ children, aiUse }: AppShellProps) {
       <footer className={styles.footer}>
         <p className={`wrap ${styles.footerText}`}>
           {footerText(demo)}
-          {aiUse ? <> {aiUse}</> : null}
+          {aiSentence ? <> {aiSentence}</> : null}
         </p>
       </footer>
     </div>

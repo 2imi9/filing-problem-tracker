@@ -270,6 +270,10 @@ describe("page building blocks", () => {
     expect(on).toMatch(/^AI use: the example-model-1 model /);
     for (const feature of ["Import", "dashboard summary", "workspace"]) expect(on).toContain(feature);
     expect(on).toContain("every number is counted by code");
+    // The browser is not told the model's name. Without it the features are still named.
+    const unnamed = aiUseText(true);
+    expect(unnamed).toMatch(/^AI use: an AI model /);
+    for (const feature of ["Import", "dashboard summary", "workspace"]) expect(unnamed).toContain(feature);
   });
 
   it("describes each line illustration for screen readers and uses no inline styles", () => {
