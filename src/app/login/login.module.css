@@ -1,0 +1,76 @@
+.wrap {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 520px;
+}
+
+.roles {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.role {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  color: var(--color-foreground);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
+}
+
+.role:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.role:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.role > svg:first-child {
+  color: var(--color-primary);
+}
+
+.roleText {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.roleName {
+  font-weight: 700;
+}
+
+.roleSummary {
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.form > * {
+  width: 100%;
+}
+
+.form > button {
+  width: auto;
+}

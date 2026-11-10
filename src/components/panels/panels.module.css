@@ -1,0 +1,244 @@
+/* The panel shell and the renderers. Colors, type and spacing come from the tokens in globals.css. */
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  background: var(--color-card);
+  color: var(--color-card-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  min-height: calc(var(--target-min) + var(--space-4));
+}
+
+.title {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: var(--text-xl);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.toolbar {
+  padding: 0 var(--space-4) var(--space-3);
+  min-width: 0;
+}
+
+.body {
+  container: panel / inline-size;
+  flex: 1 1 auto;
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.summary {
+  max-width: var(--measure);
+}
+
+.note,
+.hint {
+  max-width: var(--measure);
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+.foot {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+.tables {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Key numbers */
+.kpis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  gap: var(--space-3);
+}
+
+.kpi {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-background);
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+.kpiNumber {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-kpi);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.kpiText {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+  /* Lines up with the numerals in the tiles beside it. */
+  min-height: calc(var(--text-kpi) * 1.1);
+  display: flex;
+  align-items: flex-end;
+}
+
+.kpiDetail {
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+.kpiTrend {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.kpiChange {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.kpiChange svg {
+  margin-top: 0.15em;
+}
+
+.kpiRange {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+  color: var(--color-muted-foreground);
+}
+
+/* Before and after */
+.compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.compareItem {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-background);
+}
+
+.compareItem dd {
+  margin: 0;
+}
+
+.compareValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.compareValue svg {
+  align-self: center;
+}
+
+/* A drop is the one place the success color is used. The arrow and the sign say the same thing. */
+.compareValue[data-direction="down"] {
+  color: var(--color-success);
+}
+
+.unit {
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+/* Forms table: the column headings are buttons */
+.formsTable thead th {
+  padding: 0;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease);
+}
+
+.sortButton:hover {
+  background: var(--color-primary-soft);
+}
+
+.sortButton:focus-visible {
+  outline-offset: calc(var(--focus-width) * -1);
+}
+
+.sortButton svg {
+  color: var(--color-muted-foreground);
+}
+
+.sortButton[data-active="true"] svg {
+  color: var(--color-primary);
+}
+
+.formsTable thead th:global(.num) .sortButton {
+  justify-content: flex-end;
+  text-align: right;
+}

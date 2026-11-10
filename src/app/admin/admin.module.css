@@ -1,0 +1,45 @@
+.stack {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  /* One field has a hint line. Lining up the bottoms keeps the inputs of a row level. */
+  align-items: end;
+  gap: var(--space-4);
+}
+
+.nameCell {
+  min-width: 18ch;
+}
+
+.descriptionCell {
+  min-width: 30ch;
+}
+
+/* The log can be long: it scrolls inside its own box and the column heads stay in view. */
+.auditScroll {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.when {
+  white-space: nowrap;
+}
+
+.details {
+  display: grid;
+  gap: 2px;
+  min-width: 16ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

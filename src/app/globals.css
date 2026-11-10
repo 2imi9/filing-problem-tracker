@@ -1,0 +1,388 @@
+/*
+  Design tokens and base styles for the Filing Problem Tracker.
+
+  Tokens follow the table in ARCHITECTURE.md ("Design system") and design-system/MASTER.md.
+  Components use these variables only: no raw hex values in CSS Modules.
+
+  Themes: light is the default. Dark applies when the system asks for it, unless the person picked a
+  theme with the toggle, which sets data-theme="light" or data-theme="dark" on <html>.
+  The dark values appear twice (system preference and manual choice); keep the two blocks identical.
+*/
+
+:root {
+  color-scheme: light;
+
+  /* Color: the spec's token table */
+  --color-primary: #1e3a8a;
+  --color-on-primary: #ffffff;
+  --color-secondary: #1e40af;
+  --color-on-secondary: #ffffff;
+  --color-accent: #b45309;
+  --color-on-accent: #ffffff;
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-muted: #e9eef5;
+  --color-muted-foreground: #475569;
+  --color-border: #cbd5e1;
+  --color-destructive: #dc2626;
+  --color-on-destructive: #ffffff;
+  --color-success: #166534;
+  --color-ring: #1e3a8a;
+
+  /* Color: additions the table implies */
+  --color-destructive-text: #b91c1c; /* error text on light surfaces, 4.5:1 or better */
+  --color-warning: #92400e; /* "Returned to fix", cautions */
+  --color-border-strong: #64748b; /* borders of inputs and other controls, 3:1 or better */
+  --color-primary-soft: #e0e7f8; /* selected navigation item, quiet highlight */
+  --color-success-soft: #dcf3e3;
+  --color-destructive-soft: #fde8e8;
+  --color-warning-soft: #fbeed5;
+  --color-overlay: rgb(15 23 42 / 0.55); /* behind dialogs */
+  /* Over a photograph, the same in both themes: a dark layer, and the text that sits on it. */
+  --color-scrim: rgb(8 13 26 / 0.62);
+  --color-scrim-solid: #0b1220;
+  --color-on-scrim: #ffffff;
+
+  /* Type */
+  --font-heading: var(--font-eb-garamond), "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-body: var(--font-lato), Lato, "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --text-xs: 0.75rem; /* 12px: tab bar labels and table column heads only */
+  --text-sm: 0.875rem; /* 14px: dense tables, hints */
+  --text-base: 1rem; /* 16px: body minimum */
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-kpi: 2.5rem; /* KPI numerals */
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --measure: 70ch;
+
+  /* Space (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Shape */
+  --radius-input: 4px;
+  --radius-card: 6px;
+  --radius-dialog: 10px;
+  --radius-pill: 999px;
+
+  /* Layout */
+  --sidebar-width: 240px;
+  --header-height: 56px;
+  --tabbar-height: 64px;
+  --target-min: 44px;
+  --row-height: 36px;
+  --content-max: 1200px;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration: 200ms;
+  --duration-slow: 300ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Focus */
+  --focus-width: 3px;
+  --focus-offset: 2px;
+
+  /* Layers */
+  --z-sticky: 10;
+  --z-header: 20;
+  --z-tabbar: 30;
+  --z-menu: 40;
+  --z-toast: 60;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-primary: #a5befa;
+    --color-on-primary: #0b1220;
+    --color-secondary: #c7d6fd;
+    --color-on-secondary: #0b1220;
+    --color-accent: #f5a524;
+    --color-on-accent: #1c1304;
+    --color-background: #0b1220;
+    --color-foreground: #e5eaf2;
+    --color-card: #131c2e;
+    --color-card-foreground: #e5eaf2;
+    --color-muted: #1f2a3f;
+    --color-muted-foreground: #a8b5c8;
+    --color-border: #33415a;
+    --color-destructive: #f87171;
+    --color-on-destructive: #1f0a0a;
+    --color-success: #86efac;
+    --color-ring: #a5befa;
+    --color-destructive-text: #fca5a5;
+    --color-warning: #fcd34d;
+    --color-border-strong: #8391a7;
+    --color-primary-soft: #1e2c4d;
+    --color-success-soft: #12301f;
+    --color-destructive-soft: #3b1719;
+    --color-warning-soft: #372a0b;
+    --color-overlay: rgb(2 6 15 / 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-primary: #a5befa;
+  --color-on-primary: #0b1220;
+  --color-secondary: #c7d6fd;
+  --color-on-secondary: #0b1220;
+  --color-accent: #f5a524;
+  --color-on-accent: #1c1304;
+  --color-background: #0b1220;
+  --color-foreground: #e5eaf2;
+  --color-card: #131c2e;
+  --color-card-foreground: #e5eaf2;
+  --color-muted: #1f2a3f;
+  --color-muted-foreground: #a8b5c8;
+  --color-border: #33415a;
+  --color-destructive: #f87171;
+  --color-on-destructive: #1f0a0a;
+  --color-success: #86efac;
+  --color-ring: #a5befa;
+  --color-destructive-text: #fca5a5;
+  --color-warning: #fcd34d;
+  --color-border-strong: #8391a7;
+  --color-primary-soft: #1e2c4d;
+  --color-success-soft: #12301f;
+  --color-destructive-soft: #3b1719;
+  --color-warning-soft: #372a0b;
+  --color-overlay: rgb(2 6 15 / 0.7);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-primary);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--color-secondary);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button,
+[role="button"],
+summary,
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
+/* One focus style everywhere: a 3px ring in the ring color, never removed. */
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* The skip link sends focus to <main>. A ring around the whole page content would say nothing. */
+main:focus-visible {
+  outline: none;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Utilities shared by every page. */
+
+/* For screen readers only. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Set on every <Icon>: an icon never shrinks inside a flex row. */
+.icon {
+  flex: none;
+}
+
+/* Numbers, dates and data: monospace with tabular figures. */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Identifiers and dates set in the data face but read as text: left-aligned, also inside tables. */
+.code {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Secondary text. */
+.muted {
+  color: var(--color-muted-foreground);
+}
+
+/* A table scrolls sideways inside its own box so the page never does. */
+.table-scroll {
+  /* Positioned, so screen-reader-only text inside a wide table is clipped with it and cannot widen the page. */
+  position: relative;
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.table-scroll:focus-visible {
+  outline-offset: 0;
+}
+
+/* Dense data table: 36px rows, sticky head, 14px text. Wrap it in .table-scroll. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  background: var(--color-card);
+}
+
+.data-table caption {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-muted-foreground);
+}
+
+.data-table th,
+.data-table td {
+  height: var(--row-height);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-muted);
+  color: var(--color-foreground);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.data-table tbody th {
+  font-weight: 700;
+}
+
+.data-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.data-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

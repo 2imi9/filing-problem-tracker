@@ -1,0 +1,104 @@
+.stack {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.hint {
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.previewAnchor {
+  min-width: 0;
+  border-radius: var(--radius-card);
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+
+.reasonCell {
+  min-width: 22ch;
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+/* Short values stay on one line and the form name keeps a readable width, so a row is one or two
+   lines tall. The table is wider than a narrow screen and its wrapper scrolls sideways. */
+.shortCell {
+  white-space: nowrap;
+}
+
+.formCell {
+  min-width: 20ch;
+}
+
+/* A long table scrolls inside its wrapper, so the column heads stay in view (they are sticky). */
+.tallScroll {
+  max-height: min(70vh, 40rem);
+  overflow-y: auto;
+}
+
+/* The Change button stays in view while the other columns scroll sideways under it. */
+td.actionCell,
+th.actionCell {
+  position: sticky;
+  right: 0;
+  border-left: 1px solid var(--color-border);
+}
+
+td.actionCell {
+  background: var(--color-card);
+}
+
+/* On a phone the pinned column would take two fifths of the table's width. */
+@media (max-width: 640px) {
+  td.actionCell {
+    position: static;
+  }
+
+  th.actionCell {
+    right: auto;
+  }
+}
+
+.tags,
+.problems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-width: 16ch;
+}
+
+.problems {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 26ch;
+}
+
+.dialogLabel {
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.reason {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
