@@ -18,6 +18,16 @@ python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:
 
 On Import, rows the keyword rules cannot sort go to the model and come back marked "local model". Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
 
+## Run on a Hugging Face Space (optional)
+
+One free Docker Space serves the page and the model together (the 5.6 GB build on llama.cpp, no GPU, so each leftover row takes a while).
+
+```bash
+sh scripts/build-space.sh   # collects six files into space-build/
+```
+
+Create a Space with the Docker SDK and upload the six files. The first build downloads the model.
+
 ## Check it works
 
 1. On Tag a filing, pick a form, click two problems and save. The entry appears in Recent entries.

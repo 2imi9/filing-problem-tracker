@@ -563,9 +563,18 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     RULES.forEach(function (r) { if (r[0].test(reason) && out.indexOf(r[1]) < 0) out.push(r[1]); });
     return out;
   }
-  // Local model (OpenJev Flash 9B). Used only when this page is served from this computer by
-  // scripts/serve-local.py, which passes /v1/* to the model. The public site never looks for it.
+  // Sorting model (OpenJev Flash 9B). Used only where the page is served next to the model at the same
+  // address: on this computer by scripts/serve-local.py, or on a Hugging Face Space by space/server.py.
+  // The static site never looks for it.
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
+  var MODEL_NAME = ON_THIS_COMPUTER ? "local model" : "model";
+  function fetchWithin(ms, url, options) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
+    options = options || {}; if (ctl) options.signal = ctl.signal;
+    return fetch(url, options).then(function (r) { clearTimeout(timer); return r; }, function (e) { clearTimeout(timer); throw e; });
+  }
   var MIN_CONFIDENCE = 0.6, NONE_OF_THESE = "None of these";
   var TAG_HELP = {
     "Missing signature": "The filing or a page of it was not signed.",
@@ -579,15 +588,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "Pages missing or unreadable": "Pages are missing, blank or cannot be read."
   };
   function modelAvailable() {
-    if (!ON_THIS_COMPUTER || !window.fetch) return Promise.resolve(false);
-    return fetch("/v1/version").then(function (r) { return r.ok; }, function () { return false; });
+    if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
+    return fetchWithin(5000, "/v1/version").then(function (r) { return r.ok; }, function () { return false; });
   }
   // One typed decision per row: a problem from the list, or null when the model is unsure.
   function askModel(p) {
     var criteria = {};
     TAGS.forEach(function (t) { criteria[t] = TAG_HELP[t]; });
     criteria[NONE_OF_THESE] = "The note does not say what was wrong with the filing.";
-    return fetch("/v1/systemone", {
+    return fetchWithin(120000, "/v1/systemone", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openjev-flash-9b",
@@ -627,13 +636,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var td = el("td"); var box = el("div", { "class": "tags" });
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
       td.appendChild(box);
-      if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, "local model")); }
+      if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME)); }
       tr.appendChild(td);
       body.appendChild(tr);
     });
     var sorted = pending.length - review;
     $("previewSummary").textContent = pending.length + (pending.length === 1 ? " row read, " : " rows read, ")
-      + (byModel ? (sorted - byModel) + " sorted by rules, " + byModel + " by the local model, " : sorted + " sorted automatically, ")
+      + (byModel ? (sorted - byModel) + " sorted by rules, " + byModel + " by the " + MODEL_NAME + ", " : sorted + " sorted automatically, ")
       + review + " need review";
     $("previewPanel").hidden = false;
   }
@@ -659,14 +668,14 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       return { date: (r[idx.date] || "").trim(), county: county || "Not given", caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], outcome: "Rejected", source: "import" };
     });
     renderPreview();
-    // Rules first. Rows the rules could not sort go to the local model, one at a time, if it is running.
+    // Rules first. Rows the rules could not sort go to the model, one at a time, if it is running.
     var left = pending.filter(function (p) { return p.reason && p.tags[0] === NEEDS_REVIEW; });
     if (!left.length) { previewReady(); return; }
     $("csvAdd").disabled = true;
     modelAvailable().then(function (ok) {
       if (run !== sortRun) return;
       if (!ok) { previewReady(); return; }
-      $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with the local model...";
+      $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with the " + MODEL_NAME + "...";
       var i = 0;
       function done(note) { if (run !== sortRun) return; renderPreview(); previewReady(note); }
       (function next() {
@@ -675,9 +684,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         var p = left[i++];
         askModel(p).then(function (tag) {
           if (run !== sortRun) return;
-          if (tag) { p.tags = [tag]; p.sortedBy = "model"; }
+          if (tag) { p.tags = [tag]; p.sortedBy = "model"; renderPreview(); }
           next();
-        }, function () { done("The local model stopped answering. "); });
+        }, function () { done("The " + MODEL_NAME + " stopped answering. "); });
       })();
     });
   }
