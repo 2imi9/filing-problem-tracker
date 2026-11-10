@@ -25,3 +25,11 @@ Decisions the plan depends on that the constitution does not already state.
 - **Decision**: Generated with the open-source `ui-ux-pro-max` design skill for a government and legal internal tool, then adapted: "Accessible & Ethical" style, navy with one gold accent for the main action, EB Garamond headings, Lato body, monospace numbers, plain SVG charts with table alternatives. Tokens are in [contracts/ui.md](contracts/ui.md).
 - **Rationale**: Clerks and judges need readable, keyboard-friendly screens that do not look like a generic generated dashboard.
 - **Alternatives considered**: A component library and chart library (more to maintain, harder to keep accessible by default).
+
+## 5. A local decision model for sorting reasons
+
+- **Decision**: Import can sort reasons with OpenJev Flash 9B, an open-weights decision model that runs on an Apple silicon Mac. It picks one option from the fixed list and returns a confidence; it writes no text. Keyword rules still run first and remain the fallback.
+- **Rationale**: Sorting a short note into a fixed list does not need a general chat model. A local model answers in a fraction of a second per row by its model card, costs nothing per call, and keeps reason text inside the court.
+- **Alternatives considered**: The Claude API for every row (slower, and text leaves the machine). Hosted Jev from TypeSafe (fast and cheap, but a second cloud provider and key). DocJev (built to split whole PDFs, not short notes).
+- **Hosting**: The same page also runs on a free Hugging Face Space next to the model's llama.cpp build, for a public link. That copy is slower (no GPU) and not private, so it is for made-up data only.
+- **Limits**: The weights are CC BY-NC 4.0, so a real court rollout needs a commercial licence; they are downloaded at run time and are not in this repository. Speed and accuracy figures are the model card's, not measured on court data.

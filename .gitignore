@@ -59,3 +59,8 @@ next-env.d.ts
 
 # static demo site built by scripts/build-site.sh
 /site/
+
+# local OpenJev model files, Python caches and the Hugging Face Space build
+.openjev/
+__pycache__/
+space-build/

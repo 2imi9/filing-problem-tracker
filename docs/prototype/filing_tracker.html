@@ -141,8 +141,13 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .tag { font-size: 0.9rem; color: var(--ink); }
 .tag:not(:last-child)::after { content: ","; margin-right: 6px; }
 .tag.none { color: var(--bad); font-weight: 700; }
+.by { font-size: 0.78rem; color: var(--muted); }
 /* Outcome: a coloured dot and one short word. */
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; min-width: 5.9em; flex: none; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; }
+/* Each outline hugs its word. An unseen copy of the longest label holds the slot's width, so the dots line up. */
+.pill-slot { display: inline-grid; flex: none; }
+.pill-slot > .pill { grid-area: 1 / 1; justify-self: start; }
+.pill-slot > .pill.sizer { visibility: hidden; }
 .pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
 .pill.r::before { color: var(--bad); } .pill.f::before { color: var(--cta); } .pill.a::before { color: var(--good); }
 .recent .head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
@@ -264,7 +269,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <div class="panel">
         <h2 id="h-import">Import a rejection export</h2>
         <p class="hint">Columns: date, county, case_type, form, reason. The box holds a made-up example.</p>
-        <label class="f">CSV text<textarea id="csvText" rows="11" spellcheck="false"></textarea></label>
+        <p class="hint" id="modelLine" hidden></p>
+        <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
           <label class="btn secondary" for="csvFile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Upload a CSV file<input type="file" id="csvFile" class="sr" accept=".csv,text/csv"></label>
@@ -334,7 +340,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Import sorts with keyword rules, and every number is counted by code.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -517,7 +523,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       top.appendChild(el("strong", null, r.form));
       var pill = el("span", { "class": "pill " + outcomeClass(r.outcome), title: r.outcome }, outcomeShort(r.outcome));
       pill.appendChild(el("span", { "class": "sr" }, " (" + r.outcome + ")"));
-      top.appendChild(pill);
+      var slot = el("span", { "class": "pill-slot" });
+      slot.appendChild(pill);
+      slot.appendChild(el("span", { "class": "pill sizer", "aria-hidden": "true" }, "Reject"));
+      top.appendChild(slot);
       li.appendChild(top);
       li.appendChild(el("div", { "class": "meta" }, r.date + " · " + r.county + " · " + r.caseType + (r.source === "clerk" ? " · just added" : " · sample")));
       var tg = el("div", { "class": "tags" });
@@ -541,6 +550,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "2026-09-12,Monroe,Small claims,Small claims counterclaim,no address for defendant; unsigned",
     "2026-09-15,Hamilton,Name change,Petition for change of name,called filer - will bring in tomorrow",
     "2026-09-16,Vanderburgh,Small claims,Small claims notice of claim,filing fee not paid",
+    "2026-09-17,Monroe,Small claims,Small claims notice of claim,did not bring the money to file",
     "2026-09-18,St. Joseph,Eviction,Tenant answer or request for hearing,page 3 missing / scan unreadable"
   ].join("\n");
   $("csvText").value = SAMPLE_CSV;
@@ -549,7 +559,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   var RULES = [
     [/\b(sign|signed|signature|unsigned)\b/i, "Missing signature"],
     [/\b(wrong|old|outdated)\s+(version|form)|\bused .*form|incorrect form/i, "Wrong form"],
-    [/wrong (county|court)|lives in|venue|jurisdiction/i, "Wrong county or court"],
+    [/wrong (county|court)|lives in|\bvenue\b|jurisdiction/i, "Wrong county or court"],
     [/\b(needs?|missing|lacks?)\b.*\b(date|dates|detail|details|description|incident|amount|facts)\b/i, "Missing required details"],
     [/\bfee\b|waiver|\bpaid\b|payment/i, "Missing fee or fee waiver"],
     [/\bcit(e|es|ed|ation)\b|case that does not exist|statute|fake/i, "Citation not found or wrong"],
@@ -561,6 +571,62 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var out = [];
     RULES.forEach(function (r) { if (r[0].test(reason) && out.indexOf(r[1]) < 0) out.push(r[1]); });
     return out;
+  }
+  // Sorting model (OpenJev Flash 9B). Used only where the page is served next to the model at the same
+  // address: on this computer by scripts/serve-local.py, or on a Hugging Face Space by space/server.py.
+  // The static site never looks for it.
+  var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
+  var MODEL_NAME = "OpenJev (AI)", MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space";
+  if (MODEL_HOST) $("aiNote").textContent = "AI use: Import only, where the OpenJev Flash 9B model sorts the rows the keyword rules cannot. Tagging and the dashboard use no AI, and every number is counted by code.";
+  function fetchWithin(ms, url, options) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
+    options = options || {}; if (ctl) options.signal = ctl.signal;
+    return fetch(url, options).then(function (r) { clearTimeout(timer); return r; }, function (e) { clearTimeout(timer); throw e; });
+  }
+  var MIN_CONFIDENCE = 0.6, NONE_OF_THESE = "None of these";
+  var TAG_HELP = {
+    "Missing signature": "The filing or a page of it was not signed.",
+    "Wrong form": "The wrong form, or an old version of the form, was used.",
+    "Wrong county or court": "It was filed in a county or court that cannot hear it.",
+    "Missing required details": "Facts the form asks for were left out, such as dates, amounts or a description.",
+    "Missing fee or fee waiver": "The filing fee was not paid and no fee waiver was filed.",
+    "Citation not found or wrong": "It cites a case or statute that does not exist or does not say that.",
+    "Missing addresses for service": "An address needed to serve the other party is missing.",
+    "Not verified or notarized": "It needed to be sworn, verified or notarized and was not.",
+    "Pages missing or unreadable": "Pages are missing, blank or cannot be read."
+  };
+  // Says on the Import tab whether the model is there, so its work is not invisible.
+  function showModel(ready) {
+    if (!MODEL_HOST) return;
+    $("modelLine").hidden = false;
+    $("modelLine").textContent = ready
+      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot."
+      : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
+  }
+  function modelAvailable() {
+    if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
+    return fetchWithin(5000, "/v1/version").then(function (r) { return r.ok; }, function () { return false; })
+      .then(function (ok) { showModel(ok); return ok; });
+  }
+  modelAvailable();
+  // One typed decision per row: a problem from the list, or null when the model is unsure.
+  function askModel(p) {
+    var criteria = {};
+    TAGS.forEach(function (t) { criteria[t] = TAG_HELP[t]; });
+    criteria[NONE_OF_THESE] = "The note does not say what was wrong with the filing.";
+    return fetchWithin(120000, "/v1/systemone", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openjev-flash-9b",
+        state: { case_type: p.caseType, form: p.form, clerk_note: p.reason },
+        questions: { problem: { type: "choice", instructions: "A court clerk turned this filing away and typed the note. Which one problem does the note describe?", criteria: criteria } }
+      })
+    }).then(function (r) { if (!r.ok) throw new Error("model " + r.status); return r.json(); }).then(function (j) {
+      var a = j && j.answers && j.answers.problem;
+      return a && TAGS.indexOf(a.choice) >= 0 && a.confidence >= MIN_CONFIDENCE ? a.choice : null;
+    });
   }
   function parseCSV(text) {
     var rows = [], row = [], cur = "", q = false;
@@ -577,7 +643,38 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
   var pending = [];
   var addedText = null;
+  var sortRun = 0;
+  function renderPreview() {
+    var body = $("previewBody"); body.innerHTML = "";
+    var review = 0, byModel = 0;
+    pending.forEach(function (p) {
+      var tr = el("tr");
+      tr.appendChild(el("td", { "class": "num" }, p.date));
+      tr.appendChild(el("td", null, p.county));
+      tr.appendChild(el("td", null, p.caseType));
+      tr.appendChild(el("td", { "class": "raw" }, p.reason));
+      var td = el("td"); var box = el("div", { "class": "tags" });
+      p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
+      td.appendChild(box);
+      if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME)); }
+      else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
+      tr.appendChild(td);
+      body.appendChild(tr);
+    });
+    var sorted = pending.length - review;
+    $("previewSummary").textContent = pending.length + (pending.length === 1 ? " row read, " : " rows read, ")
+      + (sorted - byModel) + " sorted by keyword rules, " + (byModel ? byModel + " by " + MODEL_NAME + ", " : "")
+      + review + " need review";
+    $("previewPanel").hidden = false;
+  }
+  function previewReady(note) {
+    var already = $("csvText").value === addedText;
+    $("csvAdd").disabled = already;
+    $("csvStatus").className = "status";
+    $("csvStatus").textContent = already ? "These rows are already on the dashboard." : (note || "") + "Preview ready below.";
+  }
   function sortCSV() {
+    var run = ++sortRun;
     var rows = parseCSV($("csvText").value);
     $("csvStatus").className = "status";
     if (rows.length < 2) { $("csvStatus").className = "status err"; $("csvStatus").textContent = "No rows found. Paste a CSV with a header row and at least one record."; $("previewPanel").hidden = true; return; }
@@ -591,25 +688,32 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       COUNTIES.forEach(function (c) { if (c.toLowerCase() === county.toLowerCase()) county = c; });
       return { date: (r[idx.date] || "").trim(), county: county || "Not given", caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], outcome: "Rejected", source: "import" };
     });
-    var body = $("previewBody"); body.innerHTML = "";
-    var review = 0;
-    pending.forEach(function (p) {
-      var tr = el("tr");
-      tr.appendChild(el("td", { "class": "num" }, p.date));
-      tr.appendChild(el("td", null, p.county));
-      tr.appendChild(el("td", null, p.caseType));
-      tr.appendChild(el("td", { "class": "raw" }, p.reason));
-      var td = el("td"); var box = el("div", { "class": "tags" });
-      p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
-      td.appendChild(box); tr.appendChild(td);
-      body.appendChild(tr);
+    renderPreview();
+    // Rules first. Rows the rules could not sort go to the model, one at a time, if it is running.
+    var left = pending.filter(function (p) { return p.reason && p.tags[0] === NEEDS_REVIEW; });
+    if (!left.length) { previewReady(); return; }
+    $("csvAdd").disabled = true;
+    modelAvailable().then(function (ok) {
+      if (run !== sortRun) return;
+      if (!ok) { previewReady(); return; }
+      $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with " + MODEL_NAME + "...";
+      var i = 0, sorted = 0;
+      function done(note) { if (run !== sortRun) return; renderPreview(); previewReady(note); }
+      (function next() {
+        if (run !== sortRun) return;
+        if (i >= left.length) {
+          done(MODEL_NAME + " checked " + left.length + (left.length === 1 ? " row" : " rows") + ": sorted " + sorted + ", left " + (left.length - sorted) + " for review. ");
+          return;
+        }
+        var p = left[i++];
+        askModel(p).then(function (tag) {
+          if (run !== sortRun) return;
+          if (tag) { p.tags = [tag]; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
+          renderPreview();
+          next();
+        }, function () { showModel(false); done(MODEL_NAME + " stopped answering. "); });
+      })();
     });
-    $("previewSummary").textContent = pending.length + (pending.length === 1 ? " row read, " : " rows read, ") + (pending.length - review) + " sorted automatically, " + review + " need review";
-    $("previewPanel").hidden = false;
-    var already = $("csvText").value === addedText;
-    $("csvAdd").disabled = already;
-    $("csvStatus").className = "status";
-    $("csvStatus").textContent = already ? "These rows are already on the dashboard." : "Preview ready below.";
   }
   $("csvSort").addEventListener("click", sortCSV);
   $("csvFile").addEventListener("change", function (e) {
