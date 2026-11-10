@@ -54,21 +54,26 @@ a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visi
 
 /* Header: navy band with the ASCII courthouse, then the three steps */
 header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
-.hero { position: relative; background: #04081a; color: #ffffff; overflow: hidden; isolation: isolate; }
-.hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 100% 18%; z-index: -1; }
-.hero-in { padding-block: 72px 76px; display: grid; gap: 14px; justify-items: start; }
-h1 { font-family: var(--font-head); font-weight: 600; font-size: clamp(2.2rem, 1.5rem + 3vw, 3.6rem); line-height: 1.08; margin: 0; letter-spacing: -0.005em; text-wrap: balance; display: flex; align-items: flex-start; gap: 0.32em; }
+.hero { position: relative; background: #172554; color: #ffffff; overflow: hidden; isolation: isolate; }
+.hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; z-index: -2; }
+/* Navy wash so the title and intro stay readable over the picture. */
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #172554 0%, rgba(23, 37, 84, 0.97) 50%, rgba(23, 37, 84, 0.7) 74%, rgba(23, 37, 84, 0.35) 100%); }
+@media (max-width: 900px) { .hero::after { background: rgba(23, 37, 84, 0.9); } }
+.hero-in { padding-block: 72px 76px; display: grid; gap: 12px; justify-items: start; }
+h1 { font-family: var(--font-head); font-weight: 600; font-size: clamp(2.6rem, 1.5rem + 4.4vw, 4.6rem); line-height: 1.04; margin: 0; letter-spacing: -0.005em; text-wrap: balance; display: flex; align-items: flex-start; gap: 0.32em; }
 /* The courthouse mark is our own drawing, not a court seal or logo. */
 .mark { width: 0.86em; height: 0.86em; flex: none; margin-top: 0.1em; }
-.hero p { margin: 0; max-width: 30ch; font-size: 1.2rem; line-height: 1.45; color: #dbe4f5; }
-.sample-flag { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fcd34d; }
+.hero p { margin: 0; max-width: 40ch; font-size: 1rem; line-height: 1.5; color: #dbe4f5; }
+.sample-flag { font-family: var(--font-data); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fcd34d; }
 nav.tabs { display: flex; gap: 4px; overflow-x: auto; }
 nav.tabs a { display: flex; align-items: center; gap: 10px; min-height: 52px; text-decoration: none; color: var(--muted); padding: 8px 16px; border-bottom: 3px solid transparent; font-weight: 700; white-space: nowrap; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease; }
-/* Icons: Lucide (lucide.dev), ISC license. */
+nav.tabs a span.n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid currentColor; font-family: var(--font-data); font-weight: 500; font-size: 0.8rem; }
+/* Upload icon: Lucide (lucide.dev), ISC license. */
 .ic { width: 18px; height: 18px; flex: none; }
 nav.tabs a small { font-size: 0.82rem; font-weight: 400; color: var(--muted); }
 nav.tabs a:hover { color: var(--accent); }
 nav.tabs a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+nav.tabs a[aria-current="page"] span.n { background: var(--accent); border-color: var(--accent); color: var(--surface); }
 
 main .wrap { padding-block: 56px 112px; display: grid; gap: 48px; }
 section.view { display: grid; gap: 48px; }
@@ -171,7 +176,7 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
 @media (max-width: 640px) {
   .hero-img { display: none; }
   .hero-in { padding-block: 40px 44px; }
-  .hero p { font-size: 1.05rem; }
+  .hero p { font-size: 0.95rem; }
   main .wrap { padding-block: 36px 72px; gap: 36px; }
   section.view { gap: 36px; }
   nav.tabs a { padding: 8px 10px; gap: 6px; font-size: 0.92rem; flex: 1 1 0; justify-content: center; }
@@ -187,7 +192,7 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
 <a class="skip" href="#main">Skip to main content</a>
 <header class="top">
   <div class="hero">
-    <img class="hero-img" src="../assets/hero-ascii.png" alt="" width="1440" height="480" onerror="this.remove()">
+    <img class="hero-img" src="../assets/courthouse-ascii-hero.jpg" alt="" width="1280" height="560" onerror="this.remove()">
     <div class="wrap hero-in">
       <span class="sample-flag">Prototype. All data is made up.</span>
       <h1><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 2.5 30 11H2z"/><circle fill="#fcd34d" cx="16" cy="7.9" r="1.7"/><path fill="currentColor" d="M4 12.5h24v2H4zM5.5 16h3v8.5h-3zM11.5 16h3v8.5h-3zM17.5 16h3v8.5h-3zM23.5 16h3v8.5h-3zM4 25.5h24v2H4zM2 28.5h28v2H2z"/></svg>Filing Problem Tracker</h1>
@@ -196,9 +201,9 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
   </div>
   <div class="wrap">
     <nav class="tabs" aria-label="Views">
-      <a href="#log"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>Tag a filing <small>clerk</small></a>
-      <a href="#import"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>Import <small>past rejections</small></a>
-      <a href="#dashboard"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Dashboard <small>court leaders</small></a>
+      <a href="#log"><span class="n">1</span>Tag a filing <small>clerk</small></a>
+      <a href="#import"><span class="n">2</span>Import <small>past rejections</small></a>
+      <a href="#dashboard"><span class="n">3</span>Dashboard <small>court leaders</small></a>
     </nav>
   </div>
 </header>
@@ -313,7 +318,7 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. Icons by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
