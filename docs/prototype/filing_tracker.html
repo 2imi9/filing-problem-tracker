@@ -96,6 +96,9 @@ textarea { font-family: var(--font-data); font-size: 0.82rem; line-height: 1.55;
 /* One answer only, so these read as radio buttons. */
 .outcomes .chip::before { border-radius: 50%; }
 .outcomes .chip[aria-pressed="true"]::before { -webkit-mask: none; mask: none; border: 5px solid var(--accent); border-radius: 50%; background: var(--surface); }
+.outcomes .chip[aria-pressed="true"][data-o="Rejected"]::before { border-color: var(--bad); }
+.outcomes .chip[aria-pressed="true"][data-o="Returned to fix"]::before { border-color: var(--cta); }
+.outcomes .chip[aria-pressed="true"][data-o="Fixed at counter"]::before { border-color: var(--good); }
 
 .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .btn { font: inherit; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; border-radius: 4px; padding: 10px 20px; cursor: pointer; border: 1px solid var(--cta); background: var(--cta); color: var(--on-cta); transition: background-color 0.15s ease, border-color 0.15s ease; }
@@ -116,8 +119,11 @@ textarea { font-family: var(--font-data); font-size: 0.82rem; line-height: 1.55;
 .tag { font-size: 0.9rem; color: var(--ink); }
 .tag:not(:last-child)::after { content: ","; margin-right: 6px; }
 .tag.none { color: var(--bad); font-weight: 700; }
-.pill { font-family: var(--font-data); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; margin-left: 6px; }
-.pill.r { color: var(--bad); } .pill.f { color: var(--warn); } .pill.a { color: var(--good); }
+/* Outcome: a coloured dot and one short word. */
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--ink); white-space: nowrap; }
+.pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+.pill.r::before { color: var(--bad); } .pill.f::before { color: var(--cta); } .pill.a::before { color: var(--good); }
+.recent .head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 
 .table-wrap { overflow-x: auto; }
 .table-wrap table { min-width: 600px; }
@@ -383,6 +389,7 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function monthLabel(ym) { return MONTHS[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4); }
   function outcomeClass(o) { return o === "Rejected" ? "r" : (o === "Returned to fix" ? "f" : "a"); }
+  function outcomeShort(o) { return o === "Rejected" ? "Reject" : (o === "Returned to fix" ? "Fix" : "Pass"); }
 
   // ---------- View routing ----------
   var VIEWS = ["log", "import", "dashboard"];
@@ -452,9 +459,9 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
     var ul = $("recentList"); ul.innerHTML = "";
     recent.slice(0, 6).forEach(function (r) {
       var li = el("li");
-      var top = el("div");
-      top.appendChild(el("strong", null, r.form + " "));
-      top.appendChild(el("span", { "class": "pill " + outcomeClass(r.outcome) }, r.outcome));
+      var top = el("div", { "class": "head" });
+      top.appendChild(el("strong", null, r.form));
+      top.appendChild(el("span", { "class": "pill " + outcomeClass(r.outcome), title: r.outcome }, outcomeShort(r.outcome)));
       li.appendChild(top);
       li.appendChild(el("div", { "class": "meta" }, r.date + " · " + r.county + " · " + r.caseType + (r.source === "clerk" ? " · just added" : " · sample")));
       var tg = el("div", { "class": "tags" });
