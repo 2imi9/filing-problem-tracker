@@ -58,14 +58,14 @@ header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
 .hero-in { padding-block: 72px 76px; display: grid; gap: 14px; justify-items: start; }
 h1 { font-family: var(--font-head); font-weight: 600; font-size: clamp(2.2rem, 1.5rem + 3vw, 3.6rem); line-height: 1.08; margin: 0; letter-spacing: -0.005em; text-wrap: balance; }
 .hero p { margin: 0; max-width: 30ch; font-size: 1.2rem; line-height: 1.45; color: #dbe4f5; }
-.sample-flag { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fcd34d; border: 1px solid currentColor; padding: 3px 9px; border-radius: 3px; }
+.sample-flag { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fcd34d; }
 nav.tabs { display: flex; gap: 4px; overflow-x: auto; }
 nav.tabs a { display: flex; align-items: center; gap: 10px; min-height: 52px; text-decoration: none; color: var(--muted); padding: 8px 16px; border-bottom: 3px solid transparent; font-weight: 700; white-space: nowrap; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease; }
-nav.tabs a span.n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid currentColor; font-family: var(--font-data); font-weight: 500; font-size: 0.8rem; }
+nav.tabs a span.n { font-family: var(--font-data); font-weight: 500; font-size: 0.8rem; color: var(--muted); }
 nav.tabs a small { font-size: 0.82rem; font-weight: 400; color: var(--muted); }
 nav.tabs a:hover { color: var(--accent); }
 nav.tabs a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
-nav.tabs a[aria-current="page"] span.n { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+nav.tabs a[aria-current="page"] span.n { color: var(--accent); }
 
 main .wrap { padding-block: 56px 112px; display: grid; gap: 48px; }
 section.view { display: grid; gap: 48px; }
@@ -88,14 +88,14 @@ textarea { font-family: var(--font-data); font-size: 0.82rem; line-height: 1.55;
 
 /* Problem chips: pressed state is a fill plus a tick, so color is not the only signal */
 .chips, .outcomes { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { font: inherit; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 16px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
-.chip::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; }
-.chip:not([aria-pressed="true"]):hover { border-color: var(--accent); background: var(--accent-soft); }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
-.chip[aria-pressed="true"]::before { border-color: currentColor; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; border: 0; border-radius: 0; }
-.outcomes .chip[aria-pressed="true"][data-o="Rejected"] { background: var(--bad); border-color: var(--bad); }
-.outcomes .chip[aria-pressed="true"][data-o="Returned to fix"] { background: var(--warn); border-color: var(--warn); }
-.outcomes .chip[aria-pressed="true"][data-o="Fixed at counter"] { background: var(--good); border-color: var(--good); }
+.chip { font: inherit; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 4px; padding: 8px 14px 8px 12px; cursor: pointer; text-align: left; transition: background-color 0.15s ease, border-color 0.15s ease; }
+.chip::before { content: ""; box-sizing: border-box; width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid var(--muted); flex: none; }
+.chip:not([aria-pressed="true"]):hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.chip[aria-pressed="true"]::before { background: var(--accent); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.8' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; border: 0; border-radius: 0; }
+/* One answer only, so these read as radio buttons. */
+.outcomes .chip::before { border-radius: 50%; }
+.outcomes .chip[aria-pressed="true"]::before { -webkit-mask: none; mask: none; border: 5px solid var(--accent); border-radius: 50%; background: var(--surface); }
 
 .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .btn { font: inherit; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; border-radius: 4px; padding: 10px 20px; cursor: pointer; border: 1px solid var(--cta); background: var(--cta); color: var(--on-cta); transition: background-color 0.15s ease, border-color 0.15s ease; }
@@ -112,10 +112,11 @@ textarea { font-family: var(--font-data); font-size: 0.82rem; line-height: 1.55;
 .recent li { padding: 18px 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
 .recent li:first-child { border-top: 0; padding-top: 0; }
 .recent .meta { font-family: var(--font-data); font-size: 0.78rem; color: var(--muted); }
-.recent .tags, td .tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.tag { font-size: 0.8rem; background: var(--accent-soft); color: var(--accent); padding: 2px 9px; border-radius: 3px; }
-.tag.none { background: var(--bad-soft); color: var(--bad); }
-.pill { font-size: 0.75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.recent .tags, td .tags { display: flex; flex-wrap: wrap; column-gap: 0; row-gap: 2px; }
+.tag { font-size: 0.9rem; color: var(--ink); }
+.tag:not(:last-child)::after { content: ","; margin-right: 6px; }
+.tag.none { color: var(--bad); font-weight: 700; }
+.pill { font-family: var(--font-data); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; margin-left: 6px; }
 .pill.r { color: var(--bad); } .pill.f { color: var(--warn); } .pill.a { color: var(--good); }
 
 .table-wrap { overflow-x: auto; }
