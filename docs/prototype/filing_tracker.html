@@ -1,0 +1,660 @@
+<title>Filing Problem Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a clerk-desk tool. Narrow header band, three tabs in workflow order, content in a 1100px column. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #1b2430;
+  --muted: #5b6676;
+  --line: #d9dee5;
+  --accent: #1f4e8c;
+  --accent-soft: #e5edf8;
+  --good: #2f6b3a;
+  --warn: #9a5b00;
+  --bad: #a3302a;
+  --bad-soft: #f8e6e4;
+  --font-ui: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161c; --surface: #1a2029; --ink: #e6eaf0; --muted: #9aa5b4; --line: #2e3744;
+    --accent: #8cb4ef; --accent-soft: #1f2d42; --good: #7fc28b; --warn: #e0a54a; --bad: #ef8a82; --bad-soft: #3a2220;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161c; --surface: #1a2029; --ink: #e6eaf0; --muted: #9aa5b4; --line: #2e3744;
+  --accent: #8cb4ef; --accent-soft: #1f2d42; --good: #7fc28b; --warn: #e0a54a; --bad: #ef8a82; --bad-soft: #3a2220;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1100px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 18px 0; display: grid; gap: 14px; }
+.brand { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; }
+h1 { font-size: 1.45rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.brand p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.sample-flag { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--warn); border: 1px solid currentColor; padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+nav.tabs { display: flex; gap: 4px; overflow-x: auto; }
+nav.tabs a { text-decoration: none; color: var(--muted); padding: 10px 14px; border-bottom: 3px solid transparent; font-weight: 600; white-space: nowrap; }
+nav.tabs a span { font-family: var(--font-data); font-weight: 400; margin-right: 6px; }
+nav.tabs a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+nav.tabs a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+main .wrap { padding-block: 24px 48px; display: grid; gap: 20px; }
+section.view { display: grid; gap: 20px; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.intro strong { color: var(--ink); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel h2 { font-size: 1.05rem; margin: 0; }
+.panel h2 small { font-weight: 400; color: var(--muted); font-size: 0.85rem; margin-left: 6px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+label.f { display: grid; gap: 4px; font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+select, input[type="text"], textarea { font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; width: 100%; text-transform: none; letter-spacing: 0; font-weight: 400; }
+textarea { font-family: var(--font-data); font-size: 0.8rem; line-height: 1.5; resize: vertical; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 0.9rem; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.outcomes { display: flex; flex-wrap: wrap; gap: 8px; }
+.outcomes .chip[aria-pressed="true"][data-o="Rejected"] { background: var(--bad); border-color: var(--bad); }
+.outcomes .chip[aria-pressed="true"][data-o="Returned to fix"] { background: var(--warn); border-color: var(--warn); }
+.outcomes .chip[aria-pressed="true"][data-o="Fixed at counter"] { background: var(--good); border-color: var(--good); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { font: inherit; font-weight: 600; border-radius: 4px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--surface); }
+.btn.secondary { background: transparent; color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.hint { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.status { font-size: 0.9rem; color: var(--good); font-weight: 600; min-height: 1.4em; }
+.status.err { color: var(--bad); }
+.label-sm { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.recent { list-style: none; margin: 0; padding: 0; display: grid; }
+.recent li { padding: 10px 0; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.recent li:first-child { border-top: 0; }
+.recent .meta { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); }
+.recent .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 0.75rem; background: var(--accent-soft); color: var(--accent); padding: 1px 8px; border-radius: 3px; }
+.tag.none { background: var(--bad-soft); color: var(--bad); }
+.pill { font-size: 0.72rem; font-weight: 600; padding: 1px 7px; border-radius: 3px; border: 1px solid currentColor; }
+.pill.r { color: var(--bad); } .pill.f { color: var(--warn); } .pill.a { color: var(--good); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-data); }
+td.raw { font-family: var(--font-data); font-size: 0.8rem; color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 2px; }
+.kpi .v { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi .v.sm { font-size: 1.1rem; padding-top: 6px; }
+.kpi .s { font-size: 0.82rem; color: var(--muted); }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.bars { display: grid; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: minmax(120px, 210px) minmax(0, 1fr) 48px; gap: 10px; align-items: center; font-size: 0.88rem; }
+.bar-track { background: var(--bg); border-radius: 3px; height: 16px; overflow: hidden; }
+.bar-fill { background: var(--accent); height: 100%; border-radius: 3px; }
+.bar-row .n { text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 0.82rem; }
+@media (max-width: 480px) { .bar-row { grid-template-columns: minmax(0, 1fr) 44px; } .bar-row .bar-track { grid-column: 1 / -1; grid-row: 2; } }
+td.heat { text-align: center; font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.82rem; color: var(--muted); align-items: center; }
+.legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 6px; background: var(--accent); }
+.legend i.dash { background: none; border-top: 2px dashed var(--warn); height: 0; }
+svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.compare div { border-left: 3px solid var(--line); padding-left: 12px; }
+.compare .v { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.compare .down { color: var(--good); } .compare .up { color: var(--bad); }
+.compare .s { font-size: 0.8rem; color: var(--muted); }
+footer .wrap { padding-block: 0 32px; color: var(--muted); font-size: 0.8rem; }
+@media (prefers-reduced-motion: no-preference) { .bar-fill { transition: width 0.3s ease; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div>
+        <h1>Filing Problem Tracker</h1>
+        <p>Indiana trial courts, unrepresented-party filings. A standalone tool that sits next to Odyssey and e-filing.</p>
+      </div>
+      <span class="sample-flag">Prototype. All data is made up.</span>
+    </div>
+    <nav class="tabs" aria-label="Views">
+      <a href="#log"><span>1</span>Clerk: tag a filing</a>
+      <a href="#import"><span>2</span>Import a rejection export</a>
+      <a href="#dashboard"><span>3</span>Dashboard for court leaders</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- View 1: clerk tagging -->
+    <section class="view" id="view-log" aria-labelledby="h-log">
+      <p class="intro"><strong>What the clerk sees.</strong> When a filing from someone without a lawyer is rejected or sent back, the clerk opens this page, picks the filing details, clicks the problems, and saves. No names or case numbers are needed. It should take a few seconds.</p>
+      <div class="grid-2">
+        <form class="panel" id="logForm" novalidate>
+          <h2 id="h-log">Tag a filing problem</h2>
+          <div class="fields">
+            <label class="f">County<select id="logCounty"></select></label>
+            <label class="f">Case type<select id="logCase"></select></label>
+            <label class="f">Form<select id="logForm1"></select></label>
+          </div>
+          <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
+          <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
+          <div class="label-sm" id="outLabel">What happened to the filing?</div>
+          <div class="outcomes" id="logOutcome" role="group" aria-labelledby="outLabel"></div>
+          <label class="f">Optional note<input type="text" id="logNote" placeholder="Short note. Do not include names or case numbers."></label>
+          <div class="actions">
+            <button class="btn" type="submit" id="logSave" disabled>Save tags</button>
+            <button class="btn secondary" type="button" id="logClear">Clear</button>
+            <span class="status" id="logStatus" role="status"></span>
+          </div>
+        </form>
+        <div class="panel">
+          <h2>Recent entries <small>this desk</small></h2>
+          <ul class="recent" id="recentList"></ul>
+          <p class="hint">Each saved entry is added to the dashboard right away.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 2: CSV import -->
+    <section class="view" id="view-import" aria-labelledby="h-import" hidden>
+      <p class="intro"><strong>For records the court already has.</strong> Paste or upload a spreadsheet export of past rejections (saved as CSV). The tracker reads the free-text reason the clerk typed and sorts it into the same problem categories. Rows it cannot sort are marked for a person to review.</p>
+      <div class="panel">
+        <h2 id="h-import">Import a rejection export</h2>
+        <p class="hint">Expected columns: date, county, case_type, form, reason. The box below is filled with a made-up example export.</p>
+        <label class="f">CSV text<textarea id="csvText" rows="9" spellcheck="false"></textarea></label>
+        <div class="actions">
+          <button class="btn" type="button" id="csvSort">Sort into categories</button>
+          <label class="btn secondary" for="csvFile" style="display:inline-block">Upload a CSV file</label>
+          <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+          <span class="status" id="csvStatus" role="status"></span>
+        </div>
+      </div>
+      <div class="panel" id="previewPanel" hidden>
+        <h2>Preview <small id="previewSummary"></small></h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>County</th><th>Case type</th><th>Clerk's reason (as typed)</th><th>Sorted into</th></tr></thead>
+            <tbody id="previewBody"></tbody>
+          </table>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" id="csvAdd">Add sorted rows to dashboard</button>
+          <span class="hint">Rows marked "Needs review" are added with that label so a clerk can tag them later.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: dashboard -->
+    <section class="view" id="view-dashboard" aria-labelledby="h-dash" hidden>
+      <p class="intro"><strong>What judges and court leaders see.</strong> Which mistakes are most common, where, and on which forms. The last panel shows whether problems went down after a form change or a new tool.</p>
+      <div class="panel">
+        <h2 id="h-dash">Filters</h2>
+        <div class="filters">
+          <label class="f">County<select id="fCounty"></select></label>
+          <label class="f">Case type<select id="fCase"></select></label>
+          <label class="f">From<select id="fFrom"></select></label>
+          <label class="f">To<select id="fTo"></select></label>
+        </div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid-2">
+        <div class="panel">
+          <h2>Most common problems <small id="barsNote"></small></h2>
+          <div class="bars" id="bars"></div>
+        </div>
+        <div class="panel">
+          <h2>What happened to flagged filings</h2>
+          <div class="bars" id="outBars"></div>
+          <p class="hint">"Fixed at counter" means the clerk helped the filer fix it the same day.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Problems by county <small>number of flagged filings with each problem</small></h2>
+        <div class="table-wrap"><table id="heat"></table></div>
+      </div>
+      <div class="panel">
+        <h2>Problems by form</h2>
+        <div class="table-wrap"><table id="forms"></table></div>
+      </div>
+      <div class="panel">
+        <h2>Before and after a change</h2>
+        <div class="filters">
+          <label class="f">Change to check<select id="evSel"></select></label>
+          <label class="f">Problem to follow<select id="evTag"></select></label>
+        </div>
+        <p class="hint" id="evDesc"></p>
+        <div class="compare" id="evCompare"></div>
+        <div class="table-wrap"><svg id="evChart" viewBox="0 0 760 240" width="100%" role="img" aria-label="Monthly count before and after the change" style="min-width:520px; display:block"></svg></div>
+        <div class="legend"><span><i></i>Filings flagged with this problem, per month</span><span><i class="dash"></i>Date of the change</span></div>
+        <p class="hint">This prototype counts flagged filings. A real version would divide by total filings for the same form, so busy months do not look worse than they are.</p>
+      </div>
+    </section>
+
+  </div>
+</main>
+<footer><div class="wrap">CS4535 AI for Impact, Team 1 prototype. Counties are real Indiana counties; every number, entry, form change and export row is invented for illustration. This tool does not give legal advice.</div></footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Reference lists ----------
+  var COUNTIES = ["Marion", "Lake", "Allen", "Hamilton", "St. Joseph", "Vanderburgh", "Monroe", "Tippecanoe"];
+  var COUNTY_W = [9, 5, 4, 3.5, 3, 2.2, 1.6, 1.8];
+  var CASES = {
+    "Small claims": ["Small claims notice of claim", "Small claims counterclaim"],
+    "Protective order": ["Petition for order of protection", "Petition to modify or extend order"],
+    "Family": ["Petition for dissolution, no children", "Petition for dissolution, with children", "Petition to modify child support"],
+    "Eviction": ["Tenant answer or request for hearing"],
+    "Name change": ["Petition for change of name"]
+  };
+  var CASE_W = [6, 3, 4, 2.5, 1];
+  var TAGS = ["Missing signature", "Wrong form", "Wrong county or court", "Missing required details", "Missing fee or fee waiver", "Citation not found or wrong", "Missing addresses for service", "Not verified or notarized", "Pages missing or unreadable"];
+  var OUTCOMES = ["Rejected", "Returned to fix", "Fixed at counter"];
+  var NEEDS_REVIEW = "Needs review";
+
+  // How likely each problem is for each case type (sample weights)
+  var TAG_W = {
+    "Small claims":     [6, 2, 4, 5, 3, 1, 4, 1, 1],
+    "Protective order": [4, 2, 2, 7, 0.3, 1, 3, 3, 1],
+    "Family":           [4, 4, 2, 5, 3, 1.5, 2, 4, 2],
+    "Eviction":         [3, 3, 3, 4, 1, 2.5, 1, 1, 1],
+    "Name change":      [3, 2, 2, 3, 3, 0.3, 1, 3, 1]
+  };
+
+  // Made-up changes for the before/after panel
+  var EVENTS = [
+    { id: "sc-form", name: "Revised small claims form (Marion, Jun 1)", date: "2026-06-01", county: "Marion", caseType: "Small claims", tag: "Missing signature", factor: 0.35,
+      desc: "Sample change: Marion County small claims court adds a clearer signature box and a one-page checklist to its notice of claim form on June 1, 2026." },
+    { id: "po-guide", name: "Protective order guide (Lake, Jul 15)", date: "2026-07-15", county: "Lake", caseType: "Protective order", tag: "Missing required details", factor: 0.45,
+      desc: "Sample change: Lake County starts giving filers a short guide that explains what details a protective order petition needs, starting July 15, 2026." },
+    { id: "fam-kiosk", name: "Self-help kiosk (Allen, Aug 1)", date: "2026-08-01", county: "Allen", caseType: "Family", tag: "Wrong form", factor: 0.55,
+      desc: "Sample change: Allen County puts a form-finder kiosk in the clerk's lobby for family cases on August 1, 2026." }
+  ];
+
+  // ---------- Seeded sample data ----------
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var rnd = mulberry32(4535);
+  function pickW(items, w) { var s = 0, i; for (i = 0; i < w.length; i++) s += w[i]; var r = rnd() * s; for (i = 0; i < items.length; i++) { r -= w[i]; if (r <= 0) return items[i]; } return items[items.length - 1]; }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function iso(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+
+  var records = [];
+  var start = new Date(2026, 0, 1).getTime(), end = new Date(2026, 9, 28).getTime();
+  var caseNames = Object.keys(CASES);
+  for (var k = 0; k < 900; k++) {
+    var d = new Date(start + rnd() * (end - start));
+    var date = iso(d);
+    var county = pickW(COUNTIES, COUNTY_W);
+    var ct = pickW(caseNames, CASE_W);
+    var form = CASES[ct][Math.floor(rnd() * CASES[ct].length)];
+    var w = TAG_W[ct].slice();
+    EVENTS.forEach(function (ev) {
+      if (county === ev.county && ct === ev.caseType && date >= ev.date) w[TAGS.indexOf(ev.tag)] *= ev.factor;
+    });
+    var nTags = rnd() < 0.55 ? 1 : (rnd() < 0.75 ? 2 : 3);
+    var tags = [];
+    var guard = 0;
+    while (tags.length < nTags && guard++ < 20) { var t = pickW(TAGS, w); if (tags.indexOf(t) < 0) tags.push(t); }
+    // Event effect: remove the targeted tag from some later filings entirely (drop the record if nothing remains)
+    var outcome = pickW(OUTCOMES, [4, 4, 2]);
+    records.push({ date: date, county: county, caseType: ct, form: form, tags: tags, outcome: outcome, source: "sample" });
+  }
+
+  // ---------- Helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function el(tag, attrs, text) { var e = document.createElement(tag); if (attrs) for (var a in attrs) e.setAttribute(a, attrs[a]); if (text != null) e.textContent = text; return e; }
+  function fillSelect(sel, values, allLabel) {
+    sel.innerHTML = "";
+    if (allLabel) sel.appendChild(el("option", { value: "" }, allLabel));
+    values.forEach(function (v) { var o = el("option", { value: typeof v === "object" ? v.value : v }, typeof v === "object" ? v.label : v); sel.appendChild(o); });
+  }
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function monthLabel(ym) { return MONTHS[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4); }
+  function outcomeClass(o) { return o === "Rejected" ? "r" : (o === "Returned to fix" ? "f" : "a"); }
+
+  // ---------- View routing ----------
+  var VIEWS = ["log", "import", "dashboard"];
+  function show() {
+    var v = (location.hash || "#log").slice(1);
+    if (VIEWS.indexOf(v) < 0) v = "log";
+    VIEWS.forEach(function (name) { $("view-" + name).hidden = name !== v; });
+    document.querySelectorAll("nav.tabs a").forEach(function (a) { if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    if (v === "dashboard") renderDashboard();
+  }
+  window.addEventListener("hashchange", show);
+
+  // ---------- View 1: clerk tagging ----------
+  var selTags = [], selOutcome = "Rejected", startedAt = null;
+  fillSelect($("logCounty"), COUNTIES);
+  fillSelect($("logCase"), caseNames);
+  function syncForms() { fillSelect($("logForm1"), CASES[$("logCase").value]); }
+  $("logCase").addEventListener("change", syncForms);
+  syncForms();
+
+  TAGS.forEach(function (t) {
+    var b = el("button", { type: "button", "class": "chip", "aria-pressed": "false" }, t);
+    b.addEventListener("click", function () {
+      if (!startedAt) startedAt = Date.now();
+      var i = selTags.indexOf(t);
+      if (i < 0) selTags.push(t); else selTags.splice(i, 1);
+      b.setAttribute("aria-pressed", i < 0 ? "true" : "false");
+      $("logSave").disabled = selTags.length === 0;
+      $("logStatus").textContent = "";
+    });
+    $("logTags").appendChild(b);
+  });
+  OUTCOMES.forEach(function (o) {
+    var b = el("button", { type: "button", "class": "chip", "data-o": o, "aria-pressed": o === selOutcome ? "true" : "false" }, o);
+    b.addEventListener("click", function () {
+      selOutcome = o;
+      $("logOutcome").querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", c.getAttribute("data-o") === o ? "true" : "false"); });
+    });
+    $("logOutcome").appendChild(b);
+  });
+  function clearLog() {
+    selTags = []; startedAt = null;
+    $("logTags").querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+    $("logNote").value = "";
+    $("logSave").disabled = true;
+  }
+  $("logClear").addEventListener("click", function () { clearLog(); $("logStatus").textContent = ""; });
+  $("logForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!selTags.length) return;
+    var secs = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : null;
+    var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: $("logNote").value.trim(), source: "clerk" };
+    records.push(rec);
+    recent.unshift(rec);
+    renderRecent();
+    $("logStatus").textContent = "Saved. " + rec.tags.length + (rec.tags.length === 1 ? " problem" : " problems") + " logged" + (secs ? " in " + secs + " seconds." : ".");
+    clearLog();
+  });
+
+  // Recent entries start with a few sample rows from the made-up desk
+  var recent = [
+    { date: "2026-10-29", county: "Marion", caseType: "Small claims", form: "Small claims notice of claim", tags: ["Missing signature", "Wrong county or court"], outcome: "Returned to fix", source: "sample" },
+    { date: "2026-10-29", county: "Marion", caseType: "Protective order", form: "Petition for order of protection", tags: ["Missing required details"], outcome: "Fixed at counter", source: "sample" },
+    { date: "2026-10-28", county: "Marion", caseType: "Family", form: "Petition for dissolution, with children", tags: ["Not verified or notarized", "Missing fee or fee waiver"], outcome: "Rejected", source: "sample" }
+  ];
+  function renderRecent() {
+    var ul = $("recentList"); ul.innerHTML = "";
+    recent.slice(0, 6).forEach(function (r) {
+      var li = el("li");
+      var top = el("div");
+      top.appendChild(el("strong", null, r.form + " "));
+      top.appendChild(el("span", { "class": "pill " + outcomeClass(r.outcome) }, r.outcome));
+      li.appendChild(top);
+      li.appendChild(el("div", { "class": "meta" }, r.date + " · " + r.county + " · " + r.caseType + (r.source === "clerk" ? " · just added" : " · sample")));
+      var tg = el("div", { "class": "tags" });
+      r.tags.forEach(function (t) { tg.appendChild(el("span", { "class": "tag" }, t)); });
+      li.appendChild(tg);
+      if (r.note) li.appendChild(el("div", { "class": "meta" }, "Note: " + r.note));
+      ul.appendChild(li);
+    });
+  }
+  renderRecent();
+
+  // ---------- View 2: CSV import ----------
+  var SAMPLE_CSV = [
+    "date,county,case_type,form,reason",
+    "2026-09-02,Hamilton,Small claims,Small claims notice of claim,no signature on page 2",
+    "2026-09-03,Hamilton,Small claims,Small claims notice of claim,Filed in wrong county - defendant lives in Marion",
+    "2026-09-05,Monroe,Family,\"Petition for dissolution, with children\",not notarized; fee waiver form missing",
+    "2026-09-08,Tippecanoe,Eviction,Tenant answer or request for hearing,cites a case that does not exist (possible AI)",
+    "2026-09-10,Vanderburgh,Protective order,Petition for order of protection,needs dates and description of incidents",
+    "2026-09-11,St. Joseph,Family,Petition to modify child support,used old version of form",
+    "2026-09-12,Monroe,Small claims,Small claims counterclaim,no address for defendant; unsigned",
+    "2026-09-15,Hamilton,Name change,Petition for change of name,called filer - will bring in tomorrow",
+    "2026-09-16,Vanderburgh,Small claims,Small claims notice of claim,filing fee not paid",
+    "2026-09-18,St. Joseph,Eviction,Tenant answer or request for hearing,page 3 missing / scan unreadable"
+  ].join("\n");
+  $("csvText").value = SAMPLE_CSV;
+
+  // Keyword rules: clerk free text to categories
+  var RULES = [
+    [/\b(sign|signed|signature|unsigned)\b/i, "Missing signature"],
+    [/\b(wrong|old|outdated)\s+(version|form)|\bused .*form|incorrect form/i, "Wrong form"],
+    [/wrong (county|court)|lives in|venue|jurisdiction/i, "Wrong county or court"],
+    [/\b(needs?|missing|lacks?)\b.*\b(date|dates|detail|details|description|incident|amount|facts)\b/i, "Missing required details"],
+    [/\bfee\b|waiver|\bpaid\b|payment/i, "Missing fee or fee waiver"],
+    [/\bcit(e|es|ed|ation)\b|case that does not exist|statute|fake/i, "Citation not found or wrong"],
+    [/\baddress\b|service/i, "Missing addresses for service"],
+    [/notar|verif|sworn|affirm/i, "Not verified or notarized"],
+    [/page|scan|unreadable|illegible|blank/i, "Pages missing or unreadable"]
+  ];
+  function classify(reason) {
+    var out = [];
+    RULES.forEach(function (r) { if (r[0].test(reason) && out.indexOf(r[1]) < 0) out.push(r[1]); });
+    return out;
+  }
+  function parseCSV(text) {
+    var rows = [], row = [], cur = "", q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) { if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cur); cur = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+      else cur += c;
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows.filter(function (r) { return r.some(function (x) { return x.trim(); }); });
+  }
+  var pending = [];
+  function sortCSV() {
+    var rows = parseCSV($("csvText").value);
+    $("csvStatus").className = "status";
+    if (rows.length < 2) { $("csvStatus").className = "status err"; $("csvStatus").textContent = "No rows found. Paste a CSV with a header row and at least one record."; $("previewPanel").hidden = true; return; }
+    var head = rows[0].map(function (h) { return h.trim().toLowerCase(); });
+    var idx = { date: head.indexOf("date"), county: head.indexOf("county"), caseType: head.indexOf("case_type"), form: head.indexOf("form"), reason: head.indexOf("reason") };
+    if (idx.reason < 0) { $("csvStatus").className = "status err"; $("csvStatus").textContent = "The header needs a column named reason."; $("previewPanel").hidden = true; return; }
+    pending = rows.slice(1).map(function (r) {
+      var reason = (r[idx.reason] || "").trim();
+      var tags = classify(reason);
+      return { date: (r[idx.date] || "").trim(), county: (r[idx.county] || "").trim(), caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], outcome: "Rejected", source: "import" };
+    });
+    var body = $("previewBody"); body.innerHTML = "";
+    var review = 0;
+    pending.forEach(function (p) {
+      var tr = el("tr");
+      tr.appendChild(el("td", { "class": "num" }, p.date));
+      tr.appendChild(el("td", null, p.county));
+      tr.appendChild(el("td", null, p.caseType));
+      tr.appendChild(el("td", { "class": "raw" }, p.reason));
+      var td = el("td"); var box = el("div", { "class": "tags" });
+      p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
+      td.appendChild(box); tr.appendChild(td);
+      body.appendChild(tr);
+    });
+    $("previewSummary").textContent = pending.length + " rows read, " + (pending.length - review) + " sorted automatically, " + review + " need review";
+    $("previewPanel").hidden = false;
+    $("csvAdd").disabled = false;
+    $("csvStatus").textContent = "";
+  }
+  $("csvSort").addEventListener("click", sortCSV);
+  $("csvFile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { $("csvText").value = String(r.result); sortCSV(); };
+    r.readAsText(f);
+  });
+  $("csvAdd").addEventListener("click", function () {
+    var added = pending.filter(function (p) { return /^\d{4}-\d{2}-\d{2}$/.test(p.date); });
+    added.forEach(function (p) { records.push(p); });
+    $("csvAdd").disabled = true;
+    $("csvStatus").className = "status";
+    $("csvStatus").textContent = "Added " + added.length + " rows. Open the dashboard to see them.";
+  });
+
+  // ---------- View 3: dashboard ----------
+  var monthsAll = [];
+  for (var m = 1; m <= 10; m++) monthsAll.push("2026-" + pad(m));
+  fillSelect($("fCounty"), COUNTIES, "All counties");
+  fillSelect($("fCase"), caseNames, "All case types");
+  fillSelect($("fFrom"), monthsAll.map(function (x) { return { value: x, label: monthLabel(x) }; }));
+  fillSelect($("fTo"), monthsAll.map(function (x) { return { value: x, label: monthLabel(x) }; }));
+  $("fTo").value = monthsAll[monthsAll.length - 1];
+  ["fCounty", "fCase", "fFrom", "fTo"].forEach(function (id) { $(id).addEventListener("change", renderDashboard); });
+  fillSelect($("evSel"), EVENTS.map(function (e) { return { value: e.id, label: e.name }; }));
+  fillSelect($("evTag"), TAGS);
+  $("evSel").addEventListener("change", function () { $("evTag").value = currentEvent().tag; renderEvent(); });
+  $("evTag").addEventListener("change", renderEvent);
+  function currentEvent() { var id = $("evSel").value; return EVENTS.filter(function (e) { return e.id === id; })[0]; }
+  $("evTag").value = EVENTS[0].tag;
+
+  function filtered() {
+    var c = $("fCounty").value, ct = $("fCase").value, from = $("fFrom").value, to = $("fTo").value;
+    if (from > to) { var x = from; from = to; to = x; }
+    return records.filter(function (r) {
+      var ym = r.date.slice(0, 7);
+      return (!c || r.county === c) && (!ct || r.caseType === ct) && ym >= from && ym <= to;
+    });
+  }
+  function countTags(rs) {
+    var counts = {}; rs.forEach(function (r) { r.tags.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; }); });
+    return counts;
+  }
+  function topEntries(counts) { return Object.keys(counts).map(function (k) { return [k, counts[k]]; }).sort(function (a, b) { return b[1] - a[1]; }); }
+  function bars(container, entries, total) {
+    container.innerHTML = "";
+    var max = entries.length ? entries[0][1] : 1;
+    entries.forEach(function (e) {
+      var row = el("div", { "class": "bar-row" });
+      row.appendChild(el("div", null, e[0]));
+      var tr = el("div", { "class": "bar-track" }); var fill = el("div", { "class": "bar-fill" }); fill.style.width = (e[1] / max * 100) + "%"; tr.appendChild(fill);
+      row.appendChild(tr);
+      row.appendChild(el("div", { "class": "n", title: total ? Math.round(e[1] / total * 100) + "% of flagged filings" : "" }, String(e[1])));
+      container.appendChild(row);
+    });
+    if (!entries.length) container.appendChild(el("p", { "class": "hint" }, "No flagged filings match these filters."));
+  }
+
+  function renderDashboard() {
+    var rs = filtered();
+    var tc = countTags(rs), te = topEntries(tc);
+    // KPIs
+    var k = $("kpis"); k.innerHTML = "";
+    var byCounty = {}; rs.forEach(function (r) { byCounty[r.county] = (byCounty[r.county] || 0) + 1; });
+    var topC = topEntries(byCounty)[0];
+    var fixed = rs.filter(function (r) { return r.outcome === "Fixed at counter"; }).length;
+    var multi = rs.filter(function (r) { return r.tags.length > 1; }).length;
+    function kpi(label, v, s, small) { var d = el("div", { "class": "kpi" }); d.appendChild(el("div", { "class": "label-sm" }, label)); d.appendChild(el("div", { "class": "v" + (small ? " sm" : "") }, v)); d.appendChild(el("div", { "class": "s" }, s)); k.appendChild(d); }
+    kpi("Flagged filings", rs.length.toLocaleString(), "in the selected months");
+    kpi("Most common problem", te.length ? te[0][0] : "None", te.length ? "on " + Math.round(te[0][1] / rs.length * 100) + "% of flagged filings" : "", true);
+    kpi("County with most", topC ? topC[0] : "None", topC ? topC[1] + " flagged filings" : "", true);
+    kpi("More than one problem", rs.length ? Math.round(multi / rs.length * 100) + "%" : "0%", fixed + " fixed at the counter");
+
+    $("barsNote").textContent = "share of " + rs.length + " flagged filings";
+    bars($("bars"), te, rs.length);
+    var oc = {}; rs.forEach(function (r) { oc[r.outcome] = (oc[r.outcome] || 0) + 1; });
+    bars($("outBars"), OUTCOMES.filter(function (o) { return oc[o]; }).map(function (o) { return [o, oc[o]]; }), rs.length);
+
+    // Heat table
+    var heat = $("heat"); heat.innerHTML = "";
+    var cols = te.slice(0, 6).map(function (e) { return e[0]; });
+    var thead = el("thead"), hr = el("tr");
+    hr.appendChild(el("th", null, "County"));
+    cols.forEach(function (c) { hr.appendChild(el("th", { "class": "num" }, c)); });
+    hr.appendChild(el("th", { "class": "num" }, "All flagged"));
+    thead.appendChild(hr); heat.appendChild(thead);
+    var tb = el("tbody"), maxCell = 1, grid = {};
+    var countiesShown = $("fCounty").value ? [$("fCounty").value] : COUNTIES;
+    countiesShown.forEach(function (c) { grid[c] = countTags(rs.filter(function (r) { return r.county === c; })); cols.forEach(function (t) { maxCell = Math.max(maxCell, grid[c][t] || 0); }); });
+    countiesShown.forEach(function (c) {
+      var tr = el("tr"); tr.appendChild(el("td", null, c));
+      cols.forEach(function (t) {
+        var v = grid[c][t] || 0;
+        var td = el("td", { "class": "heat" }, String(v));
+        var pct = Math.round(v / maxCell * 70);
+        td.style.background = "color-mix(in srgb, var(--accent) " + pct + "%, var(--surface))";
+        if (pct > 40) td.style.color = "var(--surface)";
+        tr.appendChild(td);
+      });
+      tr.appendChild(el("td", { "class": "num" }, String(byCounty[c] || 0)));
+      tb.appendChild(tr);
+    });
+    heat.appendChild(tb);
+
+    // Forms table
+    var ft = $("forms"); ft.innerHTML = "";
+    var fh = el("thead"), fr = el("tr");
+    ["Form", "Case type", "Flagged", "Top problem", "Share with top problem"].forEach(function (h, i) { fr.appendChild(el("th", i === 2 || i === 4 ? { "class": "num" } : null, h)); });
+    fh.appendChild(fr); ft.appendChild(fh);
+    var fb = el("tbody"), byForm = {};
+    rs.forEach(function (r) { var key = r.form || "(not given)"; (byForm[key] = byForm[key] || { ct: r.caseType, rs: [] }).rs.push(r); });
+    Object.keys(byForm).sort(function (a, b) { return byForm[b].rs.length - byForm[a].rs.length; }).forEach(function (f) {
+      var g = byForm[f], top = topEntries(countTags(g.rs))[0];
+      var tr = el("tr");
+      tr.appendChild(el("td", null, f));
+      tr.appendChild(el("td", null, g.ct));
+      tr.appendChild(el("td", { "class": "num" }, String(g.rs.length)));
+      tr.appendChild(el("td", null, top ? top[0] : ""));
+      tr.appendChild(el("td", { "class": "num" }, top ? Math.round(top[1] / g.rs.length * 100) + "%" : ""));
+      fb.appendChild(tr);
+    });
+    ft.appendChild(fb);
+
+    renderEvent();
+  }
+
+  function renderEvent() {
+    var ev = currentEvent(), tag = $("evTag").value;
+    $("evDesc").textContent = ev.desc + " Chart shows " + ev.county + " County, " + ev.caseType.toLowerCase() + " filings only.";
+    var scoped = records.filter(function (r) { return r.county === ev.county && r.caseType === ev.caseType; });
+    var series = monthsAll.map(function (ym) { return [ym, scoped.filter(function (r) { return r.date.slice(0, 7) === ym && r.tags.indexOf(tag) >= 0; }).length]; });
+    var evYm = ev.date.slice(0, 7);
+    var before = series.filter(function (s) { return s[0] < evYm; }), after = series.filter(function (s) { return s[0] >= evYm; });
+    // Leave out the current, partial month from the average
+    var afterFull = after.filter(function (s) { return s[0] !== "2026-10"; });
+    function avg(a) { return a.length ? a.reduce(function (x, s) { return x + s[1]; }, 0) / a.length : 0; }
+    var b = avg(before), a = avg(afterFull.length ? afterFull : after);
+    var change = b ? Math.round((a - b) / b * 100) : 0;
+    var cmp = $("evCompare"); cmp.innerHTML = "";
+    function box(label, v, s, cls) { var d = el("div"); d.appendChild(el("div", { "class": "label-sm" }, label)); d.appendChild(el("div", { "class": "v " + (cls || "") }, v)); d.appendChild(el("div", { "class": "s" }, s)); cmp.appendChild(d); }
+    box("Before", b.toFixed(1), "per month, " + before.length + " months");
+    box("After", a.toFixed(1), "per month, " + (afterFull.length || after.length) + " full months");
+    box("Change", (change > 0 ? "+" : "") + change + "%", change < 0 ? "fewer filings with this problem" : (change > 0 ? "more filings with this problem" : "no change"), change < 0 ? "down" : (change > 0 ? "up" : ""));
+
+    // Line chart
+    var svg = $("evChart"), W = 760, H = 240, L = 40, R = 16, T = 16, B = 34;
+    var max = Math.max(4, Math.max.apply(null, series.map(function (s) { return s[1]; })));
+    var step = max <= 8 ? 2 : (max <= 20 ? 5 : 10);
+    var yMax = Math.ceil(max / step) * step;
+    function x(i) { return L + i * (W - L - R) / (series.length - 1); }
+    function y(v) { return T + (H - T - B) * (1 - v / yMax); }
+    var ns = "http://www.w3.org/2000/svg", parts = [];
+    for (var v = 0; v <= yMax; v += step) {
+      parts.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--line)" stroke-width="1"/>');
+      parts.push('<text x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>');
+    }
+    series.forEach(function (s, i) { parts.push('<text x="' + x(i) + '" y="' + (H - 12) + '" text-anchor="middle">' + MONTHS[+s[0].slice(5) - 1] + '</text>'); });
+    var ei = monthsAll.indexOf(evYm), day = +ev.date.slice(8, 10);
+    var ex = x(ei) - (day > 1 ? 0 : 0) + (day - 1) / 30 * (x(1) - x(0)) - (x(1) - x(0)) / 2;
+    ex = Math.max(L, ex);
+    parts.push('<line x1="' + ex + '" x2="' + ex + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 4"/>');
+    parts.push('<text x="' + (ex + 6) + '" y="' + (T + 10) + '" fill="var(--warn)" style="fill:var(--warn)">Change</text>');
+    var area = "M" + x(0) + "," + y(0) + " " + series.map(function (s, i) { return "L" + x(i) + "," + y(s[1]); }).join(" ") + " L" + x(series.length - 1) + "," + y(0) + " Z";
+    parts.push('<path d="' + area + '" fill="var(--accent-soft)" stroke="none"/>');
+    parts.push('<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="' + series.map(function (s, i) { return x(i) + "," + y(s[1]); }).join(" ") + '"/>');
+    series.forEach(function (s, i) {
+      var last = i === series.length - 1;
+      parts.push('<circle cx="' + x(i) + '" cy="' + y(s[1]) + '" r="' + (last ? 5 : 3.5) + '" fill="' + (last ? "var(--surface)" : "var(--accent)") + '" stroke="var(--accent)" stroke-width="2"><title>' + monthLabel(s[0]) + ": " + s[1] + (last ? " (month in progress)" : "") + '</title></circle>');
+    });
+    svg.innerHTML = parts.join("");
+  }
+
+  show();
+})();
+</script>
