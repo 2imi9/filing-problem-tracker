@@ -84,3 +84,24 @@ These steps come from the code and have not been carried out on a hosted Supabas
 - A public demo needs `DEMO_COOKIE_SECRET` or `ALLOW_DEMO=1`. Anyone who can reach it can sign in as an admin, so it must hold only the sample data. On a host that runs several instances, each has its own copy of the sample data and its own rate limits.
 - The AI routes may run for up to 90 seconds; check that the host allows it.
 - After changing a key, redeploy. Changing `DEMO_COOKIE_SECRET` signs everyone out of the demo.
+
+## Run the demo page with a local model (optional)
+
+Needs an Apple silicon Mac with 16 GB of memory. The first run downloads about 9.5 GB.
+
+```bash
+sh scripts/start-openjev.sh       # terminal 1: OpenJev Flash 9B on 127.0.0.1:3000
+python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:8080
+```
+
+The Import tab says whether the model is ready. Rows the keyword rules cannot sort go to the model and come back marked "OpenJev (AI)", or "OpenJev (AI) was not sure" if it left them for review. Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
+
+## Run the demo page on a Hugging Face Space (optional)
+
+One free Docker Space serves the page and the model together (the 5.6 GB build on llama.cpp, no GPU, so each leftover row takes a while).
+
+```bash
+sh scripts/build-space.sh   # collects six files into space-build/
+```
+
+Create a Space with the Docker SDK and upload the six files. The first build downloads the model.
