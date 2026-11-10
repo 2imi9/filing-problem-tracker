@@ -1,0 +1,18 @@
+# Render Blueprint. Publishes the single-file prototype as a free static site.
+# Deploy: https://render.com/deploy?repo=https://github.com/2imi9/filing-problem-tracker
+services:
+  - type: web
+    name: filing-problem-tracker
+    runtime: static
+    buildCommand: sh scripts/build-site.sh
+    staticPublishPath: ./site
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
