@@ -6,6 +6,8 @@
 
 A small web tool for Indiana trial courts. Clerks tag why a filing from someone without a lawyer was rejected, and court leaders see which problems are most common and whether a fix helped.
 
+**Live demo:** https://filing-problem-tracker.onrender.com
+
 > [!NOTE]
 > Student prototype for Northeastern CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. All data is made up, and it gives no legal advice.
 
