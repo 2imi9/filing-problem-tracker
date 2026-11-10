@@ -24,7 +24,7 @@ A clerk has just rejected or returned a filing from a person without a lawyer. T
 
 ### User Story 2 - See the patterns (Priority: P1)
 
-A court leader opens the dashboard and sees the most common problems, how filings ended up, which counties and forms have the most trouble, and the trend by month. They narrow it by county, case type, form, problem or date range.
+A court leader opens the dashboard and sees the most common problems, how filings ended up, and which counties and forms have the most trouble. They narrow it by county, case type or month range.
 
 **Why this priority**: This is the reason the data is collected.
 
@@ -47,7 +47,7 @@ An admin records a change, such as a revised form or a new self-help guide, with
 **Acceptance Scenarios**:
 
 1. **Given** a recorded change, **When** a leader opens the before/after view, **Then** it compares full months before and after and leaves out the month in progress.
-2. **Given** too few records after the change, **When** the view opens, **Then** it says there is not enough data yet instead of showing a rate.
+2. **Given** no full month before or after the change, **When** the view opens, **Then** it says there is not enough data yet instead of showing a change.
 
 ### User Story 4 - Import past rejections (Priority: P2)
 
@@ -109,7 +109,7 @@ A leader connects the tracker to their own Claude and asks questions there. Clau
 - **FR-003**: System MUST check notes and imported text for personal data and refuse to store text that fails.
 - **FR-004**: System MUST limit a clerk to reading and writing their own county's records, taking the county from their account and never from the request.
 - **FR-005**: Leaders MUST be able to see totals for all counties and MUST NOT be able to read notes or raw imported reasons.
-- **FR-006**: Users MUST be able to filter every view by county, case type, form, problem and month range.
+- **FR-006**: Users MUST be able to filter the dashboard by county, case type and month range, and a workspace panel also by form and problem.
 - **FR-007**: Admins MUST be able to record a change with a date and target, and leaders MUST be able to see a before/after comparison for it.
 - **FR-008**: Users MUST be able to import rows from a spreadsheet export, preview how each was sorted, and confirm before anything is saved.
 - **FR-009**: System MUST mark rows it cannot sort as "Needs review" for a person to resolve.
