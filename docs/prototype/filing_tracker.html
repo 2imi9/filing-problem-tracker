@@ -404,9 +404,14 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
 
   // ---------- View 1: clerk tagging ----------
   var selTags = [], selOutcome = "Rejected", startedAt = null;
-  fillSelect($("logCounty"), COUNTIES);
-  fillSelect($("logCase"), caseNames);
-  function syncForms() { fillSelect($("logForm1"), CASES[$("logCase").value]); }
+  fillSelect($("logCounty"), COUNTIES, "Select county");
+  fillSelect($("logCase"), caseNames, "Select case type");
+  function syncForms() {
+    var ct = $("logCase").value;
+    fillSelect($("logForm1"), ct ? CASES[ct] : [], "Select form");
+    $("logForm1").disabled = !ct;
+    if (ct && CASES[ct].length === 1) $("logForm1").value = CASES[ct][0];
+  }
   $("logCase").addEventListener("change", syncForms);
   syncForms();
 
@@ -440,6 +445,14 @@ footer .wrap { padding-block: 28px 40px; color: var(--muted); font-size: 0.85rem
   $("logForm").addEventListener("submit", function (e) {
     e.preventDefault();
     if (!selTags.length) return;
+    var missing = ["logCounty", "logCase", "logForm1"].filter(function (id) { return !$(id).value; });
+    if (missing.length) {
+      $("logStatus").className = "status err";
+      $("logStatus").textContent = "Choose a county, case type and form first.";
+      $(missing[0]).focus();
+      return;
+    }
+    $("logStatus").className = "status";
     var secs = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : null;
     var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: $("logNote").value.trim(), source: "clerk" };
     records.push(rec);
