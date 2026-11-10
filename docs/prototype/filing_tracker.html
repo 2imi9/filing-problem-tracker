@@ -60,6 +60,8 @@ header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #172554 0%, rgba(23, 37, 84, 0.97) 50%, rgba(23, 37, 84, 0.7) 74%, rgba(23, 37, 84, 0.35) 100%); }
 @media (max-width: 900px) { .hero::after { background: rgba(23, 37, 84, 0.9); } }
 .hero-in { padding-block: 72px 76px; display: grid; gap: 12px; justify-items: start; }
+/* On wide screens the header text sits a little left of the page column, clear of the picture. */
+@media (min-width: 1200px) { .hero-in { transform: translateX(-48px); } }
 h1 { font-family: var(--font-head); font-weight: 600; font-size: clamp(2.6rem, 1.5rem + 4.4vw, 4.6rem); line-height: 1.04; margin: 0; letter-spacing: -0.005em; text-wrap: balance; display: flex; align-items: flex-start; gap: 0.32em; }
 /* The courthouse mark is our own drawing, not a court seal or logo. */
 .mark { width: 0.74em; height: 0.74em; flex: none; margin-top: 0.16em; }
