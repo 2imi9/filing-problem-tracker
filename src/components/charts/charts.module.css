@@ -1,0 +1,265 @@
+/* Charts: plain SVG and tables, colored from the tokens. No inline styles, so a strict CSP is fine. */
+
+/* Sparkline */
+.spark {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.sparkBase {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.sparkLine {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sparkDot {
+  fill: var(--color-primary);
+}
+
+/* Bar list */
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label value"
+    "track track"
+    "detail detail";
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  align-items: baseline;
+}
+
+.barLabel {
+  grid-area: label;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.barTrack {
+  grid-area: track;
+  display: block;
+  width: 100%;
+  height: 8px;
+}
+
+.barBack {
+  fill: var(--color-muted);
+}
+
+.barFill {
+  fill: var(--color-primary);
+}
+
+.barValue {
+  grid-area: value;
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  align-items: baseline;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.barShare {
+  min-width: 4ch;
+  text-align: right;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-muted-foreground);
+}
+
+.barDetail {
+  grid-area: detail;
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+/* With room, the label, bar and value share one line. */
+@container panel (min-width: 520px) {
+  .barRow {
+    /* Fixed side columns: each row is its own grid, and the bars must start and end in line. */
+    grid-template-columns: 15rem minmax(0, 1fr) 7.5rem;
+    grid-template-areas:
+      "label track value"
+      "detail detail detail";
+    align-items: center;
+  }
+}
+
+/* Heat table */
+.heatWrap {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.heat thead th.heatHead {
+  white-space: normal;
+  min-width: 6.5rem;
+  max-width: 9rem;
+  text-align: right;
+}
+
+.heat tbody th {
+  white-space: nowrap;
+}
+
+.heatCell[data-step="1"],
+.legendSwatch[data-step="1"] {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-card));
+}
+
+.heatCell[data-step="2"],
+.legendSwatch[data-step="2"] {
+  background: color-mix(in srgb, var(--color-primary) 16%, var(--color-card));
+}
+
+.heatCell[data-step="3"],
+.legendSwatch[data-step="3"] {
+  background: color-mix(in srgb, var(--color-primary) 24%, var(--color-card));
+}
+
+.heatCell[data-step="4"],
+.legendSwatch[data-step="4"] {
+  background: color-mix(in srgb, var(--color-primary) 32%, var(--color-card));
+  font-weight: 500;
+}
+
+.heatCell[data-step="0"] {
+  color: var(--color-muted-foreground);
+}
+
+.heatTotal {
+  font-weight: 500;
+  border-left: 1px solid var(--color-border);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  align-items: center;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+.legendScale {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.legendSwatch {
+  display: inline-block;
+  width: 20px;
+  height: 14px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-card);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Plain data table behind a chart */
+.plainTable tbody th {
+  font-weight: 400;
+}
+
+/* Trend line */
+.trend {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.trendPlot {
+  min-width: 0;
+  /* Positioned, so screen-reader-only text inside the plot is clipped with it and cannot widen the page. */
+  position: relative;
+  overflow-x: auto;
+}
+
+.trendPlot svg {
+  display: block;
+  max-width: none;
+}
+
+.gridLine {
+  stroke: var(--color-border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.axisLine {
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+}
+
+.axisText,
+.valueText,
+.markerText {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--color-muted-foreground);
+}
+
+.valueText {
+  fill: var(--color-foreground);
+}
+
+.markerText {
+  font-family: var(--font-body);
+  font-weight: 700;
+  fill: var(--color-foreground);
+}
+
+.series,
+.seriesOpen {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.seriesOpen {
+  stroke-dasharray: 2 5;
+}
+
+.point {
+  fill: var(--color-primary);
+  stroke: var(--color-card);
+  stroke-width: 1.5;
+}
+
+.pointOpen {
+  fill: var(--color-card);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.markerLine {
+  stroke: var(--color-foreground);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}

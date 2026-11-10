@@ -1,0 +1,36 @@
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-muted-foreground);
+}
+
+.ring {
+  flex: none;
+  animation: spin 0.8s linear infinite;
+}
+
+.track {
+  stroke: var(--color-border);
+}
+
+.arc {
+  stroke: currentColor;
+}
+
+.label {
+  font-size: var(--text-sm);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* With reduced motion the ring holds still; the label carries the meaning. */
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: none;
+  }
+}

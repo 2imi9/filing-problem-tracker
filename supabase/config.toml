@@ -1,0 +1,59 @@
+# Supabase CLI configuration for local development (supabase start, supabase db reset).
+# A hosted project is configured in its dashboard; mirror the [auth] settings below there.
+
+project_id = "filing-problem-tracker"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+# The app reads in pages of 1000 rows and keeps reading until it has them all, so a lower value here
+# costs requests, not correctness.
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+# Made-up sample data, generated from src/lib/sample.ts (npm run seed:gen). Local development only.
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+# Local mail catcher: sign-in emails sent by the local stack show up at http://localhost:54324.
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/api/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Invite only: nobody can create their own account. An administrator invites a person, then adds their
+# profile row (see README.md in this folder).
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = true
+enable_confirmations = true
+# One sign-in email per address per minute, and a link is good for 15 minutes.
+max_frequency = "1m0s"
+otp_expiry = 900
+
+[auth.email.template.magic_link]
+subject = "Your sign-in link for the Filing Problem Tracker"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.invite]
+subject = "You have been invited to the Filing Problem Tracker"
+content_path = "./supabase/templates/invite.html"

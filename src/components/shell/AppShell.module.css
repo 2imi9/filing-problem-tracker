@@ -1,0 +1,285 @@
+.frame {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.bareFrame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Skip link: off screen until it has keyboard focus. */
+.skip {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: calc(var(--z-toast) + 1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-input);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+
+.skip:focus {
+  transform: translateY(0);
+  color: var(--color-on-primary);
+}
+
+/* Sidebar (820px and wider) */
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100vh;
+  height: 100dvh;
+  padding: var(--space-4) var(--space-3);
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.brand {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-1) var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+.brandSub {
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.sideList,
+.tabList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sideList {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sideLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-input);
+  color: var(--color-foreground);
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.sideLink:hover {
+  background: var(--color-muted);
+  color: var(--color-primary);
+}
+
+/* Selected: a soft fill, the primary color and a bar on the left, so it does not rely on color alone. */
+.sideLink[aria-current="page"] {
+  border-left-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.sideNote {
+  margin-top: auto;
+  padding: var(--space-3);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+/* Column: header, main, footer */
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-height: var(--header-height);
+  padding: var(--space-1) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+/* The sidebar already shows the name on wide screens. */
+.headerBrand {
+  display: none;
+}
+
+.headerBrand,
+.headerBrandAlways {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+.headerTools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-6);
+}
+
+.bareMain {
+  flex: 1;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  min-width: 0;
+  padding: var(--space-8) var(--space-4);
+}
+
+.footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.footer p {
+  max-width: var(--measure);
+}
+
+/* Bottom tab bar (under 820px) */
+.tabbar {
+  display: none;
+}
+
+@media (max-width: 819.98px) {
+  .frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .header {
+    padding: var(--space-1) var(--space-4);
+  }
+
+  .headerBrand {
+    display: block;
+    font-size: var(--text-lg);
+  }
+
+  /* The notice takes its own row under the name and tools. */
+  .flag {
+    order: 3;
+    width: 100%;
+    margin-bottom: var(--space-1);
+    text-align: center;
+  }
+
+  .main {
+    padding: var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-4);
+    /* Leave room for the fixed tab bar. */
+    padding-bottom: calc(var(--tabbar-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .tabbar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--z-tabbar);
+    display: block;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid var(--color-border-strong);
+    background: var(--color-card);
+  }
+
+  .tabList {
+    display: flex;
+    height: var(--tabbar-height);
+  }
+
+  .tabList li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .tabLink {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 100%;
+    min-width: var(--target-min);
+    padding: var(--space-1) 2px;
+    border-top: 3px solid transparent;
+    color: var(--color-muted-foreground);
+    /* 11px: six one-word labels have to fit side by side at 375px. Each sits under its icon. */
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    text-decoration: none;
+  }
+
+  .tabLink span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tabLink:hover {
+    color: var(--color-primary);
+  }
+
+  .tabLink[aria-current="page"] {
+    border-top-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+  }
+
+  .tabLink:focus-visible {
+    outline-offset: calc(-1 * var(--focus-width));
+  }
+}

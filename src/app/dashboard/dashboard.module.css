@@ -1,0 +1,157 @@
+/* The dashboard: a sticky filter bar over a column of panels. Tokens come from globals.css. */
+
+.dashboard {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.filterBar {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+}
+
+/* Stays under the app header while the panels scroll. On a phone it would cover too much, so it scrolls away. */
+@media (min-width: 820px) and (min-height: 600px) {
+  .filterBar {
+    position: sticky;
+    top: var(--header-height);
+    z-index: var(--z-sticky);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
+
+.filterFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.filterState {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+
+.chipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filterCount {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+.filterCount :global(.num) {
+  color: var(--color-foreground);
+  font-weight: 500;
+}
+
+.scopeNote,
+.changeNote {
+  max-width: var(--measure);
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+/* Ranked problems beside outcomes, 3 to 2. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  align-items: stretch;
+  min-width: 0;
+}
+
+@media (max-width: 899.98px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.changeFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+  align-items: end;
+  min-width: 0;
+}
+
+.changeNote {
+  grid-column: 1 / -1;
+}
+
+.emptyPanel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+}
+
+/* AI summary */
+.summary {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+}
+
+.summaryHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.summaryTitles {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.summaryTitle {
+  font-size: var(--text-xl);
+}
+
+.summaryLabel {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-muted-foreground);
+}
+
+.summaryBody {
+  display: grid;
+  gap: var(--space-2);
+  max-width: var(--measure);
+}
+
+.summaryText {
+  font-size: var(--text-lg);
+}
+
+.summaryHint {
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}

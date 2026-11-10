@@ -1,0 +1,105 @@
+.region {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-toast);
+  display: grid;
+  gap: var(--space-2);
+  width: min(420px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+
+/* The region is never hidden while empty: a live region has to be in the accessibility tree before a
+   message is added, or the message may not be read out. Empty, it has no height and takes no clicks. */
+
+/* Under 820px the bottom tab bar is showing: sit above it. */
+@media (max-width: 819.98px) {
+  .region {
+    right: var(--space-4);
+    left: var(--space-4);
+    bottom: calc(var(--tabbar-height) + var(--space-3) + env(safe-area-inset-bottom, 0px));
+    width: auto;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border: 1px solid var(--color-foreground);
+  border-left-width: 4px;
+  border-radius: var(--radius-card);
+  background: var(--color-foreground);
+  color: var(--color-background);
+  pointer-events: auto;
+  animation: enter var(--duration) var(--ease);
+}
+
+.success {
+  border-left-color: var(--color-success-soft);
+}
+
+.error {
+  border-left-color: var(--color-destructive);
+}
+
+.icon {
+  flex: none;
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) 0;
+  overflow-wrap: anywhere;
+}
+
+.action,
+.close {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--target-min);
+  min-width: var(--target-min);
+  border: 1px solid transparent;
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease);
+}
+
+.action {
+  padding: 0 var(--space-3);
+  border-color: currentColor;
+  font-weight: 700;
+}
+
+.action:hover,
+.close:hover {
+  background: color-mix(in srgb, var(--color-background) 18%, transparent);
+}
+
+/* The toast is dark on light themes and light on dark themes, so the focus ring flips too. */
+.action:focus-visible,
+.close:focus-visible {
+  outline-color: var(--color-background);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

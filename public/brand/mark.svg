@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Filing Problem Tracker">
+  <style>
+    .b { fill: #1e3a8a; }
+    .d { fill: #d9982b; }
+    @media (prefers-color-scheme: dark) { .b { fill: #dbe4f5; } .d { fill: #fcd34d; } }
+  </style>
+  <path class="b" d="M16 2.5 30 11H2z"/>
+  <circle class="d" cx="16" cy="7.9" r="1.7"/>
+  <path class="b" d="M4 12.5h24v2H4zM5.5 16h3v8.5h-3zM11.5 16h3v8.5h-3zM17.5 16h3v8.5h-3zM23.5 16h3v8.5h-3zM4 25.5h24v2H4zM2 28.5h28v2H2z"/>
+</svg>

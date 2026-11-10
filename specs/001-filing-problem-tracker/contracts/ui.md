@@ -1,44 +1,85 @@
 # Contract: pages and design system
 
+The approved look is the single-file demo in `docs/prototype/filing_tracker.html`. The app matches it, and adds the pages the demo does not have.
+
+## Frame
+
+- **Header**: a soft navy band (`#172554`) with the courthouse picture `public/brand/courthouse-ascii-hero.jpg` under a navy wash. The project's own courthouse mark (`public/brand/mark.svg`) sits to the left of a large "Filing Problem Tracker" title, with one small intro line below. In demo mode a small yellow monospace line reads "PROTOTYPE. ALL DATA IS MADE UP.", with no box around it. From 1280px up the header block shifts 48px left. No official Indiana court seal or logo is used anywhere.
+- **Tabs**: one tab bar, pinned to the top while the page scrolls. Each tab is a circled number and a label; the active tab's circle is filled navy. Tabs are numbered by position among the pages the role can open:
+
+  | Role | Tabs |
+  |---|---|
+  | Clerk | 1 Tag a filing, 2 Import, 3 Dashboard, 4 Workspace, 5 How it's used |
+  | Leader | 1 Dashboard, 2 Workspace, 3 How it's used |
+  | Admin | 1 Tag a filing, 2 Import, 3 Dashboard, 4 Workspace, 5 How it's used, 6 Admin |
+
+  The account menu and the light and dark switch sit at the right end of the bar. Tabs never wrap: on a narrow screen the row scrolls sideways and the page does not. Changing page while scrolled past the header keeps the bar at the top and starts the new page at its first line. There is no sidebar and no bottom bar.
+- **Page body**: one intro sentence that fits on one line on desktop, then sections separated by plain rules with EB Garamond headings. No card frames around sections.
+- **Footer**: "Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice."
+
 ## Pages
 
-Sidebar navigation on desktop (Tag a filing, Import, Dashboard, Workspace, How it's used, Admin for admins); fixed bottom tab bar under 820px. Clerks land on Tag a filing, leaders on Dashboard. A visible "Prototype. All data is made up." flag on every page in demo mode.
+Clerks land on Tag a filing, leaders and admins on Dashboard. A page a role cannot use says so instead of showing its controls.
 
-- **Tag a filing**: county (fixed for clerks), case type, form, numbered problem chips (keys 1 to 9 toggle, Enter saves), outcome, optional note with live PII warning, saved toast with Undo, recent entries.
-- **Import**: paste or upload CSV, preview with per-row source (AI or rules) and confidence, rejected rows listed with the reason, commit.
-- **Dashboard**: sticky filter bar with removable chips, KPI tiles with sparklines, ranked problems, outcomes, county x problem heat table, forms table, before/after panel, optional AI summary on request.
-- **Workspace**: a command bar instead of a chat. A request opens panels on a grid. Panels can be re-filtered by hand, resized (s / w / l), reordered (drag, and keyboard-accessible move buttons), minimized, duplicated, closed. A folder rail saves and reopens sets of panels. Three example folders ship with the sample data. "Add panel" menu works with no AI.
-- **How it's used**: three scenario cards with inline SVG line illustrations.
+| Path | Page | What is on it |
+|---|---|---|
+| `/login` | Sign in | Demo mode: choose a demo role. Supabase mode: ask for a sign-in link by work email. |
+| `/auth/confirm` | Finish signing in | Where an emailed link lands; a Sign in button completes it. |
+| `/log` | Tag a filing | County (fixed for a clerk), case type, form, filing date, problems, outcome, optional note with a live personal-data warning, Save tags, then recent entries with Undo. |
+| `/import` | Import | Paste or upload a CSV, sort it, review the preview and the rows left out, add the rows. Rows that need review are listed below. |
+| `/dashboard` | Dashboard | Filters, four key numbers, most common problems, outcomes, county by problem table, forms table, before and after a change, optional AI summary. |
+| `/workspace` | Workspace | A request box that opens live panels, an add-panel menu that needs no AI, and saved folders. Panels can be filtered, resized (small, wide, large), moved by drag or keyboard, minimized, duplicated and closed. |
+| `/how-it-works` | How it's used | Three short scenarios: a clerk tags what was wrong, a court leader sees the pattern, the court checks whether a change helped. |
+| `/admin` | Admin | Record and delete changes, read the audit log, reset the demo data. Admins only. |
 
-## Design system
+## Controls
 
-Source: the `ui-ux-pro-max` skill (MIT, github.com/nextlevelbuilder/ui-ux-pro-max-skill), queried for a government / court internal analytics and data entry tool with dials variance 5, motion 2, density 7. Its landing-page pattern and GSAP scroll reveal are not used: this is an internal tool, not a marketing page, and it adds no animation library.
+- **Dropdowns** start on a general choice ("Select case type", "Select form"). The form list is disabled until a case type is chosen, and a case type with one form selects it. A county fixed by the account stays fixed.
+- **Problem choices** are square checkbox rows: 4px radius, a 16px square mark, and when chosen a soft accent background, an accent border and a navy tick. Keys 1 to 9 toggle them unless the person turns that off; Enter saves.
+- **Outcome choices** are radio rows: a round mark that fills as a 5px ring in the outcome's colour.
+- **Outcome labels in lists** are a coloured dot and one short word inside a thin neutral outline, all the same width so dots and words line up: "Pass" (Fixed at counter, green), "Fix" (Returned to fix, gold), "Reject" (Rejected, red). Screen readers get the full outcome name. This is the only capsule shape in the app.
+- **Buttons**: one gold button per screen, for the main action. Everything else is quiet. On Import, once the preview shows, "Sort into categories" turns quiet and the add button is the gold one.
+- **Forms**: a failed save shows an error summary at the top that takes focus and links to each field, and inline errors stay. Every save shows that it is working, then success or an error with a way to recover.
 
-- **Style**: "Accessible & Ethical" (the skill's match for government, legal compliance and public-sector tools) with the layout habits of its "Data-Dense Dashboard" style on the dashboard and workspace: 12-column grid, KPI row, compact cards (12 to 16px padding), 36px table rows, sticky table headers, 240px sidebar, 56px header.
-- **Color tokens** (CSS variables in `globals.css`; light values shown, with a full dark theme):
+## Dashboard
 
-  | Token | Value | Use |
-  |---|---|---|
-  | `--color-primary` | `#1E3A8A` | navigation, selected state, links, focus ring |
-  | `--color-secondary` | `#1E40AF` | hover on primary |
-  | `--color-accent` | `#B45309` | the one primary action per view (Save tags, Add rows, Open panels). Nothing else. |
-  | `--color-background` | `#F8FAFC` | page |
-  | `--color-card` | `#FFFFFF` | panels |
-  | `--color-foreground` | `#0F172A` | text |
-  | `--color-muted` / `--color-muted-foreground` | `#E9EEF5` / `#475569` | quiet surfaces / secondary text |
-  | `--color-border` | `#CBD5E1` | hairlines |
-  | `--color-destructive` | `#DC2626` | Rejected, errors (text on white uses `#B91C1C` for 4.5:1) |
-  | `--color-success` | `#166534` | Fixed at counter, a drop in the before/after figure |
+- The four key numbers are one row split by thin dividers, not four cards, and their values share a baseline.
+- Bar lists are sorted from most to least with the value printed beside each bar.
+- The county table prints the number in every cell, and its shading stays light enough for dark text.
+- The before and after chart has a dashed "Change" marker drawn over the gridlines and no area fill.
+- Every chart has a data table and a one-sentence summary. Charts are plain SVG.
+- The AI summary is plain text, never a card with a coloured edge. With AI off it is at most one quiet line.
 
-  "Authority navy and trust gold". Color is never the only signal: outcome pills carry their label, heat table cells print their number, the trend line has point markers and a data table alternative.
-- **Type**: headings EB Garamond (legal, formal, document-like); body Lato; numbers, dates and data in IBM Plex Mono with tabular figures. Fonts are self-hosted from `src/fonts` through `next/font/local` so builds need no network. Body text is 16px minimum; dense tables may go to 14px. KPI numerals about 40px.
-- **Key effects**: clear 3px focus rings, a skip link to main content, 44x44px minimum touch targets, `cursor: pointer` on everything clickable, hover transitions 150 to 300ms, reduced motion respected.
-- **Shape**: inputs 4px radius, cards 6px, dialogs 10px, pills full. Hairline borders, no decorative shadows.
-- **Charts** (the skill's chart guidance): ranked bar lists sorted descending with direct value labels; line chart for monthly trends with markers; heat table prints values in cells and includes a legend; every chart has a visible or toggleable data table and a one-sentence summary. Plain SVG, no chart library.
-- **Forms** (the skill's UX guidance): on a failed submit, an error summary at the top of the form with `role="alert"` receives focus and links to each invalid field, and inline errors stay. Every submit shows loading, then success or an error with a way to recover.
-- **Motion**: two moments only, the saved toast and new workspace panels highlighting once.
-- **Avoid** (the skill's anti-patterns for this product type, plus its delivery checklist): an outdated look, purple or pink "AI" gradients, gradient text, glass blur, emoji used as icons (use inline SVG icons), hype copy.
-- **Pre-delivery checklist**: no emoji icons; pointer cursor on clickables; hover states; 4.5:1 text contrast in both themes; visible keyboard focus; reduced motion; responsive at 375, 768, 1024 and 1440px with no horizontal page scroll (tables scroll inside their panel); semantic HTML (`table`, `nav`, `button`, `dialog`), every input labeled, `aria-pressed` on chips, `aria-live` for status.
+## Design tokens
 
+Defined once as CSS variables in `src/app/globals.css`. Dark applies when the system asks for it or when the person picks it.
 
-Copy is plain and specific: say what a control does. No legal advice anywhere; labels describe what was wrong with a filing, never what a filer should do.
+| Role | Light | Dark |
+|---|---|---|
+| Page background | `#F8FAFC` | `#0B1220` |
+| Surface | `#FFFFFF` | `#111A2B` |
+| Text | `#0F172A` | `#E5EAF2` |
+| Secondary text | `#475569` | `#A3B2C9` |
+| Quiet fill | `#E9EEF5` | `#1A2640` |
+| Rule and hairline | `#CBD5E1` | `#2C3A55` |
+| Field border | `#64748B` | `#7C8BA3` |
+| Accent (navy): tabs, links, selected state, focus ring, charts | `#1E3A8A` | `#9DBBF7` |
+| Accent, soft: chosen checkbox row | `#E0E8F7` | `#1B2A4A` |
+| Main action (gold) | `#B45309` | `#F0A64B` |
+| Good: Fixed at counter, a drop | `#166534` | `#7FC28B` |
+| Caution | `#92400E` | `#E6AE5A` |
+| Bad: Rejected, errors | `#B91C1C` | `#F29A93` |
+| Header band | `#172554` | `#172554` |
+
+- **Type**: headings in EB Garamond, text in Lato, numbers, dates and data in IBM Plex Mono with tabular figures. Fonts are self-hosted from `src/fonts`. Body text is 16px or larger.
+- **Shape**: 4px radius on fields, buttons and checkbox rows. Hairline borders. No shadows for decoration.
+- **Motion**: colour transitions of about 150ms, and none under reduced motion.
+
+## Rules
+
+- No gradients except the navy wash over the header picture. No cards with a coloured left border, no grids of equal cards, few boxes, one dominant element per section.
+- No pill badges or fully rounded chips other than the outcome label.
+- No emoji. Icons are inline SVG line drawings.
+- Plain words in every label and message: say what a control does. No legal advice anywhere; labels describe what was wrong with a filing, never what a filer should do.
+- Colour is never the only signal: chosen rows carry a tick, outcome labels carry a word, table cells print their number.
+- Accessibility: a skip link to the main content, a visible 3px focus ring, 44px minimum targets, every input labelled, `aria-pressed` on choice rows, live regions for status, full keyboard use, WCAG AA contrast in both themes, and no sideways page scroll at 375px (wide tables scroll inside their own section).

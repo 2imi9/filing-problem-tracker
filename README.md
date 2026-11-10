@@ -23,11 +23,17 @@ It sits next to Odyssey and e-filing and never connects to them.
 ## Run it
 
 ```bash
-sh scripts/build-site.sh
-open site/index.html
+npm ci
+npm run dev
 ```
 
-The prototype is one HTML file with no dependencies. `render.yaml` deploys it to Render as a static site.
+Open http://localhost:3000 and choose a demo role. With no settings the app runs in demo mode on made-up data, so it needs no accounts, database or keys.
+
+- **Supabase mode.** Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (see `.env.example`) and apply `supabase/migrations` to run on Postgres with invite-only sign-in.
+- **Checks.** `npm run verify` runs lint, type checking, unit and access-rule tests, a build, the bundle check and the browser tests.
+- **Static demo.** The live demo above is a single HTML file: `sh scripts/build-site.sh` builds it into `site/`.
+
+The [quickstart](specs/001-filing-problem-tracker/quickstart.md) has the settings and the steps.
 
 ## Where AI is used
 
@@ -39,5 +45,9 @@ The project follows [GitHub Spec Kit](https://github.com/github/spec-kit).
 
 - [Constitution](.specify/memory/constitution.md): the rules every change must meet.
 - [Spec](specs/001-filing-problem-tracker/spec.md): user stories and requirements.
-- [Plan](specs/001-filing-problem-tracker/plan.md): architecture and stack.
+- [Plan](specs/001-filing-problem-tracker/plan.md): architecture, stack and security model.
+- [Research](specs/001-filing-problem-tracker/research.md): decisions, credits and licences of third-party material.
+- [Data model](specs/001-filing-problem-tracker/data-model.md): tables and access rules.
+- [Quickstart](specs/001-filing-problem-tracker/quickstart.md): run, settings, checks and deploy.
+- Contracts: [HTTP API](specs/001-filing-problem-tracker/contracts/http-api.md), [AI](specs/001-filing-problem-tracker/contracts/ai.md), [pages and design tokens](specs/001-filing-problem-tracker/contracts/ui.md).
 - [Tasks](specs/001-filing-problem-tracker/tasks.md): build steps.

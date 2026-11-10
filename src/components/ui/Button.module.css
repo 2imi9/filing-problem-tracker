@@ -1,0 +1,130 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  min-width: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.block {
+  width: 100%;
+}
+
+.sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+/* Small buttons shrink to 36px only where a fine pointer is available. */
+@media (hover: hover) and (pointer: fine) {
+  .sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+.iconOnly {
+  padding: var(--space-2);
+}
+
+.secondary {
+  background: var(--color-card);
+  border-color: var(--color-border-strong);
+  color: var(--color-primary);
+}
+
+.secondary:hover:not(:disabled, [aria-disabled="true"]) {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.primary:hover:not(:disabled, [aria-disabled="true"]) {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+
+.accent {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.accent:hover:not(:disabled, [aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--color-accent) 86%, var(--color-foreground));
+  border-color: color-mix(in srgb, var(--color-accent) 86%, var(--color-foreground));
+  color: var(--color-on-accent);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.ghost:hover:not(:disabled, [aria-disabled="true"]) {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.danger {
+  background: var(--color-card);
+  border-color: var(--color-destructive-text);
+  color: var(--color-destructive-text);
+}
+
+.danger:hover:not(:disabled, [aria-disabled="true"]) {
+  background: var(--color-destructive-soft);
+  color: var(--color-destructive-text);
+}
+
+.spin {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+    border-right-color: currentColor;
+    border-style: dotted;
+  }
+}

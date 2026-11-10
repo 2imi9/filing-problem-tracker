@@ -1,0 +1,55 @@
+/* Shared by the error, not-found and global-error screens. */
+.status {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-8) 0;
+}
+
+.lead {
+  max-width: var(--measure);
+  font-size: var(--text-lg);
+  color: var(--color-muted-foreground);
+}
+
+.reference {
+  color: var(--color-muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* global-error replaces the whole document, so it brings its own page padding. */
+.standalone {
+  padding: var(--space-8) var(--space-4);
+}
+
+.plainButton {
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-input);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.plainButton:hover {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+
+.actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+}
