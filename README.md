@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/courthouse-ascii.jpg" alt="An Indiana county courthouse rendered in ASCII characters" width="720">
+</p>
+
 # Filing Problem Tracker
 
 ### See why court filings from people without lawyers get rejected, and whether fixes work.
