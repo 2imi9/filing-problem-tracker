@@ -29,6 +29,10 @@ open site/index.html
 
 The prototype is one HTML file with no dependencies. `render.yaml` deploys it to Render as a static site.
 
+## Where AI is used
+
+Only in Import. Keyword rules sort most reasons, and an [OpenJev](https://huggingface.co/openjev/OpenJev-Flash-9B) decision model sorts the rest when one is running, on a Mac or a Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)). The page labels every row the model sorted. Tagging and the dashboard use no AI, and every number is counted by code. The Render demo runs no AI.
+
 ## Docs
 
 The project follows [GitHub Spec Kit](https://github.com/github/spec-kit).

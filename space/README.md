@@ -1,0 +1,17 @@
+---
+title: Filing Problem Tracker
+colorFrom: blue
+colorTo: yellow
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: Why court filings without a lawyer get rejected
+---
+
+# Filing Problem Tracker
+
+Student prototype for Northeastern CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. All data is made up, and it gives no legal advice.
+
+Code and docs: https://github.com/2imi9/filing-problem-tracker
+
+AI is used only in Import: keyword rules sort most rows, and the rows they cannot sort go to [OpenJev Flash 9B](https://huggingface.co/openjev/OpenJev-Flash-9B-GGUF), which runs inside this Space. The page labels each row it sorted "OpenJev (AI)". Tagging and the dashboard use no AI. Its weights are CC BY-NC 4.0 (non-commercial use, with attribution). OpenJev is an independent project.
