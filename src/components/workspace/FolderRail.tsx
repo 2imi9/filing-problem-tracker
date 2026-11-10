@@ -111,7 +111,8 @@ export function FolderRail({ folders, ready, loadError, openCount, onOpen, onSav
             required
           />
           <div className={styles.railFormButtons}>
-            <Button type="submit" variant="primary" size="sm" loading={busy}>
+            {/* Quiet: the page's one gold button is "Open panels". */}
+            <Button type="submit" size="sm" loading={busy}>
               Save folder
             </Button>
             <Button
@@ -173,7 +174,7 @@ export function FolderRail({ folders, ready, loadError, openCount, onOpen, onSav
                       required
                     />
                     <div className={styles.railFormButtons}>
-                      <Button type="submit" variant="primary" size="sm" loading={busy}>
+                      <Button type="submit" size="sm" loading={busy}>
                         Rename
                       </Button>
                       <Button

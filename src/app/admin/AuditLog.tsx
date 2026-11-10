@@ -77,12 +77,12 @@ export function AuditLog({ version }: { version: number }) {
       title="Audit log"
       note={`newest first, up to ${AUDIT_LIMIT} entries`}
       actions={
-        <Button size="sm" icon="refresh" loading={loading} onClick={refresh}>
+        <Button size="sm" loading={loading} onClick={refresh}>
           Refresh
         </Button>
       }
     >
-      <p>Every change to the data is recorded here with who made it. Notes and imported reasons are never copied into this log.</p>
+      <p className={styles.lead}>Every change to the data is recorded here with who made it. Notes and imported reasons are never copied into this log.</p>
 
       {state.status === "loading" ? <Spinner label="Loading the audit log" announce /> : null}
 
@@ -106,7 +106,7 @@ export function AuditLog({ version }: { version: number }) {
 
       {state.status === "ready" && state.entries.length > 0 ? (
         <div className={`table-scroll ${styles.auditScroll}`} tabIndex={0} role="region" aria-label="Audit log entries">
-          <table className="data-table">
+          <table className={`data-table ${styles.auditTable}`}>
             <thead>
               <tr>
                 <th scope="col">When</th>
@@ -129,10 +129,15 @@ export function AuditLog({ version }: { version: number }) {
                     </td>
                     <td className="code">{entry.userId}</td>
                     <td>{entry.role}</td>
-                    <td>{ACTION_LABELS[entry.action] ?? entry.action}</td>
-                    <td className="code">
-                      {entry.entity}
-                      {entry.entityId ? ` ${entry.entityId}` : ""}
+                    <td className={styles.when}>{ACTION_LABELS[entry.action] ?? entry.action}</td>
+                    <td>
+                      <span className="code">{entry.entity}</span>
+                      {entry.entityId ? (
+                        <>
+                          {" "}
+                          <span className={styles.entityId}>{entry.entityId}</span>
+                        </>
+                      ) : null}
                     </td>
                     <td>
                       {details.length === 0 ? (

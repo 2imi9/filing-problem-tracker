@@ -121,20 +121,23 @@ function AddChange({ onAdded }: { onAdded: () => void }) {
   };
 
   return (
-    <Card title="Add a change" headingLevel={3}>
+    <Card title="Add a change" headingLevel={3} className={styles.addChange}>
       <form className={styles.form} onSubmit={(event) => void submit(event)} noValidate>
         <ErrorSummary ref={summaryRef} errors={summary} title="The change was not added" />
+        {/* The name and the description have a hint line, so each gets a row of its own. The four fields
+            between them have none and share a row, with labels and controls level. */}
+        <TextInput
+          id={FIELD_IDS.name}
+          className={styles.nameField}
+          label="Name"
+          value={name}
+          onChange={setName}
+          maxLength={EVENT_NAME_MAX}
+          hint="Short, with the place and date. For example: Revised small claims form (Marion, Jun 1)."
+          error={errors.name}
+          required
+        />
         <div className={styles.fields}>
-          <TextInput
-            id={FIELD_IDS.name}
-            label="Name"
-            value={name}
-            onChange={setName}
-            maxLength={EVENT_NAME_MAX}
-            hint="Short, with the place and date. For example: Revised small claims form (Marion, Jun 1)."
-            error={errors.name}
-            required
-          />
           <TextInput
             id={FIELD_IDS.date}
             label="Date it took effect"
@@ -196,7 +199,8 @@ function AddChange({ onAdded }: { onAdded: () => void }) {
           ) : null}
         </div>
         <div>
-          <Button type="submit" variant="accent" icon="plus" loading={saving}>
+          {/* The one gold button on this page. */}
+          <Button type="submit" variant="accent" loading={saving}>
             Add change
           </Button>
         </div>
@@ -231,7 +235,7 @@ export function ChangeEvents({ onChanged }: { onChanged: () => void }) {
 
   return (
     <Card title="Changes" note={`${sorted.length} on file`}>
-      <p>A change is something a court did to reduce a problem: a revised form, a guide, a kiosk. The before and after panel compares the months on each side of its date.</p>
+      <p className={styles.lead}>A change is something a court did to reduce a problem: a revised form, a guide, a kiosk. The before and after panel compares the months on each side of its date.</p>
 
       {sorted.length === 0 ? (
         <EmptyState title="No changes on file" icon="calendar" compact>
@@ -239,7 +243,7 @@ export function ChangeEvents({ onChanged }: { onChanged: () => void }) {
         </EmptyState>
       ) : (
         <div className="table-scroll" tabIndex={0} role="region" aria-label="Changes on file">
-          <table className="data-table">
+          <table className={`data-table ${styles.changesTable}`}>
             <thead>
               <tr>
                 <th scope="col">Name</th>
@@ -266,8 +270,8 @@ export function ChangeEvents({ onChanged }: { onChanged: () => void }) {
                   <td>{event.caseType}</td>
                   <td>{event.tag}</td>
                   <td className={styles.descriptionCell}>{event.description}</td>
-                  <td>
-                    <Button size="sm" variant="danger" icon="trash" onClick={() => setTarget(event)}>
+                  <td className={styles.actionCell}>
+                    <Button size="sm" variant="danger" onClick={() => setTarget(event)}>
                       Delete<span className="visually-hidden">: {event.name}</span>
                     </Button>
                   </td>

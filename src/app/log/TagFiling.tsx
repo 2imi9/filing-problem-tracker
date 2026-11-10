@@ -12,7 +12,7 @@ import { Chip, ChipGroup } from "@/components/ui/Chip";
 import type { ChipTone } from "@/components/ui/Chip";
 import { ErrorSummary } from "@/components/ui/ErrorSummary";
 import type { SummaryError } from "@/components/ui/ErrorSummary";
-import { Checkbox, TextInput } from "@/components/ui/Field";
+import { TextInput } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import type { OkResponse } from "@/lib/api";
@@ -26,6 +26,7 @@ import { numberKeysOn, setNumberKeys, subscribeToNumberKeys } from "./numberKeys
 import styles from "./log.module.css";
 
 // Ids of the controls, so the error summary and the server's field paths can point at them.
+const NUMBER_KEYS_ID = "log-number-keys";
 const FIELD_IDS = {
   county: "log-county",
   date: "log-date",
@@ -57,10 +58,11 @@ function TagFilingForm() {
 
   // A clerk's county comes from the account and cannot be changed here. The server enforces it too.
   const lockedCounty = user.role === "clerk" ? user.county : null;
-  const [county, setCounty] = useState<County>(lockedCounty ?? COUNTIES[0]);
+  // Every dropdown starts on a general choice ("Select case type"); "" means nothing is chosen yet.
+  const [county, setCounty] = useState<County | "">(lockedCounty ?? "");
   const [date, setDate] = useState(todayIso);
-  const [caseType, setCaseType] = useState<CaseType>(CASE_TYPES[0]);
-  const [form, setForm] = useState<Form>(formsFor(CASE_TYPES[0])[0]);
+  const [caseType, setCaseType] = useState<CaseType | "">("");
+  const [form, setForm] = useState<Form | "">("");
   const [tags, setTags] = useState<Tag[]>([]);
   const [outcome, setOutcome] = useState<Outcome>("Rejected");
   const [note, setNote] = useState("");
@@ -121,11 +123,16 @@ function TagFilingForm() {
     startedAt.current = null;
   };
 
+  const clearError = (key: FieldKey) => setErrors((current) => (current[key] ? { ...current, [key]: undefined } : current));
+
   const changeCaseType = (value: string) => {
-    if (!isCaseType(value)) return;
+    if (value !== "" && !isCaseType(value)) return;
     setCaseType(value);
-    // The form list depends on the case type.
-    setForm(formsFor(value)[0]);
+    // The form list depends on the case type. A case type with one form chooses it.
+    const forms = value === "" ? [] : formsFor(value);
+    setForm(forms.length === 1 ? forms[0] : "");
+    clearError("caseType");
+    clearError("form");
   };
 
   const restoreEntry = async (id: string) => {
@@ -154,6 +161,10 @@ function TagFilingForm() {
 
   const validate = (): FieldErrors => {
     const found: FieldErrors = {};
+    if (!county) found.county = "Choose a county.";
+    if (!caseType) found.caseType = "Choose a case type.";
+    // The form list is switched off until a case type is chosen, so only one of the two is asked for.
+    else if (!form) found.form = "Choose a form.";
     if (!isIsoDate(date)) found.date = "Enter the filing date.";
     else if (date > todayIso) found.date = "The filing date cannot be in the future.";
     else if (date < MIN_DATE) found.date = "The filing date cannot be before 2020.";
@@ -166,7 +177,7 @@ function TagFilingForm() {
     event.preventDefault();
     if (saving) return;
     const found = validate();
-    if (Object.keys(found).length > 0) {
+    if (Object.keys(found).length > 0 || !county || !caseType || !form) {
       fail(found);
       return;
     }
@@ -256,22 +267,25 @@ function TagFilingForm() {
 
   return (
     <div className={styles.columns}>
-      <Card title="Tag a filing problem">
+      <Card title="Tag a filing problem" boxed>
         <form ref={formRef} className={styles.form} onSubmit={(event) => void submit(event)} noValidate>
           <ErrorSummary ref={summaryRef} errors={summary} title="This entry was not saved" />
 
           <div className={styles.fields}>
             {lockedCounty ? (
-              <TextInput id={FIELD_IDS.county} label="County" value={lockedCounty} onChange={() => undefined} readOnly hint="Set by your account." />
+              <TextInput id={FIELD_IDS.county} label="County" value={lockedCounty} onChange={() => undefined} readOnly hint="Set by your account." className={styles.lockedCounty} />
             ) : (
               <Select
                 id={FIELD_IDS.county}
                 label="County"
                 value={county}
                 onChange={(value) => {
-                  if (isCounty(value)) setCounty(value);
+                  if (value !== "" && !isCounty(value)) return;
+                  setCounty(value);
+                  clearError("county");
                 }}
                 options={COUNTIES}
+                placeholder="Select county"
                 error={errors.county}
               />
             )}
@@ -283,51 +297,75 @@ function TagFilingForm() {
               value={date}
               onChange={(value) => {
                 setDate(value);
-                setErrors((current) => (current.date ? { ...current, date: undefined } : current));
+                clearError("date");
               }}
               min={MIN_DATE}
               max={todayIso}
               error={errors.date}
               required
             />
-            <Select id={FIELD_IDS.caseType} label="Case type" value={caseType} onChange={changeCaseType} options={CASE_TYPES} error={errors.caseType} />
+            <Select
+              id={FIELD_IDS.caseType}
+              label="Case type"
+              value={caseType}
+              onChange={changeCaseType}
+              options={CASE_TYPES}
+              placeholder="Select case type"
+              error={errors.caseType}
+            />
             <Select
               id={FIELD_IDS.form}
               label="Form"
               value={form}
               onChange={(value) => {
-                if (isForm(value)) setForm(value);
+                if (value !== "" && !isForm(value)) return;
+                setForm(value);
+                clearError("form");
               }}
-              options={formsFor(caseType)}
+              options={caseType ? formsFor(caseType) : []}
+              placeholder="Select form"
+              disabled={!caseType}
               error={errors.form}
             />
           </div>
 
-          <div data-problem-chips>
-            <ChipGroup
-              id={FIELD_IDS.tags}
-              label="What was wrong? Choose all that apply."
-              hint={numberKeys ? "Keyboard: press 1 to 9 to choose problems, then Enter to save." : "Keyboard: Space chooses a problem, Enter saves."}
-              error={errors.tags}
-            >
-              {TAGS.map((tag, index) => (
-                <Chip key={tag} pressed={tags.includes(tag)} onPressedChange={() => toggleTag(tag)} shortcut={numberKeys ? String(index + 1) : undefined}>
-                  {tag}
-                </Chip>
-              ))}
-            </ChipGroup>
-            {/* Always in the page, so a change made with a number key is announced. */}
-            <p className="visually-hidden" role="status" aria-live="polite">
-              {keyStatus}
-            </p>
+          <div className={styles.problems}>
+            <div data-problem-chips>
+              <ChipGroup
+                id={FIELD_IDS.tags}
+                label="What was wrong? Choose all that apply."
+                hint={numberKeys ? "Keyboard: press 1 to 9 to choose problems, then Enter to save." : "Keyboard: Space chooses a problem, Enter saves."}
+                error={errors.tags}
+              >
+                {TAGS.map((tag, index) => (
+                  <Chip key={tag} pressed={tags.includes(tag)} onPressedChange={() => toggleTag(tag)} shortcut={numberKeys ? String(index + 1) : undefined}>
+                    {tag}
+                  </Chip>
+                ))}
+              </ChipGroup>
+              {/* Always in the page, so a change made with a number key is announced. */}
+              <p className="visually-hidden" role="status" aria-live="polite">
+                {keyStatus}
+              </p>
+            </div>
+            {/* The switch for the number keys: a quiet line under the problems it acts on. */}
+            <div className={styles.keys}>
+              <label className={styles.keysLabel} htmlFor={NUMBER_KEYS_ID}>
+                <input
+                  id={NUMBER_KEYS_ID}
+                  className={styles.keysBox}
+                  type="checkbox"
+                  checked={numberKeys}
+                  aria-describedby={`${NUMBER_KEYS_ID}-hint`}
+                  onChange={(event) => setNumberKeys(event.target.checked)}
+                />
+                Number-key shortcuts
+              </label>
+              <p id={`${NUMBER_KEYS_ID}-hint`} className={`hint ${styles.keysHint}`}>
+                Turn this off if you use speech input or press keys by accident. Remembered in this browser.
+              </p>
+            </div>
           </div>
-          <Checkbox
-            id="log-number-keys"
-            label="Number-key shortcuts"
-            checked={numberKeys}
-            onChange={setNumberKeys}
-            hint="Keys 1 to 9 choose problems while you are on this form. Turn this off if you use speech input or press keys by accident. Remembered in this browser."
-          />
 
           <div>
             <ChipGroup
@@ -353,10 +391,10 @@ function TagFilingForm() {
               onChange={(value) => {
                 markStarted();
                 setNote(value);
-                setErrors((current) => (current.note ? { ...current, note: undefined } : current));
+                clearError("note");
               }}
               maxLength={NOTE_MAX}
-              hint={`A short note about the filing, up to ${NOTE_MAX} characters. Do not include names, case numbers, addresses or phone numbers.`}
+              hint={`Up to ${NOTE_MAX} characters. Do not include names, case numbers, addresses or phone numbers.`}
               error={errors.note}
             />
             {/* Always in the page, so the warning is announced when it appears while typing. */}

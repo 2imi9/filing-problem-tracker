@@ -12,8 +12,12 @@ describe("chart geometry", () => {
     expect(axisMax(1)).toBe(1);
     expect(axisMax(3)).toBe(4);
     expect(axisMax(4)).toBe(4);
-    expect(axisMax(7)).toBe(10);
+    // 6 and 8 are tops too, so a largest count of 6 fills the plot as it does in the approved design.
+    expect(axisMax(6)).toBe(6);
+    expect(axisMax(7)).toBe(8);
+    expect(axisMax(9)).toBe(10);
     expect(axisMax(11)).toBe(20);
+    expect(axisMax(55)).toBe(60);
     expect(axisMax(38)).toBe(40);
     expect(axisMax(41)).toBe(50);
     expect(axisMax(120)).toBe(200);
@@ -29,9 +33,14 @@ describe("chart geometry", () => {
     expect(axisTicks(2)).toEqual([0, 1, 2]);
     expect(axisTicks(4)).toEqual([0, 1, 2, 3, 4]);
     expect(axisTicks(5)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(axisTicks(6)).toEqual([0, 2, 4, 6]);
+    expect(axisTicks(8)).toEqual([0, 2, 4, 6, 8]);
     expect(axisTicks(10)).toEqual([0, 2, 4, 6, 8, 10]);
     expect(axisTicks(40)).toEqual([0, 10, 20, 30, 40]);
-    for (const top of [1, 2, 4, 5, 10, 20, 40, 50, 100, 200, 400, 500, 1000]) {
+    // Steps of 1, 2 or 5 where the top allows: 20s to 60 and to 100, not 15s and 25s.
+    expect(axisTicks(60)).toEqual([0, 20, 40, 60]);
+    expect(axisTicks(100)).toEqual([0, 20, 40, 60, 80, 100]);
+    for (const top of [1, 2, 4, 5, 6, 8, 10, 20, 40, 50, 60, 80, 100, 200, 400, 500, 600, 800, 1000]) {
       const ticks = axisTicks(top);
       expect(ticks[0]).toBe(0);
       expect(ticks[ticks.length - 1]).toBe(top);

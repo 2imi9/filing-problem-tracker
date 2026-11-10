@@ -14,9 +14,9 @@ export interface CommandResult {
 }
 
 interface CommandBarProps {
-  /** "hero": large and centered, for an empty workspace. "docked": one compact row above the panels. */
+  /** "hero": the page's one boxed section, for an empty workspace. "docked": one compact row above the panels. */
   mode: "hero" | "docked";
-  /** Requests to try, shown as chips in hero mode. */
+  /** Requests to try, listed as plain lines in hero mode. */
   examples: readonly string[];
   /** Sends the request. Resolves when the panels are open; throws when the server cannot be reached. */
   onSubmit: (request: string) => Promise<CommandResult>;
@@ -107,7 +107,7 @@ export function CommandBar({ mode, examples, onSubmit, children }: CommandBarPro
       ) : null}
       {mode === "hero" ? (
         <div className={styles.examples}>
-          <p className={styles.examplesLabel} id={`${hintId}-examples`}>
+          <p className="label-sm" id={`${hintId}-examples`}>
             Or try one of these
           </p>
           <ul className={styles.exampleList} aria-labelledby={`${hintId}-examples`}>

@@ -5,7 +5,7 @@ import type { PanelSize, PanelSpec } from "@/lib/panels";
 import { createPanel, exampleFoldersFor, monthChoices } from "@/lib/panels";
 import { DataGate, useLoadedData } from "@/components/data/DataProvider";
 import { ApiError, apiFetch } from "@/components/data/apiClient";
-import { Alert, Button, Icon, Spinner } from "@/components/ui";
+import { Alert, Button, Spinner } from "@/components/ui";
 import { AddPanelMenu } from "./AddPanelMenu";
 import { COMMAND_INPUT_ID, CommandBar } from "./CommandBar";
 import type { CommandResult } from "./CommandBar";
@@ -233,13 +233,10 @@ function LoadedWorkspace() {
   );
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.layout} data-empty={empty}>
       <div className={styles.main}>
         {user.role === "clerk" && user.county ? (
-          <p className={styles.scopeNote}>
-            <Icon name="info" size={18} />
-            <span>You see {user.county} County only. A clerk&apos;s workspace covers the filings of their own county.</span>
-          </p>
+          <p className={styles.scopeNote}>You see {user.county} County only. A clerk&apos;s workspace covers the filings of their own county.</p>
         ) : null}
 
         {store.ready ? (

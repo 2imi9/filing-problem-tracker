@@ -9,10 +9,10 @@ import styles from "./panels.module.css";
 export function NeedsReviewPanel({ data }: { data: NeedsReviewPanelData }) {
   return (
     <>
-      <div>
-        <p className={styles.eyebrow}>Rows that need review</p>
-        <p className={styles.kpiNumber}>{data.count.toLocaleString("en-US")}</p>
-        <p className={styles.kpiDetail}>
+      <div className={styles.figureBlock}>
+        <p className="label-sm">Rows that need review</p>
+        <p className={styles.figure}>{data.count.toLocaleString("en-US")}</p>
+        <p className={styles.figureDetail}>
           {data.share}% of {data.total.toLocaleString("en-US")} flagged {data.total === 1 ? "filing" : "filings"}
         </p>
       </div>

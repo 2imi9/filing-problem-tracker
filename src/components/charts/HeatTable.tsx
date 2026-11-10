@@ -47,7 +47,7 @@ export function HeatTable({ caption, rowHeading, columns, rows, totalHeading, ma
                     {value.toLocaleString("en-US")}
                   </td>
                 ))}
-                <td className={`num ${styles.heatTotal}`}>{row.total.toLocaleString("en-US")}</td>
+                <td className="num">{row.total.toLocaleString("en-US")}</td>
               </tr>
             ))}
           </tbody>

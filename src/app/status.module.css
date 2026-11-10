@@ -1,51 +1,68 @@
-/* Shared by the error, not-found and global-error screens. */
+/*
+  Shared by the error, not-found and global-error screens. Plain text at the left edge of the page column,
+  under the tab bar: a heading, one sentence, and the way out. No box.
+*/
 .status {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
   justify-items: start;
   width: 100%;
-  max-width: 720px;
+  max-width: var(--content-max);
   margin: 0 auto;
-  padding: var(--space-8) 0;
 }
 
+/* No tab is highlighted on these screens, so the heading is drawn. Section-heading size, not a banner. */
+.status h1 {
+  font-size: var(--text-h2);
+}
+
+/* The sentence under the heading, in the heading face like the line that opens every other page. */
 .lead {
   max-width: var(--measure);
-  font-size: var(--text-lg);
-  color: var(--color-muted-foreground);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: var(--text-intro);
+  line-height: 1.35;
 }
 
 .reference {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
   font-size: var(--text-sm);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: 12px;
+  margin-top: var(--space-3);
 }
 
 /* global-error replaces the whole document, so it brings its own page padding. */
 .standalone {
-  padding: var(--space-8) var(--space-4);
+  max-width: var(--wrap-max);
+  padding: var(--page-top) var(--gutter) var(--page-bottom);
 }
 
+/* global-error cannot use the shared Button (its providers are gone). The same gold main action, drawn here. */
 .plainButton {
   min-height: var(--target-min);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-primary);
+  padding: 10px 20px;
+  border: 1px solid var(--cta);
   border-radius: var(--radius-input);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--cta);
+  color: var(--on-cta);
   font-weight: 700;
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
 }
 
 .plainButton:hover {
-  background: var(--color-secondary);
-  border-color: var(--color-secondary);
-  color: var(--color-on-secondary);
+  border-color: var(--cta-hover);
+  background: var(--cta-hover);
 }
 
 .actions a {

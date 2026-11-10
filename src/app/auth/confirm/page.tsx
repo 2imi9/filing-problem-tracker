@@ -11,8 +11,9 @@ export const metadata: Metadata = { title: "Finish signing in" };
 // mail) load this page and go no further, so they cannot use the link up before the person does.
 export default function ConfirmPage() {
   return (
-    <div className={styles.wrap}>
-      <h1>Finish signing in</h1>
+    <div className={styles.page}>
+      {/* Not drawn: the header band names the product and the sentence below says what to do. */}
+      <h1 className="visually-hidden">Finish signing in</h1>
       <Suspense fallback={<Spinner label="Reading the sign-in link" announce />}>
         <ConfirmSignIn />
       </Suspense>

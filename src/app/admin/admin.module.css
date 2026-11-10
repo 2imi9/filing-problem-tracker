@@ -1,20 +1,58 @@
+/*
+  Admin. The look follows the approved demo: sections straight on the page under a plain rule (the
+  shared Card), plain tables, a plain form, and one gold button (Add change).
+*/
+
+/* The sections of the page, spaced like the sections of every other page. */
 .stack {
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--section-gap);
   min-width: 0;
+}
+
+/* A sentence under a section heading. */
+.lead {
+  max-width: var(--measure);
+}
+
+/* Like the demo's tables: on a narrow screen the table keeps a readable width and scrolls inside its own strip. */
+.changesTable {
+  min-width: 760px;
+}
+
+.auditTable {
+  min-width: 720px;
+}
+
+/* The form sits a little apart from the table above it. */
+.addChange {
+  margin-top: var(--space-4);
 }
 
 .form {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
 }
 
+/* The demo's field grid. None of these four has a hint line, so labels and controls line up across the row. */
 .fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  /* One field has a hint line. Lining up the bottoms keeps the inputs of a row level. */
-  align-items: end;
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 14px;
+}
+
+/* Side by side, a date box and a select are drawn at different heights by the browser (48.8px and 44px).
+   One height for the row keeps their edges level. */
+.fields input,
+.fields select {
+  height: 46px;
+}
+
+/* The name is short: half the row is enough on a wide screen. */
+.nameField {
+  max-width: 537px;
 }
 
 .nameCell {
@@ -25,14 +63,35 @@
   min-width: 30ch;
 }
 
-/* The log can be long: it scrolls inside its own box and the column heads stay in view. */
+/* The row's own action: at the end of the row. */
+.actionCell {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The log can be long: it scrolls inside its own strip and the column heads stay in view. */
 .auditScroll {
   max-height: 480px;
   overflow-y: auto;
+  /* The strip's own bottom edge, in place of the last row's rule. */
+  border-bottom: 1px solid var(--line);
 }
 
+.auditScroll tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* The time and the action each stay on one line, so every row is one line tall unless its details need more. */
 .when {
   white-space: nowrap;
+}
+
+/* A long identifier may break, so the log fits the page column without scrolling sideways on a desktop screen. */
+.entityId {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .details {
