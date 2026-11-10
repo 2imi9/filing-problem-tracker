@@ -3,9 +3,9 @@
 **Feature Branch**: `001-filing-problem-tracker`
 **Created**: 2026-11-10
 **Status**: Draft
-**Input**: "When someone without a lawyer files in an Indiana court, the filing is often rejected or sent back for a fixable mistake. Clerks see these mistakes every day, but nobody records them in a way that shows patterns. Let clerks tag the problem in a few clicks and let court leaders see which problems are most common by county, case type and form, and whether a fix helped."
+**Input**: User description: "When someone without a lawyer files in an Indiana court, the filing is often rejected or sent back for a fixable mistake. Clerks see these mistakes every day, but nobody records them in a way that shows patterns. Let clerks tag the problem in a few clicks and let court leaders see which problems are most common by county, case type and form, and whether a fix helped."
 
-## User Scenarios & Testing
+## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Tag a rejected filing (Priority: P1)
 
@@ -81,7 +81,15 @@ A leader types what they want to see, for example "signature problems in Marion 
 
 A leader connects the tracker to their own Claude and asks questions there. Claude can read the same totals the dashboard shows and nothing else.
 
+**Why this priority**: Useful for leaders who already work in Claude, but nothing else depends on it.
+
 **Independent Test**: Call the connector with a valid token and get problem counts; call it without a token and get refused.
+
+**Acceptance Scenarios**:
+
+1. **Given** a valid token, **When** Claude asks for problem counts, **Then** it receives the same totals the dashboard shows.
+2. **Given** no token or a revoked one, **When** a request arrives, **Then** it is refused.
+3. **Given** any request, **When** it is answered, **Then** the answer contains totals only, never notes or single records.
 
 ### Edge Cases
 
@@ -92,7 +100,7 @@ A leader connects the tracker to their own Claude and asks questions there. Clau
 - A filter combination matches no records.
 - The demo server restarts and the sample data resets.
 
-## Requirements
+## Requirements *(mandatory)*
 
 ### Functional Requirements
 
@@ -114,7 +122,7 @@ A leader connects the tracker to their own Claude and asks questions there. Clau
 - **FR-016**: System MUST run in a demonstration mode with made-up data, clearly labeled on every page.
 - **FR-017**: Access MUST be by invitation only outside demonstration mode.
 
-### Key Entities
+### Key Entities *(include if feature involves data)*
 
 - **Filing flag**: one rejected or returned filing. County, date, case type, form, problems, outcome, optional note, where it came from (clerk, import, sample).
 - **Problem**: one of a fixed list, such as missing signature, wrong form, wrong county, missing details, plus "Needs review".
@@ -124,7 +132,7 @@ A leader connects the tracker to their own Claude and asks questions there. Clau
 - **User**: a clerk (one county), a leader (all counties, totals only) or an admin.
 - **Audit entry**: who did what and when.
 
-## Success Criteria
+## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 

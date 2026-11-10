@@ -12,7 +12,7 @@ Sidebar navigation on desktop (Tag a filing, Import, Dashboard, Workspace, How i
 
 ## Design system
 
-Source: the `ui-ux-pro-max` skill (MIT, github.com/nextlevelbuilder/ui-ux-pro-max-skill), queried for a government / court internal analytics and data entry tool with dials variance 5, motion 2, density 7. The full record is in [`design-system/MASTER.md`](../../../design-system/MASTER.md). Its landing-page pattern and GSAP scroll reveal are not used: this is an internal tool, not a marketing page, and it adds no animation library.
+Source: the `ui-ux-pro-max` skill (MIT, github.com/nextlevelbuilder/ui-ux-pro-max-skill), queried for a government / court internal analytics and data entry tool with dials variance 5, motion 2, density 7. Its landing-page pattern and GSAP scroll reveal are not used: this is an internal tool, not a marketing page, and it adds no animation library.
 
 - **Style**: "Accessible & Ethical" (the skill's match for government, legal compliance and public-sector tools) with the layout habits of its "Data-Dense Dashboard" style on the dashboard and workspace: 12-column grid, KPI row, compact cards (12 to 16px padding), 36px table rows, sticky table headers, 240px sidebar, 56px header.
 - **Color tokens** (CSS variables in `globals.css`; light values shown, with a full dark theme):

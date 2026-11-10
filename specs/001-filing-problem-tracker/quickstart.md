@@ -1,37 +1,16 @@
-# Quickstart
+# Quickstart: Filing Problem Tracker
 
-## Try the prototype now
-
-No install. Open https://claude.ai/artifact/GKhX5hg1m8exSJxZkV5Ddk, or download [`docs/prototype/filing_tracker.html`](../../docs/prototype/filing_tracker.html) and open it. Tag a filing on the first tab, then open the dashboard tab to see it counted.
-
-## Run the web app
-
-The application code arrives by pull request. Once it is merged:
+## Run the prototype
 
 ```bash
-npm install
-npm run dev
+sh scripts/build-site.sh
+open site/index.html
 ```
-
-Open http://localhost:3000 and pick a role (clerk, leader or admin). With no settings at all the app runs in demo mode on made-up data, with the AI features using their rules-based fallbacks.
-
-Optional settings, in `.env.local`:
-
-| Setting | Effect |
-|---|---|
-| `ANTHROPIC_API_KEY` | Turns on the AI features. |
-| `AI_MODEL` | Which Claude model to use. |
-| `MCP_TOKEN` | Turns on the Claude connector in demo mode. |
-| Supabase URL and anon key | Switches to database mode with real sign-in. |
 
 ## Check it works
 
-Walk the user stories in [spec.md](spec.md):
-
-1. As a clerk, tag a filing with the keyboard. It appears in recent entries.
-2. As a leader, open the dashboard. The total has gone up by one.
-3. As a clerk, type a phone number into a note. Saving is refused.
-4. Import the sample export, review the preview, commit.
-5. In the workspace, type "signature problems in Marion small claims". Panels open. Save them as a folder.
-
-Automated checks: `npm run lint`, `npm run typecheck`, `npm test`.
+1. On Tag a filing, pick a form, click two problems and save. The entry appears in Recent entries.
+2. On Dashboard, the count of flagged filings has gone up by one.
+3. On Import, sort the sample export and add the rows. One row is marked "Needs review".
+4. On Dashboard, change the county filter. Every panel changes.
+5. In Before and after a change, pick a change. The rate after the change is lower than before.

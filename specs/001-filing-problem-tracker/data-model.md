@@ -1,4 +1,4 @@
-# Data model and access rules
+# Data Model: Filing Problem Tracker
 
 ## Access rules
 
@@ -27,27 +27,3 @@ Tables: `profiles(user_id pk -> auth.users, role, county)`, `filing_flags(id, co
 - Leaders must not read `note` / `reason`. They read through the view `flags_lean` (`security_invoker`), and column privileges on the base table exclude those columns for the leader path.
 - Indexes on `(county, filed_on)`, `(filed_on)`, and a GIN index on `tags`.
 - `supabase/seed.sql` is generated from `sample.ts` by `scripts/gen-seed.ts`, so SQL and demo data cannot drift.
-
-## Repository interface
-
-Pages and route handlers only ever talk to this interface. See decision 2 in [research.md](research.md).
-
-```ts
-interface Repository {
-  listFlags(): Promise<LeanFlag[]>                    // visible to this session; never includes note/reason
-  listMyRecent(limit: number): Promise<FlagRecord[]>  // the caller's own entries, with notes
-  listNeedsReview(): Promise<FlagRecord[]>            // imported rows tagged NEEDS_REVIEW, in scope
-  createFlag(input: NewFlagInput): Promise<FlagRecord>
-  createFlags(rows: ImportRow[], batchName: string): Promise<{ batchId: string; inserted: number }>
-  softDeleteFlag(id: string): Promise<void>           // own entry, within 5 minutes; admin any time
-  restoreFlag(id: string): Promise<void>
-  listEvents(): Promise<ChangeEvent[]>
-  upsertEvent(input: ChangeEventInput): Promise<ChangeEvent>   // admin only
-  deleteEvent(id: string): Promise<void>                       // admin only
-  listFolders(): Promise<Folder[]>                    // the caller's own
-  saveFolder(input: FolderInput): Promise<Folder>
-  deleteFolder(id: string): Promise<void>
-  appendAudit(entry: AuditEntry): Promise<void>
-  listAudit(limit: number): Promise<AuditEntry[]>     // admin only
-}
-```
