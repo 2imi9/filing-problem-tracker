@@ -265,7 +265,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <div class="panel">
         <h2 id="h-import">Import a rejection export</h2>
         <p class="hint">Columns: date, county, case_type, form, reason. The box holds a made-up example.</p>
-        <label class="f">CSV text<textarea id="csvText" rows="11" spellcheck="false"></textarea></label>
+        <p class="hint" id="modelLine" hidden></p>
+        <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
           <label class="btn secondary" for="csvFile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Upload a CSV file<input type="file" id="csvFile" class="sr" accept=".csv,text/csv"></label>
@@ -335,7 +336,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Import sorts with keyword rules, and every number is counted by code.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -542,6 +543,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "2026-09-12,Monroe,Small claims,Small claims counterclaim,no address for defendant; unsigned",
     "2026-09-15,Hamilton,Name change,Petition for change of name,called filer - will bring in tomorrow",
     "2026-09-16,Vanderburgh,Small claims,Small claims notice of claim,filing fee not paid",
+    "2026-09-17,Monroe,Small claims,Small claims notice of claim,did not bring the money to file",
     "2026-09-18,St. Joseph,Eviction,Tenant answer or request for hearing,page 3 missing / scan unreadable"
   ].join("\n");
   $("csvText").value = SAMPLE_CSV;
@@ -568,7 +570,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // The static site never looks for it.
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
-  var MODEL_NAME = ON_THIS_COMPUTER ? "local model" : "model";
+  var MODEL_NAME = "OpenJev (AI)", MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space";
+  if (MODEL_HOST) $("aiNote").textContent = "AI use: Import only, where the OpenJev Flash 9B model sorts the rows the keyword rules cannot. Tagging and the dashboard use no AI, and every number is counted by code.";
   function fetchWithin(ms, url, options) {
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
@@ -587,10 +590,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "Not verified or notarized": "It needed to be sworn, verified or notarized and was not.",
     "Pages missing or unreadable": "Pages are missing, blank or cannot be read."
   };
+  // Says on the Import tab whether the model is there, so its work is not invisible.
+  function showModel(ready) {
+    if (!MODEL_HOST) return;
+    $("modelLine").hidden = false;
+    $("modelLine").textContent = ready
+      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot."
+      : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
+  }
   function modelAvailable() {
     if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
-    return fetchWithin(5000, "/v1/version").then(function (r) { return r.ok; }, function () { return false; });
+    return fetchWithin(5000, "/v1/version").then(function (r) { return r.ok; }, function () { return false; })
+      .then(function (ok) { showModel(ok); return ok; });
   }
+  modelAvailable();
   // One typed decision per row: a problem from the list, or null when the model is unsure.
   function askModel(p) {
     var criteria = {};
@@ -637,12 +650,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
       td.appendChild(box);
       if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME)); }
+      else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
       tr.appendChild(td);
       body.appendChild(tr);
     });
     var sorted = pending.length - review;
     $("previewSummary").textContent = pending.length + (pending.length === 1 ? " row read, " : " rows read, ")
-      + (byModel ? (sorted - byModel) + " sorted by rules, " + byModel + " by the " + MODEL_NAME + ", " : sorted + " sorted automatically, ")
+      + (sorted - byModel) + " sorted by keyword rules, " + (byModel ? byModel + " by " + MODEL_NAME + ", " : "")
       + review + " need review";
     $("previewPanel").hidden = false;
   }
@@ -675,18 +689,22 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     modelAvailable().then(function (ok) {
       if (run !== sortRun) return;
       if (!ok) { previewReady(); return; }
-      $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with the " + MODEL_NAME + "...";
-      var i = 0;
+      $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with " + MODEL_NAME + "...";
+      var i = 0, sorted = 0;
       function done(note) { if (run !== sortRun) return; renderPreview(); previewReady(note); }
       (function next() {
         if (run !== sortRun) return;
-        if (i >= left.length) { done(); return; }
+        if (i >= left.length) {
+          done(MODEL_NAME + " checked " + left.length + (left.length === 1 ? " row" : " rows") + ": sorted " + sorted + ", left " + (left.length - sorted) + " for review. ");
+          return;
+        }
         var p = left[i++];
         askModel(p).then(function (tag) {
           if (run !== sortRun) return;
-          if (tag) { p.tags = [tag]; p.sortedBy = "model"; renderPreview(); }
+          if (tag) { p.tags = [tag]; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
+          renderPreview();
           next();
-        }, function () { done("The " + MODEL_NAME + " stopped answering. "); });
+        }, function () { showModel(false); done(MODEL_NAME + " stopped answering. "); });
       })();
     });
   }

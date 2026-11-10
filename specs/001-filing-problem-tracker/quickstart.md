@@ -16,7 +16,7 @@ sh scripts/start-openjev.sh       # terminal 1: OpenJev Flash 9B on 127.0.0.1:30
 python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:8080
 ```
 
-On Import, rows the keyword rules cannot sort go to the model and come back marked "local model". Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
+The Import tab says whether the model is ready. Rows the keyword rules cannot sort go to the model and come back marked "OpenJev (AI)", or "OpenJev (AI) was not sure" if it left them for review. Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
 
 ## Run on a Hugging Face Space (optional)
 
@@ -32,6 +32,6 @@ Create a Space with the Docker SDK and upload the six files. The first build dow
 
 1. On Tag a filing, pick a form, click two problems and save. The entry appears in Recent entries.
 2. On Dashboard, the count of flagged filings has gone up by one.
-3. On Import, sort the sample export and add the rows. One row is marked "Needs review".
+3. On Import, sort the sample export and add the rows. Two rows are marked "Needs review". With the model running, it sorts one of them and the tab says what it did.
 4. On Dashboard, change the county filter. Every panel changes.
 5. In Before and after a change, pick a change. The rate after the change is lower than before.

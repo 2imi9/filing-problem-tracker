@@ -14,4 +14,4 @@ Student prototype for Northeastern CS4535 AI for Impact, Team 1. Not affiliated 
 
 Code and docs: https://github.com/2imi9/filing-problem-tracker
 
-On Import, rows the keyword rules cannot sort are sorted by [OpenJev Flash 9B](https://huggingface.co/openjev/OpenJev-Flash-9B-GGUF), which runs inside this Space. Its weights are CC BY-NC 4.0 (non-commercial use, with attribution). OpenJev is an independent project.
+AI is used only in Import: keyword rules sort most rows, and the rows they cannot sort go to [OpenJev Flash 9B](https://huggingface.co/openjev/OpenJev-Flash-9B-GGUF), which runs inside this Space. The page labels each row it sorted "OpenJev (AI)". Tagging and the dashboard use no AI. Its weights are CC BY-NC 4.0 (non-commercial use, with attribution). OpenJev is an independent project.
