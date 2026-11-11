@@ -43,13 +43,6 @@
   gap: 14px;
 }
 
-/* Side by side, a date box and a select are drawn at different heights by the browser (48.8px and 44px).
-   One height for the row keeps their edges level. */
-.fields input,
-.fields select {
-  height: 46px;
-}
-
 /* The name is short: half the row is enough on a wide screen. */
 .nameField {
   max-width: 537px;

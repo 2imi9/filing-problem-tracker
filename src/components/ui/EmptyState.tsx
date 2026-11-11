@@ -7,18 +7,14 @@
 //   </EmptyState>
 //
 // `title` is rendered as a paragraph, not a heading, so it never disturbs the page outline.
-// `icon` is still accepted so older code compiles; it is no longer drawn.
 
 import type { ReactNode } from "react";
-import type { IconName } from "./Icon";
 import styles from "./EmptyState.module.css";
 
 export interface EmptyStateProps {
   title: string;
   /** One or two plain sentences: why it is empty and what to do. */
   children?: ReactNode;
-  /** No longer drawn. Kept so existing code compiles. */
-  icon?: IconName;
   /** A button or link that fixes the empty state. */
   action?: ReactNode;
   /** Less space above and below, for small panels. */

@@ -1,4 +1,5 @@
-// The light / dark switch at the right end of the tab bar. One button: its label says what pressing it will do.
+// The light / dark switch at the right end of the tab bar (on the sign-in pages, which have no tab bar,
+// at the right end of the footer). One button: its label says what pressing it will do.
 
 "use client";
 

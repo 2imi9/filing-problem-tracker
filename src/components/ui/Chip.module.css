@@ -108,44 +108,10 @@
   --ring: var(--good);
 }
 
-/* The key that toggles the chip, when the page offers number keys. */
+/* The key that toggles the chip, when the page offers number keys: a small digit in the data face after the name, with no box. */
 .key {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 3px;
-  border: 1px solid var(--line);
-  border-radius: 3px;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
-}
-
-.chip[aria-pressed="true"] .key {
-  border-color: var(--field);
-}
-
-/* An active filter. One button: pressing it removes the filter. */
-.removable {
-  gap: var(--space-2);
-  min-height: 36px;
-  padding: var(--space-1) 10px var(--space-1) var(--space-3);
-  font-size: var(--text-sm);
-}
-
-.removable:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.removable :global(.icon) {
-  color: var(--muted);
-}
-
-@media (pointer: coarse) {
-  .removable {
-    min-height: var(--target-min);
-  }
 }

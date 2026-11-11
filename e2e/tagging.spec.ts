@@ -4,12 +4,85 @@ import { apiPost, dashboardCount, dashboardTotal, resetDemoData, signInAs, visib
 
 test.beforeEach(resetDemoData);
 
-/** Opens Tag a filing as the Marion clerk and waits until the form can be used. */
-async function openTagForm(page: Page): Promise<void> {
+/** Opens Tag a filing as the Marion clerk and waits until the form can be used. Nothing is chosen yet. */
+async function openEmptyTagForm(page: Page): Promise<void> {
   await signInAs(page, "demo-clerk-marion");
   await page.goto("/log");
   await expect(page.getByRole("button", { name: "Save tags" })).toBeVisible();
 }
+
+/**
+ * Chooses the case type and form of the filing, then puts focus back on the page. The dropdowns start
+ * on "Select case type" and "Select form", and a key pressed while a dropdown has focus belongs to it.
+ */
+async function chooseFiling(page: Page, caseType = "Small claims", form = "Small claims notice of claim"): Promise<void> {
+  await page.getByLabel("Case type").selectOption(caseType);
+  await page.getByLabel("Form", { exact: true }).selectOption(form);
+  await page.locator("#main").focus();
+}
+
+/** Opens Tag a filing as the Marion clerk with a small claims notice of claim chosen, ready for the problems. */
+async function openTagForm(page: Page): Promise<void> {
+  await openEmptyTagForm(page);
+  await chooseFiling(page);
+}
+
+test("the dropdowns start on a general choice, and the form list follows the case type", async ({ page }) => {
+  await openEmptyTagForm(page);
+  const before = await visibleFlagCount(page);
+  const saves: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && new URL(request.url()).pathname === "/api/flags") saves.push(request.url());
+  });
+  const caseType = page.getByLabel("Case type");
+  const form = page.getByLabel("Form", { exact: true });
+  const chosen = (select: typeof caseType) => select.evaluate((element: HTMLSelectElement) => element.selectedOptions[0]?.textContent ?? "");
+
+  // Nothing is chosen for the clerk, and there are no forms to pick from yet.
+  await expect(caseType).toHaveValue("");
+  expect(await chosen(caseType)).toBe("Select case type");
+  await expect(form).toHaveValue("");
+  expect(await chosen(form)).toBe("Select form");
+  await expect(form).toBeDisabled();
+  // The county comes from the account and cannot be changed here.
+  const county = page.getByLabel("County");
+  await expect(county).toHaveValue("Marion");
+  await expect(county).not.toBeEditable();
+
+  // Saving like this says what is missing and sends nothing.
+  await page.keyboard.press("1");
+  await page.getByRole("button", { name: "Save tags" }).click();
+  const summary = page.getByRole("alert").filter({ hasText: "This entry was not saved" });
+  await expect(summary).toBeFocused();
+  await expect(summary.getByRole("link", { name: "Choose a case type." })).toBeVisible();
+  await expect(summary.getByRole("link", { name: "Choose a form." })).toHaveCount(0);
+  // The link in the summary goes to the field it names.
+  await summary.getByRole("link", { name: "Choose a case type." }).click();
+  await expect(caseType).toBeFocused();
+  expect(saves).toEqual([]);
+
+  // A case type with one form chooses it.
+  await caseType.selectOption("Eviction");
+  await expect(form).toBeEnabled();
+  await expect(form).toHaveValue("Tenant answer or request for hearing");
+  // A case type with several leaves the choice to the clerk, and asks for it on Save.
+  await caseType.selectOption("Small claims");
+  await expect(form).toHaveValue("");
+  await expect(form.getByRole("option")).toHaveText(["Select form", "Small claims notice of claim", "Small claims counterclaim"]);
+  await page.getByRole("button", { name: "Save tags" }).click();
+  await expect(summary.getByRole("link", { name: "Choose a form." })).toBeVisible();
+  expect(saves).toEqual([]);
+  expect(await visibleFlagCount(page)).toBe(before);
+
+  // With both chosen the entry saves, and the two choices stay for the next filing of the same kind.
+  await form.selectOption("Small claims counterclaim");
+  await page.getByRole("button", { name: "Save tags" }).click();
+  await expect(page.getByText(/Saved\. 1 problem logged/)).toBeVisible();
+  expect(saves).toHaveLength(1);
+  await expect(caseType).toHaveValue("Small claims");
+  await expect(form).toHaveValue("Small claims counterclaim");
+  await expect(page.getByRole("region", { name: /^Recent entries/ }).getByText("Small claims counterclaim", { exact: true })).toBeVisible();
+});
 
 test("a clerk tags a filing with the keyboard and the leader's total goes up by exactly one", async ({ page, browser }) => {
   // The leader's dashboard before.
@@ -19,8 +92,23 @@ test("a clerk tags a filing with the keyboard and the leader's total goes up by 
   await leader.goto("/dashboard");
   const before = await dashboardTotal(leader);
 
-  // The clerk: 1 and 3 choose two problems, Enter saves. No mouse.
-  await openTagForm(page);
+  // The clerk: the case type and form from the dropdowns, 1 and 3 choose two problems, Enter saves. No mouse.
+  await openEmptyTagForm(page);
+  const caseType = page.getByLabel("Case type");
+  await caseType.focus();
+  // On a closed dropdown the arrow keys step through its choices: "Small claims" is the first one.
+  await page.keyboard.press("ArrowDown");
+  await expect(caseType).toHaveValue("Small claims");
+  await page.keyboard.press("Tab");
+  const form = page.getByLabel("Form", { exact: true });
+  await expect(form).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(form).toHaveValue("Small claims notice of claim");
+  // A digit typed on the dropdown is left to the dropdown. One Tab on, at the first problem, it chooses.
+  await page.keyboard.press("1");
+  await expect(page.getByRole("button", { name: /Missing signature/ })).toHaveAttribute("aria-pressed", "false");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: /Missing signature/ })).toBeFocused();
   await page.keyboard.press("1");
   await page.keyboard.press("3");
   await expect(page.getByRole("button", { name: /Missing signature/, pressed: true })).toBeVisible();
@@ -135,7 +223,8 @@ test("Enter on an outcome chip chooses that outcome, and the entry is saved with
   await expect(page.getByText(/Saved\. 1 problem logged/)).toBeVisible();
   expect(bodies).toEqual([expect.objectContaining({ outcome: "Fixed at counter", tags: ["Missing signature"] })]);
   const recent = page.getByRole("region", { name: /^Recent entries/ });
-  await expect(recent.getByText("Fixed at counter")).toBeVisible();
+  // In the list the outcome is one short word, with the full name for a screen reader and on hover.
+  await expect(recent.getByTitle("Fixed at counter")).toHaveText("Pass (Fixed at counter)");
 
   // On a problem chip Enter still saves, as the hint on that group says (Space chooses).
   await page.keyboard.press("2");
@@ -149,8 +238,8 @@ test("the number keys work on the form only, say what they did, and can be turne
   await openTagForm(page);
   const chip = (name: RegExp) => page.getByRole("button", { name });
 
-  // Outside the entry (the menu, the header) a digit does nothing.
-  await page.getByRole("navigation", { name: "Main" }).first().getByRole("link", { name: "Tag a filing" }).focus();
+  // Outside the entry (the tab bar and the controls at its end) a digit does nothing.
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Tag a filing" }).focus();
   await page.keyboard.press("5");
   await page.getByRole("button", { name: /^Switch to (dark|light) theme/ }).focus();
   await page.keyboard.press("6");
@@ -237,4 +326,72 @@ test("Undo, Put back and Remove do not drop keyboard focus onto nothing", async 
   await expect(page.getByText("No entries yet")).toBeVisible();
   await expect(recent).toBeFocused();
   expect(await focusIsOnBody()).toBe(false);
+});
+
+test("outcome labels in Recent entries: the dots line up, and each outline hugs its own word", async ({ page }) => {
+  await signInAs(page, "demo-clerk-marion");
+  // One entry for each outcome, with form names of different lengths.
+  const entries = [
+    { caseType: "Eviction", form: "Tenant answer or request for hearing", outcome: "Rejected" },
+    { caseType: "Small claims", form: "Small claims counterclaim", outcome: "Returned to fix" },
+    { caseType: "Name change", form: "Petition for change of name", outcome: "Fixed at counter" },
+  ];
+  for (const entry of entries) {
+    const saved = await apiPost(page, "/api/flags", { date: "2026-10-30", county: "Marion", tags: ["Missing signature"], ...entry });
+    expect(saved.status()).toBe(201);
+  }
+
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 375, height: 812 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/log");
+    const recent = page.getByRole("region", { name: /^Recent entries/ });
+    await expect(recent.getByRole("list", { name: "Problems" })).toHaveCount(3);
+    // The short word is what is drawn; the full name is there for a screen reader and on hover.
+    await expect(recent.getByTitle("Rejected")).toHaveText("Reject (Rejected)");
+    await expect(recent.getByTitle("Returned to fix")).toHaveText("Fix (Returned to fix)");
+    await expect(recent.getByTitle("Fixed at counter")).toHaveText("Pass (Fixed at counter)");
+
+    const measure = (title: string) =>
+      recent.getByTitle(title).evaluate((label) => {
+        const slot = label.parentElement as HTMLElement;
+        const labelBox = label.getBoundingClientRect();
+        const slotBox = slot.getBoundingClientRect();
+        const dot = getComputedStyle(label, "::before");
+        const style = getComputedStyle(label);
+        return {
+          slotLeft: slotBox.left,
+          slotWidth: slotBox.width,
+          labelLeft: labelBox.left,
+          labelWidth: labelBox.width,
+          // The dot is the first thing inside the outline, after its border and left padding.
+          dotLeft: labelBox.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft),
+          dotColor: dot.backgroundColor,
+          dotWidth: dot.width,
+          outline: style.borderTopColor,
+        };
+      });
+    const reject = await measure("Rejected");
+    const fix = await measure("Returned to fix");
+    const pass = await measure("Fixed at counter");
+
+    // Every label starts at the same left edge and has the same room kept for it, so the dots line up down the list.
+    for (const label of [fix, pass]) {
+      expect(label.slotLeft).toBe(reject.slotLeft);
+      expect(label.slotWidth).toBe(reject.slotWidth);
+      expect(label.labelLeft).toBe(reject.labelLeft);
+      expect(label.dotLeft).toBe(reject.dotLeft);
+    }
+    expect(reject.slotWidth).toBeGreaterThan(0);
+    // Each outline is as wide as its own word needs and no wider: "Fix" is the narrowest, "Reject" fills the room.
+    expect(reject.labelWidth).toBe(reject.slotWidth);
+    expect(pass.labelWidth).toBeLessThan(reject.labelWidth);
+    expect(fix.labelWidth).toBeLessThan(pass.labelWidth);
+    // One dot per label, a different color for each outcome, inside the same thin neutral outline.
+    expect(new Set([reject.dotColor, fix.dotColor, pass.dotColor]).size).toBe(3);
+    expect(new Set([reject.dotWidth, fix.dotWidth, pass.dotWidth])).toEqual(new Set(["9px"]));
+    expect(new Set([reject.outline, fix.outline, pass.outline]).size).toBe(1);
+  }
 });

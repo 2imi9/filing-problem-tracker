@@ -103,6 +103,11 @@
     /* At rest it starts where the page's content starts; the padding only shows once it is pinned. */
     margin-top: calc(var(--space-3) * -1);
   }
+
+  /* The pinned row is always in view: focus moving into it must not scroll the page. */
+  .commandDock :is(input, button) {
+    scroll-margin-top: 0;
+  }
 }
 
 .commandForm {
@@ -141,7 +146,8 @@
 .commandInput {
   flex: 1 1 16rem;
   min-width: 0;
-  min-height: var(--target-min);
+  /* The height of every one-line field (Field.module.css), so it is level with the button beside it. */
+  height: var(--target-min);
   padding: 10px 12px;
   border: 1px solid var(--field);
   border-radius: var(--radius-input);
@@ -378,6 +384,12 @@
 @container workspace (max-width: 559px) {
   .cell[data-size="s"] {
     grid-column: span 12;
+  }
+
+  /* Every panel spans the row here. Eleven 32px gaps (352px) are wider than a phone's column and would
+     push the panels past the edge of the screen. */
+  .grid {
+    column-gap: 0;
   }
 }
 

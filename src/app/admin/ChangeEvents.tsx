@@ -14,6 +14,8 @@ import type { SummaryError } from "@/components/ui/ErrorSummary";
 import { TextInput } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { buttonAfterRemoval } from "@/components/ui/focus";
+import { useFocusAfterUpdate } from "@/components/ui/useFocusAfterUpdate";
 import type { OkResponse } from "@/lib/api";
 import { CASE_TYPES, COUNTIES, MIN_DATE, TAGS, isCaseType, isCounty, isTag } from "@/lib/domain";
 import type { CaseType, ChangeEvent, County, Tag } from "@/lib/domain";
@@ -40,9 +42,10 @@ function AddChange({ onAdded }: { onAdded: () => void }) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [date, setDate] = useState(todayIso);
-  const [county, setCounty] = useState<County>(COUNTIES[0]);
-  const [caseType, setCaseType] = useState<CaseType>(CASE_TYPES[0]);
-  const [tag, setTag] = useState<Tag>(TAGS[0]);
+  // Every dropdown starts on a general choice ("Select county"); "" means nothing is chosen yet.
+  const [county, setCounty] = useState<County | "">("");
+  const [caseType, setCaseType] = useState<CaseType | "">("");
+  const [tag, setTag] = useState<Tag | "">("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -82,8 +85,11 @@ function AddChange({ onAdded }: { onAdded: () => void }) {
     if (!isIsoDate(date)) found.date = "Enter the date the change took effect.";
     else if (date > todayIso) found.date = "The date cannot be in the future.";
     else if (date < MIN_DATE) found.date = "The date cannot be before 2020.";
+    if (!county) found.county = "Choose a county.";
+    if (!caseType) found.caseType = "Choose a case type.";
+    if (!tag) found.tag = "Choose the problem the change was meant to reduce.";
     if (description.trim() === "") found.description = "Describe the change in a sentence.";
-    if (Object.keys(found).length > 0) {
+    if (!county || !caseType || !tag || Object.keys(found).length > 0) {
       fail(found);
       return;
     }
@@ -154,31 +160,31 @@ function AddChange({ onAdded }: { onAdded: () => void }) {
             id={FIELD_IDS.county}
             label="County"
             value={county}
-            onChange={(value) => {
-              if (isCounty(value)) setCounty(value);
-            }}
+            placeholder="Select county"
+            onChange={(value) => setCounty(isCounty(value) ? value : "")}
             options={COUNTIES}
             error={errors.county}
+            required
           />
           <Select
             id={FIELD_IDS.caseType}
             label="Case type"
             value={caseType}
-            onChange={(value) => {
-              if (isCaseType(value)) setCaseType(value);
-            }}
+            placeholder="Select case type"
+            onChange={(value) => setCaseType(isCaseType(value) ? value : "")}
             options={CASE_TYPES}
             error={errors.caseType}
+            required
           />
           <Select
             id={FIELD_IDS.tag}
             label="Problem it was meant to reduce"
             value={tag}
-            onChange={(value) => {
-              if (isTag(value)) setTag(value);
-            }}
+            placeholder="Select problem"
+            onChange={(value) => setTag(isTag(value) ? value : "")}
             options={TAGS}
             error={errors.tag}
+            required
           />
         </div>
         <TextInput
@@ -214,31 +220,40 @@ export function ChangeEvents({ onChanged }: { onChanged: () => void }) {
   const { toast } = useToast();
   const [target, setTarget] = useState<ChangeEvent | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const section = useRef<HTMLElement>(null);
+  const rows = useRef<HTMLTableSectionElement>(null);
+  const focusAfterUpdate = useFocusAfterUpdate();
 
   const sorted = useMemo(() => [...events].sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name)), [events]);
 
   const remove = async () => {
     if (!target) return;
+    const place = sorted.findIndex((event) => event.id === target.id);
+    let removed = false;
     setDeleting(true);
     try {
       await apiFetch<OkResponse>(`/api/events/${encodeURIComponent(target.id)}`, { method: "DELETE" });
       toast({ message: `Deleted the change "${target.name}".`, tone: "success" });
       onChanged();
       await refresh();
+      removed = true;
     } catch (caught) {
       toast({ message: `The change was not deleted. ${errorMessage(caught)}`, tone: "error" });
     } finally {
       setDeleting(false);
       setTarget(null);
     }
+    // The row's own Delete button is gone, so the dialog has nothing to give focus back to: it goes to
+    // the Delete button of the row now in that place, else the last row's, else the section itself.
+    if (removed) focusAfterUpdate(() => buttonAfterRemoval(rows.current, place) ?? section.current);
   };
 
   return (
-    <Card title="Changes" note={`${sorted.length} on file`}>
+    <Card title="Changes" note={`${sorted.length} on file`} ref={section}>
       <p className={styles.lead}>A change is something a court did to reduce a problem: a revised form, a guide, a kiosk. The before and after panel compares the months on each side of its date.</p>
 
       {sorted.length === 0 ? (
-        <EmptyState title="No changes on file" icon="calendar" compact>
+        <EmptyState title="No changes on file" compact>
           Add one below and the before and after panel can measure it.
         </EmptyState>
       ) : (
@@ -257,7 +272,7 @@ export function ChangeEvents({ onChanged }: { onChanged: () => void }) {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody ref={rows}>
               {sorted.map((event) => (
                 <tr key={event.id}>
                   <th scope="row" className={styles.nameCell}>

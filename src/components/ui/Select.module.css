@@ -9,7 +9,8 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .compact {
+  .select.compact {
+    height: 36px;
     min-height: 36px;
     padding-top: var(--space-1);
     padding-bottom: var(--space-1);

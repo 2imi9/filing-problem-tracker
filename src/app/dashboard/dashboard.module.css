@@ -49,6 +49,11 @@
   .filterBar[data-pinned="true"] {
     border-bottom-color: var(--line);
   }
+
+  /* The pinned row is always in view: focus moving into it must not scroll the page. */
+  .filterBar :is(select, button) {
+    scroll-margin-top: 0;
+  }
 }
 
 .filterFields {

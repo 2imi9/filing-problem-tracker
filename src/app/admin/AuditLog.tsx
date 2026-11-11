@@ -99,7 +99,7 @@ export function AuditLog({ version }: { version: number }) {
       ) : null}
 
       {state.status === "ready" && state.entries.length === 0 ? (
-        <EmptyState title="Nothing recorded yet" icon="table" compact>
+        <EmptyState title="Nothing recorded yet" compact>
           The first change anyone makes will appear here.
         </EmptyState>
       ) : null}

@@ -1,5 +1,6 @@
-// Choice rows: a checkbox row (choose any), a radio row (choose one), and a removable row for active filters.
+// Choice rows: a checkbox row (choose any) and a radio row (choose one).
 // They are square-cornered rows with a mark at the left, not rounded pills.
+// (An active filter that can be taken off is a FilterTag, in src/components/panels.)
 //
 //   <ChipGroup label="What was wrong? Choose all that apply.">
 //     <Chip pressed={on} onPressedChange={setOn} shortcut="1">Missing signature</Chip>
@@ -8,8 +9,6 @@
 //   <ChipGroup label="What happened to the filing?">
 //     <Chip radio tone="danger" pressed={outcome === "Rejected"} onPressedChange={() => setOutcome("Rejected")}>Rejected</Chip>
 //   </ChipGroup>
-//
-//   <RemovableChip label="County: Marion" onRemove={() => ...} />
 //
 // Chip is a <button aria-pressed>. Checkbox row: a 16px square that becomes a tick when pressed.
 // Radio row: a round mark that becomes a thick ring when pressed, in the color of `tone`
@@ -115,23 +114,5 @@ export function ChipGroup({ label, hint, error, id, children }: ChipGroupProps) 
         </p>
       ) : null}
     </div>
-  );
-}
-
-export interface RemovableChipProps {
-  /** The chip text, for example "County: Marion". */
-  label: string;
-  onRemove: () => void;
-  className?: string;
-}
-
-/** A row for an active filter. The whole row is one button that removes it. */
-export function RemovableChip({ label, onRemove, className }: RemovableChipProps) {
-  return (
-    <button type="button" className={[styles.chip, styles.removable, className].filter(Boolean).join(" ")} onClick={onRemove}>
-      <span>{label}</span>
-      <Icon name="close" size={16} />
-      <span className="visually-hidden">Remove filter</span>
-    </button>
   );
 }

@@ -14,7 +14,7 @@
 }
 
 .dialog::backdrop {
-  background: var(--color-overlay);
+  background: var(--overlay);
 }
 
 .sm {

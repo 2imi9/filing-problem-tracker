@@ -39,8 +39,8 @@ export interface ClassifyResult {
 }
 
 /**
- * Reasons per request. The spec allows up to 100. A reply runs to about 20 tokens a row, and 40 rows
- * keeps one reply well inside the request timeout.
+ * Reasons per request. A reply runs to about 20 tokens a row, and 40 rows keeps one reply well inside
+ * the request timeout.
  */
 export const CLASSIFY_BATCH_SIZE = 40;
 const CLASSIFY_CONCURRENCY = 4;

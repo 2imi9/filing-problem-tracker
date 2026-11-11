@@ -36,7 +36,7 @@ The single-file demo behind the live link is separate: `sh scripts/build-site.sh
 | `npm run test:e2e` | Browser and accessibility tests against a production build in demo mode on port 3100 |
 | `npm run verify` | All of the above, in that order. CI runs the same steps. |
 
-The browser tests need Chromium (`npx playwright install chromium`). `E2E_SKIP_BUILD=1` serves the build already in `.next`, and `E2E_PORT` changes the port.
+The browser tests need Chromium (`npx playwright install chromium`). `E2E_SKIP_BUILD=1` serves the build already in `.next`, and `E2E_PORT` changes the port. Two tests start a second server from the same build for a few seconds, on the port 7 and the port 8 above it (3107 and 3108): one checks that a bad setting stops the server, the other reads the server output and fails if a signed-in load of `/` or `/admin` makes the server write an error.
 
 ## Settings
 

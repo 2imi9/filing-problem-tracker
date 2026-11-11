@@ -25,12 +25,6 @@
   gap: 14px;
 }
 
-/* A date field and a text field are a few pixels taller than a dropdown; in one row they share a height. */
-.fields input,
-.fields select {
-  height: var(--target-min);
-}
-
 /* The county fixed by the account: the note sits under the value, so the labels and boxes of a row line up. */
 .lockedCounty > p {
   order: 1;
@@ -41,20 +35,6 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
-}
-
-/* The number key that toggles a problem: a small digit in the data face after the name, with no box. */
-.problems kbd {
-  display: inline;
-  min-width: 0;
-  height: auto;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
 }
 
 /* The switch for the number keys: one small line. The label is the 44px target. */

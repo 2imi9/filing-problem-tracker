@@ -4,7 +4,8 @@
 // The tab bar is the navigation (<nav aria-label="Main">). Each tab carries its position among the pages
 // this role can open, in a circle; the account menu and the theme switch sit at its right end.
 // Navigation shows only what the signed-in role can use; the server enforces the same rules.
-// The sign-in pages get the same header and footer and no tabs.
+// The sign-in pages get the same header and footer and no tab bar; there the theme switch sits at the
+// right end of the footer.
 
 "use client";
 
@@ -34,10 +35,11 @@ const NO_PICTURE = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAA
 
 const isCurrent = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
-/** What the shell needs to know about the server: the mode it runs in and whether AI features are on. */
+/** What the shell needs to know about the server: the mode it runs in, whether AI features are on, and with which model. */
 interface ServerFacts {
   mode: AppMode;
   ai: boolean;
+  aiModel: string | null;
 }
 
 /**
@@ -51,7 +53,7 @@ function useSignInPageFacts(bare: boolean): ServerFacts | null {
     let cancelled = false;
     apiFetch<HealthResponse>("/api/health")
       .then((health) => {
-        if (!cancelled) setFacts({ mode: health.mode, ai: health.ai });
+        if (!cancelled) setFacts({ mode: health.mode, ai: health.ai, aiModel: health.aiModel });
       })
       // Not known: the notices that depend on it stay off.
       .catch(() => undefined);
@@ -204,25 +206,15 @@ function Tabs({ items, pathname }: { items: readonly NavItem[]; pathname: string
   );
 }
 
-export interface AppShellProps {
-  children: ReactNode;
-  /**
-   * The footer's sentence about AI use, when the caller can say more than the shell can. The shell knows
-   * whether AI is on but not which model is configured; a caller that knows (a Server Component reading
-   * the server's settings) passes the sentence from aiUseText(enabled, model) here and it is shown as given.
-   */
-  aiUse?: ReactNode;
-}
-
-export function AppShell({ children, aiUse }: AppShellProps) {
+export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
-  const { user, mode, ai } = useData();
+  const { user, mode, ai, aiModel } = useData();
   const bare = isSignInPath(pathname);
   const signInFacts = useSignInPageFacts(bare);
   // Null until the server has answered. Signed in, the mode and the AI switch arrive together with the account.
-  const facts: ServerFacts | null = bare ? signInFacts : mode ? { mode, ai } : null;
+  const facts: ServerFacts | null = bare ? signInFacts : mode ? { mode, ai, aiModel } : null;
   const demo = facts?.mode === "demo";
-  const aiSentence = aiUse ?? (facts ? aiUseText(facts.ai) : null);
+  const aiSentence = facts ? aiUseText(facts.ai, facts.aiModel) : null;
   const role = !bare && user ? user.role : null;
   const items = useMemo(() => (role ? navFor(role) : []), [role]);
   const headerRef = useRef<HTMLElement>(null);
@@ -250,15 +242,6 @@ export function AppShell({ children, aiUse }: AppShellProps) {
             <p className={styles.lede}>{APP_INTRO}</p>
           </div>
         </div>
-        {bare ? (
-          <div className={styles.bar}>
-            <div className={`wrap ${styles.barIn}`}>
-              <div className={styles.tools}>
-                <ThemeToggle />
-              </div>
-            </div>
-          </div>
-        ) : null}
       </header>
 
       {bare ? null : (
@@ -278,10 +261,14 @@ export function AppShell({ children, aiUse }: AppShellProps) {
       </main>
 
       <footer className={styles.footer}>
-        <p className={`wrap ${styles.footerText}`}>
-          {footerText(demo)}
-          {aiSentence ? <> {aiSentence}</> : null}
-        </p>
+        <div className={`wrap ${styles.footerIn}`}>
+          <p className={styles.footerText}>
+            {footerText(demo)}
+            {aiSentence ? <> {aiSentence}</> : null}
+          </p>
+          {/* The sign-in pages have no tab bar to hold the theme switch, and it does not get a bar of its own. */}
+          {bare ? <ThemeToggle /> : null}
+        </div>
       </footer>
     </div>
   );

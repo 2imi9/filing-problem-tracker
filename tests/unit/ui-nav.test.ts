@@ -19,8 +19,9 @@ describe("navigation by role", () => {
     expect(hrefs("admin")).toContain("/admin");
   });
 
-  it("keeps a one-word short label for every destination", () => {
-    for (const item of NAV_ITEMS) expect(item.shortLabel).toMatch(/^\S{1,9}$/);
+  it("gives every destination one short label, used at every screen width", () => {
+    for (const item of NAV_ITEMS) expect(item.label).toMatch(/^\S.{2,14}$/);
+    expect(new Set(NAV_ITEMS.map((item) => item.label)).size).toBe(NAV_ITEMS.length);
   });
 
   // The tab bar prints each tab's place in this list, counted from 1.

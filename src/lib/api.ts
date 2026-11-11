@@ -57,6 +57,8 @@ export interface HealthResponse {
   mode: AppMode;
   /** True when AI features are switched on. */
   ai: boolean;
+  /** The name of the configured model when AI is on, so the page can say which model it is. Null when AI is off. */
+  aiModel: string | null;
   /** Server time, ISO. */
   time: string;
 }
@@ -66,6 +68,8 @@ export interface MeResponse {
   user: SessionUser;
   mode: AppMode;
   ai: boolean;
+  /** The name of the configured model when AI is on, otherwise null. */
+  aiModel: string | null;
   /** The app's today, YYYY-MM-DD. In demo mode this is the sample data's fixed today. */
   today: string;
 }

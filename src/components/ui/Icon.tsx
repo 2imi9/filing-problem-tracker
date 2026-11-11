@@ -38,33 +38,12 @@ const PATHS = {
       <path d="m7.5 14.5 3.5-4 3 2.5 4.5-6" />
     </>
   ),
-  grid: (
-    <>
-      <rect x="4" y="4" width="7" height="7" rx="1" />
-      <rect x="13" y="4" width="7" height="7" rx="1" />
-      <rect x="4" y="13" width="7" height="7" rx="1" />
-      <rect x="13" y="13" width="7" height="7" rx="1" />
-    </>
-  ),
   table: (
     <>
       <rect x="4" y="5" width="16" height="14" rx="1.5" />
       <path d="M4 10h16" />
       <path d="M4 14.5h16" />
       <path d="M10 10v9" />
-    </>
-  ),
-  book: (
-    <>
-      <path d="M12 6.5C10.5 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 5 .7 6.5 2" />
-      <path d="M12 6.5c1.5-1.3 3.7-2 6.5-2H20v13h-1.5c-2.8 0-5 .7-6.5 2" />
-      <path d="M12 6.5v13" />
-    </>
-  ),
-  shield: (
-    <>
-      <path d="M12 3.5 5 6v5.5c0 4.2 2.8 7.3 7 9 4.2-1.7 7-4.8 7-9V6l-7-2.5Z" />
-      <path d="m9 12 2.2 2.2L15.2 10" />
     </>
   ),
   folder: <path d="M3.5 7A1.5 1.5 0 0 1 5 5.5h4.2l2 2.5H19A1.5 1.5 0 0 1 20.5 9.5V17A1.5 1.5 0 0 1 19 18.5H5A1.5 1.5 0 0 1 3.5 17V7Z" />,
@@ -154,27 +133,12 @@ const PATHS = {
       <path d="m15 15 5 5" />
     </>
   ),
-  calendar: (
-    <>
-      <rect x="4" y="5.5" width="16" height="14.5" rx="1.5" />
-      <path d="M4 10h16" />
-      <path d="M8.5 3.5v4M15.5 3.5v4" />
-    </>
-  ),
-  mail: (
-    <>
-      <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
-      <path d="m4 7 8 6 8-6" />
-    </>
-  ),
   grip: (
     <>
       <path d="M9 6v.01M9 12v.01M9 18v.01" />
       <path d="M15 6v.01M15 12v.01M15 18v.01" />
     </>
   ),
-  pause: <path d="M8.5 5.5v13M15.5 5.5v13" />,
-  play: <path d="M7.5 5.5v13l11-6.5-11-6.5Z" />,
   maximize: (
     <>
       <path d="M4.5 9.5v-5h5" />

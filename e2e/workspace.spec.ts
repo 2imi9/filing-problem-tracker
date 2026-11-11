@@ -147,3 +147,63 @@ test("a deleted example folder stays deleted, also when it was the last folder",
   await expect(page.getByText("No folders yet.")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Open folder / })).toHaveCount(0);
 });
+
+test("dragging a panel by its handle moves it, says so, and the new order is kept", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openWorkspace(page);
+  await askWorkspace(page, "Missing signatures in Marion small claims", 3);
+  await expect(page.getByText("Layout saved")).toBeVisible();
+  const titles = workspacePanels(page).getByRole("heading");
+  const before = ["Missing signature by month: Marion, Small claims", "Most common problems: Marion, Small claims", "Key numbers: Marion, Small claims"];
+  await expect(titles).toHaveText(before);
+  const centerOf = async (index: number) => {
+    const box = await workspacePanels(page).nth(index).boundingBox();
+    if (!box) throw new Error("the panel is not on screen");
+    return { x: box.x + box.width / 2, y: box.y + Math.min(box.height / 2, 120) };
+  };
+  const handleOf = async (index: number) => {
+    const box = await workspacePanels(page).nth(index).locator("[data-control=\"handle\"]").boundingBox();
+    if (!box) throw new Error("the handle is not on screen");
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+
+  // Pressing the handle and letting go without leaving the panel moves nothing and announces nothing.
+  const start = await handleOf(0);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 6, start.y + 4, { steps: 3 });
+  await page.mouse.up();
+  await expect(titles).toHaveText(before);
+  await expect(page.getByText("Panel dropped in its new place.")).toHaveCount(0);
+
+  // Drag the first panel (wide) onto the small one beside it: while it is held the grid marks it as the
+  // one being dragged, and the two trade places.
+  const first = workspacePanels(page).first();
+  const draggedId = await first.getAttribute("data-panel-id");
+  const target = await centerOf(1);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await expect(first).toHaveAttribute("data-dragging", "true");
+  await page.mouse.move(target.x, target.y, { steps: 20 });
+  await page.mouse.up();
+
+  const after = [before[1], before[0], before[2]];
+  await expect(titles).toHaveText(after);
+  await expect(page.locator("li[data-dragging=\"true\"]")).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Panel dropped in its new place." })).toHaveCount(1);
+  await expect(workspacePanels(page).nth(1)).toHaveAttribute("data-panel-id", draggedId ?? "");
+  // The small panel is now first in its row and the wide one beside it; nothing sticks out sideways.
+  expect((await workspacePanels(page).nth(1).boundingBox())?.y).toBe((await workspacePanels(page).first().boundingBox())?.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+  // The order is part of the saved layout: the server holds it, and it is the same after a reload.
+  await expect
+    .poll(async () => {
+      const folders = (await (await page.request.get("/api/folders")).json()) as { name: string; panels: { title: string }[] }[];
+      return folders.find((folder) => folder.name === "__current")?.panels.map((panel) => panel.title);
+    })
+    .toEqual(after);
+  await page.reload();
+  await expect(workspacePanels(page)).toHaveCount(3);
+  await expect(titles).toHaveText(after);
+});

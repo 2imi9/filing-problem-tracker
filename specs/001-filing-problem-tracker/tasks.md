@@ -93,8 +93,8 @@
 - [x] T026 [P] Access-rule tests that run the real migrations in `tests/rls/`
 - [x] T027 [P] Browser tests for each user story, keyboard use, accessibility and phone width in `e2e/`
 - [x] T028 Security headers in `next.config.ts`, bundle check in `scripts/check-bundle.mjs` and CI in `.github/workflows/ci.yml`
-- [ ] T029 Match the approved look in `contracts/ui.md`: header, numbered tabs, checkbox rows, outcome labels, plain-rule sections
-- [ ] T030 Run the checks in quickstart.md
+- [x] T029 Match the approved look in `contracts/ui.md`: header, numbered tabs, checkbox rows, outcome labels, plain-rule sections
+- [x] T030 Run the checks in quickstart.md
 
 ## Phase 10: Before a pilot with real data
 

@@ -45,7 +45,15 @@
   transition: border-color var(--duration-fast) ease;
 }
 
-.control:hover:not(:disabled) {
+/* A text box, a date and a dropdown are drawn at different heights by the browser (46.8px, 48.8px and
+   44px). One height, the demo's, keeps their edges level when they share a row. */
+input.control,
+select.control {
+  height: var(--target-min);
+}
+
+/* A field that cannot be changed does not answer to the pointer. */
+.control:hover:not(:disabled, [readonly]) {
   border-color: var(--accent);
 }
 

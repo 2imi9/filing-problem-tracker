@@ -12,6 +12,8 @@ How every request is built: no `thinking`, `temperature`, `top_p` or `budget_tok
 
 Without `ANTHROPIC_API_KEY` every feature uses its fallback: keyword rules for classify, "Summary unavailable" for summary, keyword matching for compose. The app is fully usable with no key.
 
+**What the page says about AI.** The footer of every page says where AI is used. With AI off: "AI use: none on this copy. Import sorts with keyword rules, and every number is counted by code." With AI on it names the configured model (`aiModel` from `GET /api/me`, or `GET /api/health` on the sign-in pages) and the three features above, and says that tagging uses no AI and every number is counted by code. On Import the "Use AI sorting" choice names the model, and the preview says for each row who sorted it: "Rules", "AI" or "You". The workspace says whether the model or keyword matching chose the panels, and the dashboard summary is headed "AI summary. Check against the numbers below."
+
 ## What the model sees
 
 | Feature | Sent | Never sent |

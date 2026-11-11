@@ -48,15 +48,13 @@
 }
 
 /* Quiet: an outline in the rule color and accent text. "primary" is an old name for the same look. */
-.secondary,
-.primary {
+.secondary {
   background: transparent;
   border-color: var(--line);
   color: var(--accent);
 }
 
-.secondary:hover:not(:disabled, [aria-disabled="true"]),
-.primary:hover:not(:disabled, [aria-disabled="true"]) {
+.secondary:hover:not(:disabled, [aria-disabled="true"]) {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { FocusEvent } from "react";
 import type { FormsPanelData } from "@/lib/panels";
 import type { FormRow } from "@/lib/stats";
 import { Icon } from "@/components/ui";
@@ -38,6 +39,17 @@ function compare(a: FormRow, b: FormRow, key: SortKey): number {
   }
 }
 
+/**
+ * On a phone the table is wider than its box and scrolls sideways. A browser brings a heading button
+ * that is out of view into view when it takes keyboard focus, but leaves one that is half in view where
+ * it is, with part of the button and of its focus ring cut off. This brings it fully into the box.
+ * Keyboard focus only: a button must not move under the pointer between press and release.
+ */
+function revealFocused(event: FocusEvent<HTMLElement>): void {
+  const target = event.target;
+  if (target !== event.currentTarget && target.matches("button:focus-visible")) target.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
 /** One row per form. A column heading sorts by that column; choosing it again reverses the order. */
 export function FormsPanel({ data }: { data: FormsPanelData }) {
   const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "flagged", direction: "descending" });
@@ -57,7 +69,7 @@ export function FormsPanel({ data }: { data: FormsPanelData }) {
   };
 
   return (
-    <div className="table-scroll" tabIndex={0} role="group" aria-label="Flagged filings by form">
+    <div className="table-scroll" tabIndex={0} role="group" aria-label="Flagged filings by form" onFocus={revealFocused}>
       <table className={`data-table ${styles.formsTable}`}>
         <caption className="visually-hidden">Flagged filings by form. Column headings are buttons that sort the table.</caption>
         <thead>

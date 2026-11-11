@@ -11,7 +11,7 @@ import { Panel } from "@/components/panels/Panel";
 import { dashboardPanels, normalizeDashboardFilters } from "@/components/panels/dashboardSpecs";
 import type { DashboardFilters } from "@/components/panels/dashboardSpecs";
 import { summaryRequest } from "@/components/panels/summaryReply";
-import { Button, Card, EmptyState, Select, buttonAfterRemoval, useFocusAfterUpdate } from "@/components/ui";
+import { Button, Card, EmptyState, Select, buttonAfterRemoval, useFocusAfterUpdate, usePinnedRowHeight } from "@/components/ui";
 import { countiesIn, eventsFor } from "@/components/workspace/model";
 import { AiSummary } from "./AiSummary";
 import styles from "./dashboard.module.css";
@@ -73,12 +73,15 @@ function LoadedDashboard() {
   const firstFilter = () => filterFields.current?.querySelector<HTMLElement>("select");
   const event = specs.event;
   const { mark, pinned } = usePinned();
+  // A control that takes keyboard focus is scrolled clear of the pinned filters, not only of the tab bar.
+  const filterBar = useRef<HTMLElement>(null);
+  usePinnedRowHeight(filterBar);
   const summary = summaryRequest(filters, event?.id ?? null, tag);
 
   return (
     <div className={styles.dashboard}>
       <div ref={mark} className={styles.pinMark} aria-hidden="true" />
-      <section className={styles.filterBar} aria-label="Filters" data-pinned={pinned}>
+      <section ref={filterBar} className={styles.filterBar} aria-label="Filters" data-pinned={pinned}>
         <div ref={filterFields} className={styles.filterFields}>
           {counties.length > 1 ? (
             <Select

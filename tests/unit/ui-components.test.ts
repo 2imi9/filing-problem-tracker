@@ -12,7 +12,8 @@ import { Mark } from "@/components/shell/Mark";
 import { Page } from "@/components/shell/Page";
 import { Alert } from "@/components/ui/Alert";
 import { Card } from "@/components/ui/Card";
-import { Chip, ChipGroup, RemovableChip } from "@/components/ui/Chip";
+import { FilterTag } from "@/components/panels/FilterTag";
+import { Chip, ChipGroup } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorSummary } from "@/components/ui/ErrorSummary";
 import { Checkbox, TextInput } from "@/components/ui/Field";
@@ -93,10 +94,14 @@ describe("Chip", () => {
     expect(markup).toContain("Choose at least one problem.");
   });
 
-  it("names what a removable chip removes", () => {
-    const markup = html(createElement(RemovableChip, { label: "County: Marion", onRemove: noop }));
-    expect(markup).toContain("County: Marion");
-    expect(markup).toContain("Remove filter");
+  it("an active filter is one button that says what it takes off", () => {
+    const markup = html(createElement(FilterTag, { label: "Marion County", onRemove: noop }));
+    expect(markup).toMatch(/^<button type="button"/);
+    expect(markup.match(/<button/g)).toHaveLength(1);
+    expect(markup).toContain("<span>Marion County</span>");
+    // The cross is for the eye; the words that follow are for a screen reader.
+    expect(markup).toMatch(/<svg[^>]*aria-hidden="true"/);
+    expect(markup).toContain('<span class="visually-hidden">Remove filter</span>');
   });
 });
 
@@ -202,7 +207,7 @@ describe("status components", () => {
   });
 
   it("shows an empty state's title and explanation, as text with no picture", () => {
-    const markup = html(createElement(EmptyState, { title: "No entries yet", icon: "tag" }, "Entries you save appear here."));
+    const markup = html(createElement(EmptyState, { title: "No entries yet" }, "Entries you save appear here."));
     expect(markup).toContain("No entries yet");
     expect(markup).toContain("Entries you save appear here.");
     expect(markup).not.toContain("<svg");
@@ -270,7 +275,7 @@ describe("page building blocks", () => {
     expect(on).toMatch(/^AI use: the example-model-1 model /);
     for (const feature of ["Import", "dashboard summary", "workspace"]) expect(on).toContain(feature);
     expect(on).toContain("every number is counted by code");
-    // The browser is not told the model's name. Without it the features are still named.
+    // Without a name the features are still named.
     const unnamed = aiUseText(true);
     expect(unnamed).toMatch(/^AI use: an AI model /);
     for (const feature of ["Import", "dashboard summary", "workspace"]) expect(unnamed).toContain(feature);

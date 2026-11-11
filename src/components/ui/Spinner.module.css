@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .ring {
@@ -11,7 +11,7 @@
 }
 
 .track {
-  stroke: var(--color-border);
+  stroke: var(--line);
 }
 
 .arc {

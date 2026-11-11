@@ -4,8 +4,9 @@ import type { Folder } from "@/lib/panels";
 import type { ChangeEventInput, FolderInput, ImportRow, NewFlagInput } from "@/lib/schemas";
 
 /**
- * Data access for one signed-in user. Every method applies the access rules for that user (see the
- * access table in ARCHITECTURE.md) and throws HttpError 403 or 404 when the rules say no.
+ * Data access for one signed-in user. Every method applies the access rules for that user (see "Access
+ * rules" in specs/001-filing-problem-tracker/data-model.md) and throws HttpError 403 or 404 when the
+ * rules say no.
  * There are two implementations, memory and Supabase, with the same behavior.
  */
 export interface Repository {

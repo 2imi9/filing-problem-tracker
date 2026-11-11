@@ -31,7 +31,9 @@ interface TrendLineProps {
 }
 
 const INITIAL_WIDTH = 640;
-const MIN_WIDTH = 260;
+/** The narrowest the chart is drawn. A 320px screen leaves it 246px, and it must fit: a plot that scrolls
+ * sideways cannot be reached by keyboard. */
+const MIN_WIDTH = 240;
 /** The width the demo's chart is drawn at, and how far the picture may grow past it. */
 const DESIGN_WIDTH = 760;
 const MAX_SCALE = 1.3;

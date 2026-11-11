@@ -64,7 +64,7 @@ const SCREENS: Screen[] = [
   },
   { name: "how it's used", path: "/how-it-works", user: "demo-leader", ready: async (page) => expect(page.getByRole("heading", { name: "What the tracker does not do" })).toBeVisible() },
   { name: "admin", path: "/admin", user: "demo-admin", ready: async (page) => expect(page.getByRole("region", { name: "Audit log entries" })).toBeVisible() },
-  { name: "admin, refused to a clerk", path: "/admin", user: "demo-clerk-marion", ready: async (page) => expect(page.getByText("This page is for administrators")).toBeVisible() },
+  { name: "admin, refused to a clerk", path: "/admin", user: "demo-clerk-marion", ready: async (page) => expect(page.getByRole("main").getByText("This page is for administrators")).toBeVisible() },
   { name: "page not found", path: "/no/such/page", user: "demo-leader", ready: async (page) => expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible() },
 ];
 
@@ -97,29 +97,73 @@ for (const colorScheme of ["light", "dark"] as const) {
   });
 }
 
-test.describe("at 375px wide", () => {
-  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
+// The narrowest screen the page must reflow to (WCAG 1.4.10): a box that scrolls sideways there, such as
+// a chart drawn wider than its column, has to be reachable by keyboard or not scroll at all.
+test.describe("at 320px wide", () => {
+  test.use({ viewport: { width: 320, height: 700 }, hasTouch: true, reducedMotion: "reduce" });
 
   for (const screen of SCREENS) {
-    test(`${screen.name}: the page does not scroll sideways`, async ({ page }) => {
+    test(`${screen.name}: axe finds no serious or critical issue, and the page does not scroll sideways`, async ({ page }) => {
       await open(page, screen);
+      const results = await new AxeBuilder({ page }).analyze();
+      const blocking = results.violations
+        .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
+        .map((violation) => ({ rule: violation.id, impact: violation.impact, where: violation.nodes.map((node) => `${node.target.join(" ")}: ${node.failureSummary ?? ""}`) }));
+      expect(blocking).toEqual([]);
       const { content, viewport } = await page.evaluate(() => ({
         content: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
         viewport: document.documentElement.clientWidth,
       }));
-      expect(viewport).toBe(375);
+      expect(viewport).toBe(320);
       expect(content).toBeLessThanOrEqual(viewport);
     });
   }
-
-  test("the navigation is a bottom tab bar, and every tab is at least 44px tall", async ({ page }) => {
-    await signInAs(page, "demo-admin");
-    await page.goto("/dashboard");
-    const tabs = page.getByRole("navigation", { name: "Main" }).last().getByRole("link");
-    await expect(tabs).toHaveCount(6);
-    for (const tab of await tabs.all()) {
-      const box = await tab.boundingBox();
-      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-    }
-  });
 });
+
+/** A phone, a tablet upright, a tablet on its side or a small laptop, and a desktop. */
+const WIDTHS = [
+  { width: 375, height: 812, touch: true },
+  { width: 768, height: 1024, touch: true },
+  { width: 1024, height: 768, touch: false },
+  { width: 1440, height: 900, touch: false },
+];
+
+for (const { width, height, touch } of WIDTHS) {
+  test.describe(`at ${width}px wide`, () => {
+    test.use({ viewport: { width, height }, hasTouch: touch });
+
+    for (const screen of SCREENS) {
+      test(`${screen.name}: the page does not scroll sideways`, async ({ page }) => {
+        await open(page, screen);
+        const { content, viewport } = await page.evaluate(() => ({
+          content: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+          viewport: document.documentElement.clientWidth,
+        }));
+        expect(viewport).toBe(width);
+        expect(content).toBeLessThanOrEqual(viewport);
+      });
+    }
+
+    test("the navigation is the tab bar at the top, and every tab and control in it is at least 44px tall", async ({ page }) => {
+      await signInAs(page, "demo-admin");
+      await page.goto("/dashboard");
+      const nav = page.getByRole("navigation", { name: "Main" });
+      await expect(nav).toHaveCount(1);
+      const tabs = nav.getByRole("link");
+      await expect(tabs).toHaveCount(6);
+      for (const tab of await tabs.all()) {
+        const box = await tab.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      }
+      for (const control of await nav.getByRole("button", { name: /^(Account: |Switch to )/ }).all()) {
+        const box = await control.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+        expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+      }
+      // The bar is above the page, not under it.
+      const navBox = await nav.boundingBox();
+      const mainBox = await page.locator("#main").boundingBox();
+      expect((navBox?.y ?? 0) + (navBox?.height ?? 0)).toBeLessThanOrEqual((mainBox?.y ?? 0) + 1);
+    });
+  });
+}

@@ -109,7 +109,7 @@
   line-height: 1.5;
 }
 
-/* The bar under the header. With tabs (signed in) it pins to the top of the window. */
+/* The tab bar under the header. It pins to the top of the window. */
 .bar {
   border-bottom: 1px solid var(--line);
   background: var(--surface);
@@ -277,12 +277,28 @@
   background: var(--surface);
 }
 
-.footerText {
+/* The text, and on the sign-in pages the theme switch at the right end. */
+.footerIn {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
   padding-top: 28px;
   padding-bottom: 40px;
+}
+
+.footerText {
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--muted);
   font-size: 0.85rem;
   text-wrap: balance;
+}
+
+/* The switch is 44px tall: lifted, so its drawing is level with the first line of the text. */
+.footerIn > button {
+  flex: none;
+  margin-block: -12px;
 }
 
 /* Tighter tabs before they would have to scroll. */

@@ -4,10 +4,9 @@
   The values are the approved demo's (docs/prototype/filing_tracker.html): authority navy, one gold
   action per screen, EB Garamond headings, Lato text, IBM Plex Mono for data.
 
-  Two sets of names point at the same values:
-    - the demo's short names (--bg, --surface, --ink, --muted, --quiet, --line, --accent, --cta, --field,
-      --good, --warn, --bad): use these in new CSS;
-    - the older --color-* names, kept as aliases so existing page CSS keeps working.
+  The color names are the demo's short ones (--bg, --surface, --ink, --muted, --quiet, --line, --accent,
+  --cta, --field, --good, --warn, --bad). specs/001-filing-problem-tracker/contracts/ui.md ("Design
+  tokens") lists what each is for.
   Components use these variables only: no raw hex values in CSS Modules (the header band is the one
   exception; it is the same navy in both themes).
 
@@ -38,8 +37,6 @@
   --warn: #92400e;
   --bad: #b91c1c;
   --bad-soft: #fde8e8;
-  --good-soft: #dcf3e3;
-  --warn-soft: #fbeed5;
 
   /* The header band: the same in both themes. */
   --hero: #172554;
@@ -47,51 +44,16 @@
   --hero-muted: #dbe4f5;
   --hero-flag: #fcd34d;
 
-  /* Color: the older names, as aliases */
-  --color-primary: var(--accent);
-  --color-on-primary: var(--on-accent);
-  --color-secondary: var(--accent-hover);
-  --color-on-secondary: var(--on-accent);
-  --color-accent: var(--cta);
-  --color-on-accent: var(--on-cta);
-  --color-background: var(--bg);
-  --color-foreground: var(--ink);
-  --color-card: var(--surface);
-  --color-card-foreground: var(--ink);
-  --color-muted: var(--quiet);
-  --color-muted-foreground: var(--muted);
-  --color-border: var(--line);
-  --color-border-strong: var(--field);
-  --color-destructive: #dc2626;
-  --color-on-destructive: #ffffff;
-  --color-destructive-text: var(--bad);
-  --color-destructive-soft: var(--bad-soft);
-  --color-success: var(--good);
-  --color-success-soft: var(--good-soft);
-  --color-warning: var(--warn);
-  --color-warning-soft: var(--warn-soft);
-  --color-primary-soft: var(--accent-soft);
-  --color-ring: var(--accent);
-  --color-overlay: rgb(15 23 42 / 0.55); /* behind dialogs */
-  /* Over a photograph, the same in both themes: a dark layer, and the text that sits on it. */
-  --color-scrim: rgb(8 13 26 / 0.62);
-  --color-scrim-solid: #0b1220;
-  --color-on-scrim: #ffffff;
+  --overlay: rgb(15 23 42 / 0.55); /* behind dialogs */
 
   /* Type */
   --font-heading: var(--font-eb-garamond), "EB Garamond", Georgia, "Times New Roman", serif;
   --font-body: var(--font-lato), Lato, "Segoe UI", system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-head: var(--font-heading);
-  --font-ui: var(--font-body);
-  --font-data: var(--font-mono);
 
-  --text-xs: 0.75rem; /* 12px: table column heads */
   --text-sm: 0.875rem; /* 14px: hints */
   --text-base: 1rem; /* 16px: body minimum */
   --text-lg: 1.125rem;
-  --text-xl: 1.375rem;
-  --text-2xl: 1.75rem;
   --text-3xl: 2.25rem;
   --text-kpi: 2.25rem; /* key numbers */
   /* The demo's scale */
@@ -116,8 +78,6 @@
   --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
 
   /* Shape */
   --radius-input: 4px; /* fields, buttons, checkbox and radio rows */
@@ -131,6 +91,7 @@
   --content-max: 1088px; /* the page column without its gutters */
   --tabbar-height: 53px; /* the pinned tab bar */
   --header-height: var(--tabbar-height); /* what a sticky element under the pinned bar uses as its top */
+  /* --pinned-row-height: set on <html> by usePinnedRowHeight while a row is pinned under the tab bar. */
   --section-gap: 48px; /* between the sections of a page */
   --page-top: 56px;
   --page-bottom: 112px;
@@ -140,7 +101,6 @@
   /* Motion */
   --duration-fast: 150ms;
   --duration: 200ms;
-  --duration-slow: 300ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
   /* Focus */
@@ -150,7 +110,6 @@
   /* Layers */
   --z-sticky: 10;
   --z-header: 20;
-  --z-tabbar: 30;
   --z-menu: 40;
   --z-toast: 60;
 }
@@ -184,11 +143,7 @@
     --warn: #e6ae5a;
     --bad: #f29a93;
     --bad-soft: #3a2020;
-    --good-soft: #12301f;
-    --warn-soft: #372a0b;
-    --color-destructive: #f87171;
-    --color-on-destructive: #1f0a0a;
-    --color-overlay: rgb(2 6 15 / 0.7);
+    --overlay: rgb(2 6 15 / 0.7);
   }
 }
 
@@ -212,11 +167,7 @@
   --warn: #e6ae5a;
   --bad: #f29a93;
   --bad-soft: #3a2020;
-  --good-soft: #12301f;
-  --warn-soft: #372a0b;
-  --color-destructive: #f87171;
-  --color-on-destructive: #1f0a0a;
-  --color-overlay: rgb(2 6 15 / 0.7);
+  --overlay: rgb(2 6 15 / 0.7);
 }
 
 *,
@@ -232,8 +183,17 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Nothing that takes keyboard focus, and no link target, ends up under the pinned tab bar. */
-  scroll-padding-top: calc(var(--tabbar-height) + var(--space-4));
+}
+
+/*
+  Nothing in the page's content that takes keyboard focus, and no link target, ends up under the pinned
+  tab bar, or under a row pinned below it (the dashboard's filters, the workspace's request row; see
+  usePinnedRowHeight). This is a margin on the content and not scroll padding on the page: with padding,
+  the browser counts a control inside the pinned bar itself as out of view and scrolls the page when
+  focus moves into the bar. No specificity, so a component can set its own.
+*/
+:where(#main, #main *) {
+  scroll-margin-top: calc(var(--tabbar-height) + var(--pinned-row-height, 0px) + var(--space-4));
 }
 
 body {
@@ -327,7 +287,7 @@ video {
 
 /* One focus style everywhere: a 3px ring in the accent color, never removed. */
 :focus-visible {
-  outline: var(--focus-width) solid var(--color-ring);
+  outline: var(--focus-width) solid var(--accent);
   outline-offset: var(--focus-offset);
 }
 

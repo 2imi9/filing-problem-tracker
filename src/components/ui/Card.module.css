@@ -54,7 +54,13 @@
   gap: var(--space-2) var(--space-4);
 }
 
+/* The note sits beside the title while both fit on a line. When they do not (a phone), the whole note
+   drops under the title instead of breaking in the middle of a phrase. */
 .title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-2);
   font-size: var(--text-h2);
 }
 
@@ -63,7 +69,6 @@
 }
 
 .note {
-  margin-left: var(--space-2);
   color: var(--muted);
   font-family: var(--font-body);
   font-size: 0.85rem;

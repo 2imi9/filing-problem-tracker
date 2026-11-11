@@ -138,7 +138,7 @@ function RejectedTable({ rejected }: { rejected: readonly RejectedRow[] }) {
 }
 
 function ImportForm() {
-  const { user, mode, ai, refresh } = useLoadedData();
+  const { user, mode, ai, aiModel, refresh } = useLoadedData();
   const [csv, setCsv] = useState("");
   const [useAi, setUseAi] = useState(false);
   const [sorting, setSorting] = useState(false);
@@ -323,7 +323,7 @@ function ImportForm() {
             label="Use AI sorting"
             checked={useAi}
             onChange={setUseAi}
-            hint="An AI model reads each reason and picks the problems. A reason that looks like it contains personal data is never sent to it. Without AI, keyword rules do the sorting."
+            hint={`${aiModel ? `The ${aiModel} model` : "An AI model"} reads each reason and picks the problems. A reason that looks like it contains personal data is never sent to it. Without AI, keyword rules do the sorting.`}
           />
         ) : (
           // With AI off there is nothing to choose, so one quiet line says so in place of a switched-off checkbox.

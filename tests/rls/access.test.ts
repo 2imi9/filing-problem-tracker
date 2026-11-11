@@ -1,4 +1,5 @@
-// The access table in ARCHITECTURE.md, checked cell by cell against the real migrations.
+// The "Access rules" table in specs/001-filing-problem-tracker/data-model.md, checked cell by cell
+// against the real migrations.
 // Actors: clerk A (Marion), clerk B (Lake), a leader, an admin, a signed-in user with no profile, anon.
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

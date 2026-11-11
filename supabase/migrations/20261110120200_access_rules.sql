@@ -1,6 +1,6 @@
 -- Filing Problem Tracker, migration 3 of 3: who can do what.
 --
--- This is the access table in ARCHITECTURE.md, enforced by the database:
+-- This is the "Access rules" table in specs/001-filing-problem-tracker/data-model.md, enforced by the database:
 --
 --                             clerk                          leader         admin
 --   Read flags                own county                     all counties   all
@@ -409,7 +409,7 @@ create policy audit_log_insert on public.audit_log for insert to authenticated
 -- ---------------------------------------------------------------------------------------------------
 
 -- No grants and no policies for anon or authenticated. Tokens are issued and revoked by an operator in
--- the SQL editor (see supabase/README.md).
+-- the SQL editor (see "Supabase mode", step 5, in specs/001-filing-problem-tracker/quickstart.md).
 --
 -- A program calling the MCP endpoint has a token but no sign-in session, so the app cannot act as that
 -- person through the policies above. The three functions below are the only thing the app's service
