@@ -18,15 +18,17 @@ export function RankedPanel({ data }: { data: RankedPanelData }) {
           secondary: `${row.share}%`,
         }))}
       />
-      {data.hidden > 0 ? (
-        <p className={styles.hint}>
-          {data.hidden} more {data.hidden === 1 ? "is" : "are"} not shown.
-        </p>
-      ) : null}
-      {data.dimension === "tag" ? <p className={styles.hint}>A filing with two problems is counted under both, so the shares can add up to more than 100%.</p> : null}
-      {data.dimension === "outcome" ? (
-        <p className={styles.hint}>&quot;Fixed at counter&quot; means the clerk helped the filer fix it the same day.</p>
-      ) : null}
+      <div className={styles.hints}>
+        {data.hidden > 0 ? (
+          <p className={styles.hint}>
+            {data.hidden} more {data.hidden === 1 ? "is" : "are"} not shown.
+          </p>
+        ) : null}
+        {data.dimension === "tag" ? <p className={styles.hint}>A filing with two problems is counted under both, so the shares can add up to more than 100%.</p> : null}
+        {data.dimension === "outcome" ? (
+          <p className={styles.hint}>&quot;Fixed at counter&quot; means the clerk helped the filer fix it the same day.</p>
+        ) : null}
+      </div>
     </>
   );
 }

@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 
-// Security headers for every response, pages and API alike. SECURITY.md explains each line of the
-// policy and what it does not cover.
+// Security headers for every response, pages and API alike. "Security model" and "Known limits" in
+// specs/001-filing-problem-tracker/plan.md say what the policy covers and what it does not.
 //
 // The policy is a fixed string, worked out when the app is built (or when `next dev` starts). It has no
 // per-request nonce: a nonce needs every page rendered on request, which `cacheComponents` below rules

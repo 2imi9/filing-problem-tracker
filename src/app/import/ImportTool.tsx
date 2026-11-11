@@ -64,8 +64,8 @@ function EditProblems({ row, onApply, onClose }: { row: ReviewRow; onApply: Edit
   const toggle = (tag: Tag) => setChosen((current) => (current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]));
   return (
     <>
-      <div>
-        <p className={styles.dialogLabel}>Clerk&apos;s reason, as typed</p>
+      <div className={styles.dialogReason}>
+        <p className="label-sm">Clerk&apos;s reason, as typed</p>
         <p className={styles.reason}>{row.reason || "(blank)"}</p>
       </div>
       <ChipGroup label="What was wrong? Choose all that apply." hint="Leave every problem off to mark the row Needs review.">
@@ -77,7 +77,7 @@ function EditProblems({ row, onApply, onClose }: { row: ReviewRow; onApply: Edit
       </ChipGroup>
       <div className={styles.dialogActions}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="primary" onClick={() => onApply(row.line, chosen.length > 0 ? TAGS.filter((tag) => chosen.includes(tag)) : [NEEDS_REVIEW])}>
+        <Button variant="accent" onClick={() => onApply(row.line, chosen.length > 0 ? TAGS.filter((tag) => chosen.includes(tag)) : [NEEDS_REVIEW])}>
           Use these problems
         </Button>
       </div>
@@ -97,7 +97,7 @@ function RejectedTable({ rejected }: { rejected: readonly RejectedRow[] }) {
   const shown = rejected.slice(0, ROWS_SHOWN);
   return (
     <Card title="Rows left out" note={rowsWord(rejected.length)} headingLevel={3}>
-      <p>These rows will not be added. Fix them in the spreadsheet and import them again if they are needed.</p>
+      <p className="hint">These rows will not be added. Fix them in the spreadsheet and import them again if they are needed.</p>
       <div className={`table-scroll ${styles.tallScroll}`} tabIndex={0} role="region" aria-label="Rows left out">
         <table className="data-table">
           <thead>
@@ -116,7 +116,7 @@ function RejectedTable({ rejected }: { rejected: readonly RejectedRow[] }) {
             {shown.map((row) => (
               <tr key={row.line}>
                 <td className="num">{count(row.line)}</td>
-                <td className={`num ${styles.shortCell}`}>{row.date || "(blank)"}</td>
+                <td className="code">{row.date || "(blank)"}</td>
                 <td className={styles.shortCell}>{row.county || "(blank)"}</td>
                 <td className={styles.shortCell}>{row.caseType || "(blank)"}</td>
                 <td className={styles.formCell}>{row.form || "(blank)"}</td>
@@ -132,13 +132,13 @@ function RejectedTable({ rejected }: { rejected: readonly RejectedRow[] }) {
           </tbody>
         </table>
       </div>
-      {rejected.length > shown.length ? <p className={styles.hint}>Showing the first {count(shown.length)} of {rowsWord(rejected.length)}.</p> : null}
+      {rejected.length > shown.length ? <p className="hint">Showing the first {count(shown.length)} of {rowsWord(rejected.length)}.</p> : null}
     </Card>
   );
 }
 
 function ImportForm() {
-  const { user, mode, ai, refresh } = useLoadedData();
+  const { user, mode, ai, aiModel, refresh } = useLoadedData();
   const [csv, setCsv] = useState("");
   const [useAi, setUseAi] = useState(false);
   const [sorting, setSorting] = useState(false);
@@ -188,6 +188,8 @@ function ImportForm() {
   const shown = visible.slice(0, ROWS_SHOWN);
   const editingRow = editingLine === null ? null : (rows.find((row) => row.line === editingLine) ?? null);
   const busy = sorting || adding;
+  // One gold button at a time: sorting is the main action until there are rows to add.
+  const canAdd = preview !== null && rows.length > 0;
 
   const sort = async (text: string) => {
     if (busy) return;
@@ -293,41 +295,43 @@ function ImportForm() {
 
   return (
     <div className={styles.stack}>
-      <Card title="Rejection export">
+      <Card title="Import a rejection export" boxed>
         <ErrorSummary ref={summaryRef} errors={errors} title="The import could not continue" />
 
-        <p>
-          Expected columns: <span className="num">date, county, case_type, form, reason</span>. Dates look like <span className="num">2026-09-02</span>. One file can
-          hold up to {count(MAX_CSV_ROWS)} rows or 5 MB.
-          {clerkCounty ? ` You can add rows for ${clerkCounty} County only; rows for other counties are left out.` : ""}
-        </p>
-        <p>Do not import names, case numbers, addresses or phone numbers. A row whose reason looks like it contains one is left out.</p>
+        <div className={styles.notes}>
+          <p className="hint">
+            Columns: <span className="num">date, county, case_type, form, reason</span>. Dates look like <span className="num">2026-09-02</span>. One file can hold up
+            to {count(MAX_CSV_ROWS)} rows or 5 MB.
+            {clerkCounty ? ` You can add rows for ${clerkCounty} County only; rows for other counties are left out.` : ""}
+          </p>
+          <p className="hint">Do not import names, case numbers, addresses or phone numbers. A row whose reason looks like it contains one is left out.</p>
+        </div>
 
         <TextArea
           id={CSV_FIELD}
           label="CSV text"
           value={csv}
           onChange={setCsv}
-          rows={9}
+          rows={12}
           mono
           error={errors.find((error) => error.fieldId === CSV_FIELD)?.message}
           hint="Paste the export here, including the header row."
         />
 
-        <Checkbox
-          label="Use AI sorting"
-          checked={useAi && ai}
-          onChange={setUseAi}
-          disabled={!ai}
-          hint={
-            ai
-              ? "An AI model reads each reason and picks the problems. A reason that looks like it contains personal data is never sent to it. Without AI, keyword rules do the sorting."
-              : "AI sorting is switched off on this server. Keyword rules do the sorting."
-          }
-        />
+        {ai ? (
+          <Checkbox
+            label="Use AI sorting"
+            checked={useAi}
+            onChange={setUseAi}
+            hint={`${aiModel ? `The ${aiModel} model` : "An AI model"} reads each reason and picks the problems. A reason that looks like it contains personal data is never sent to it. Without AI, keyword rules do the sorting.`}
+          />
+        ) : (
+          // With AI off there is nothing to choose, so one quiet line says so in place of a switched-off checkbox.
+          <p className="hint">AI sorting is switched off on this server. Keyword rules do the sorting.</p>
+        )}
 
         <div className={styles.actions}>
-          <Button variant="primary" loading={sorting} disabled={adding} onClick={() => void sort(csv)}>
+          <Button variant={canAdd ? "secondary" : "accent"} loading={sorting} disabled={adding} onClick={() => void sort(csv)}>
             Sort into categories
           </Button>
           <Button icon="upload" disabled={busy} onClick={() => fileRef.current?.click()}>
@@ -340,7 +344,7 @@ function ImportForm() {
             </Button>
           ) : null}
         </div>
-        <p className={styles.hint}>Sorting only shows a preview. Nothing is added until you choose Add rows.</p>
+        <p className="hint">Sorting only shows a preview. Nothing is added until you choose Add rows.</p>
       </Card>
 
       {result ? (
@@ -372,10 +376,10 @@ function ImportForm() {
             ) : (
               <>
                 {reviewCount > 0 ? (
-                  <Checkbox label={`Show only the ${rowsWord(reviewCount)} that need review`} checked={onlyReview} onChange={setOnlyReview} />
+                  <Checkbox label={`Show only the ${rowsWord(reviewCount)} that ${reviewCount === 1 ? "needs" : "need"} review`} checked={onlyReview} onChange={setOnlyReview} />
                 ) : null}
                 <div className={`table-scroll ${styles.tallScroll}`} tabIndex={0} role="region" aria-label="Preview of rows to add">
-                  <table className="data-table">
+                  <table className={`data-table ${styles.previewTable}`}>
                     <thead>
                       <tr>
                         <th scope="col" className="num">
@@ -385,9 +389,13 @@ function ImportForm() {
                         <th scope="col">County</th>
                         <th scope="col">Case type</th>
                         <th scope="col">Form</th>
-                        <th scope="col">Clerk&apos;s reason (as typed)</th>
+                        <th scope="col" className={styles.wrapHead}>
+                          Clerk&apos;s reason (as typed)
+                        </th>
                         <th scope="col">Sorted into</th>
-                        <th scope="col">Sorted by</th>
+                        <th scope="col" className={styles.wrapHead}>
+                          Sorted by
+                        </th>
                         <th scope="col">Confidence</th>
                         <th scope="col" className={styles.actionCell}>
                           <span className="visually-hidden">Change</span>
@@ -398,13 +406,13 @@ function ImportForm() {
                       {shown.map((row) => (
                         <tr key={row.line}>
                           <td className="num">{count(row.line)}</td>
-                          <td className={`num ${styles.shortCell}`}>{row.date}</td>
+                          <td className="code">{row.date}</td>
                           <td className={styles.shortCell}>{row.county}</td>
                           <td className={styles.shortCell}>{row.caseType}</td>
                           <td className={styles.formCell}>{row.form}</td>
                           <td className={styles.reasonCell}>{row.reason || "(blank)"}</td>
                           <td>
-                            <ul className={styles.tags}>
+                            <ul className={`tag-list ${styles.tags}`}>
                               {row.tags.map((tag) => (
                                 <li key={tag}>
                                   <TagPill tag={tag} />
@@ -415,7 +423,7 @@ function ImportForm() {
                           <td>{row.edited ? "You" : row.source === "ai" ? "AI" : "Rules"}</td>
                           <td>{row.edited ? <span className="muted">Set by you</span> : <Pill tone={CONFIDENCE_TONES[row.confidence]}>{CONFIDENCE_LABELS[row.confidence]}</Pill>}</td>
                           <td className={styles.actionCell}>
-                            <Button size="sm" variant="ghost" icon="edit" disabled={busy} onClick={() => setEditingLine(row.line)}>
+                            <Button size="sm" variant="ghost" disabled={busy} onClick={() => setEditingLine(row.line)}>
                               Change<span className="visually-hidden"> problems for row {count(row.line)}</span>
                             </Button>
                           </td>
@@ -425,7 +433,7 @@ function ImportForm() {
                   </table>
                 </div>
                 {visible.length > shown.length ? (
-                  <p className={styles.hint}>
+                  <p className="hint">
                     Showing the first {count(shown.length)} of {rowsWord(visible.length)}. All {rowsWord(rows.length)} will be added.
                   </p>
                 ) : null}
@@ -445,7 +453,7 @@ function ImportForm() {
                     Discard preview
                   </Button>
                 </div>
-                <p className={styles.hint}>
+                <p className="hint">
                   Imported rows are saved with the outcome Rejected. Rows marked Needs review are added with that label so a clerk can see them later.
                 </p>
               </>

@@ -9,7 +9,7 @@ export default function WorkspacePage() {
     <Page
       title="Workspace"
       width="full"
-      intro="Say what you want to look at and panels open on a grid. Every number is counted from the flagged filings you are allowed to see. Changing a panel's filters happens on this page and sends nothing anywhere."
+      intro="Say what you want to look at and panels open on a grid, counted from the filings you may see."
     >
       <Workspace />
     </Page>

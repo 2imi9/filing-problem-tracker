@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { FormEvent } from "react";
 import { ApiError, apiFetch, errorMessage } from "@/components/data/apiClient";
-import { DemoFlag } from "@/components/shell/DemoFlag";
 import { homeFor, safeNextPath } from "@/components/shell/nav";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
@@ -50,41 +49,41 @@ function DemoSignIn() {
     }
   };
 
+  // The header band already says that this is a prototype and that the data is made up.
   return (
-    <Card title="Choose a demo role">
-      <DemoFlag />
-      <p>
-        This is the demo. There are no passwords: pick a role to see what that person sees. Changes you make are kept in memory and are
-        gone when the server restarts.
-      </p>
-      {error ? (
-        <Alert tone="error" title="Could not sign in." live>
-          {error}
-        </Alert>
-      ) : null}
-      <ul className={styles.roles}>
-        {DEMO_USERS.map((user) => (
-          <li key={user.id}>
-            <button
-              type="button"
-              className={styles.role}
-              aria-busy={pending === user.id || undefined}
-              disabled={pending !== null && pending !== user.id}
-              onClick={() => {
-                if (pending === null) void signIn(user.id);
-              }}
-            >
-              <Icon name={user.role === "clerk" ? "tag" : user.role === "leader" ? "chart" : "shield"} size={24} />
-              <span className={styles.roleText}>
-                <span className={styles.roleName}>{user.label}</span>
-                <span className={styles.roleSummary}>{ROLE_SUMMARIES[user.role]}</span>
-              </span>
-              {pending === user.id ? <Spinner label="Signing in" hideLabel /> : <Icon name="arrowRight" size={20} />}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </Card>
+    <>
+      <p className="intro">This is the demo. There are no passwords: pick a role to see what that person sees.</p>
+      <Card title="Choose a demo role" className={styles.section}>
+        {error ? (
+          <Alert tone="error" title="Could not sign in." live>
+            {error}
+          </Alert>
+        ) : null}
+        {/* Plain rows with a rule between them. The whole row is the button. */}
+        <ul className={styles.roles}>
+          {DEMO_USERS.map((user) => (
+            <li key={user.id}>
+              <button
+                type="button"
+                className={styles.role}
+                aria-busy={pending === user.id || undefined}
+                disabled={pending !== null && pending !== user.id}
+                onClick={() => {
+                  if (pending === null) void signIn(user.id);
+                }}
+              >
+                <span className={styles.roleText}>
+                  <span className={styles.roleName}>{user.label}</span>
+                  <span className={styles.roleSummary}>{ROLE_SUMMARIES[user.role]}</span>
+                </span>
+                {pending === user.id ? <Spinner label="Signing in" hideLabel /> : <Icon name="arrowRight" size={20} className={styles.go} />}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="hint">Changes you make are kept in memory and are gone when the server restarts.</p>
+      </Card>
+    </>
   );
 }
 
@@ -156,38 +155,43 @@ function EmailSignIn() {
   const fieldError = errors.find((error) => error.fieldId === EMAIL_FIELD)?.message;
 
   return (
-    <Card title="Sign in with your work email">
-      <p>We email you a link that signs you in. There is no password. Accounts are by invitation: ask your court&apos;s administrator if you need one.</p>
-      {linkProblem ? (
-        <Alert tone="warning" title={linkProblem.title} live>
-          {linkProblem.text}
-        </Alert>
-      ) : null}
-      <form className={styles.form} onSubmit={(event) => void submit(event)} noValidate>
-        <ErrorSummary ref={summaryRef} errors={errors} title="The link was not sent" />
-        <TextInput
-          id={EMAIL_FIELD}
-          label="Work email"
-          type="email"
-          name="email"
-          inputMode="email"
-          autoComplete="email"
-          value={email}
-          onChange={setEmail}
-          error={fieldError}
-          required
-        />
-        <Button type="submit" variant="accent" icon="mail" loading={sending}>
-          Email me a sign-in link
-        </Button>
-      </form>
-      {sentTo ? (
-        <Alert tone="success" title="Check your email." live>
-          If <span className="num">{sentTo}</span> has an account, a sign-in link is on its way. The link works once. If it does not arrive in a
-          few minutes, check the address and send it again.
-        </Alert>
-      ) : null}
-    </Card>
+    <>
+      <p className="intro">We email you a link that signs you in. There is no password.</p>
+      <Card title="Sign in with your work email" className={styles.section}>
+        {linkProblem ? (
+          <Alert tone="warning" title={linkProblem.title} live>
+            {linkProblem.text}
+          </Alert>
+        ) : null}
+        <form className={styles.form} onSubmit={(event) => void submit(event)} noValidate>
+          <ErrorSummary ref={summaryRef} errors={errors} title="The link was not sent" />
+          <TextInput
+            id={EMAIL_FIELD}
+            className={styles.narrowField}
+            label="Work email"
+            type="email"
+            name="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={setEmail}
+            error={fieldError}
+            required
+          />
+          {/* The one main action of this screen. */}
+          <Button type="submit" variant="accent" loading={sending}>
+            Email me a sign-in link
+          </Button>
+        </form>
+        {sentTo ? (
+          <Alert tone="success" title="Check your email." live>
+            If <span className="num">{sentTo}</span> has an account, a sign-in link is on its way. The link works once. If it does not arrive in a
+            few minutes, check the address and send it again.
+          </Alert>
+        ) : null}
+        <p className="hint">Accounts are by invitation: ask your court&apos;s administrator if you need one.</p>
+      </Card>
+    </>
   );
 }
 

@@ -49,10 +49,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
-  ],
+  // The navy of the header band, which is what sits under the browser's own bar in both themes.
+  themeColor: "#172554",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

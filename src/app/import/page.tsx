@@ -8,7 +8,7 @@ export default function ImportPage() {
   return (
     <Page
       title="Import a rejection export"
-      intro="For records the court already has. Paste or upload a spreadsheet export of past rejections, saved as CSV. The tracker reads the reason the clerk typed and sorts it into the same problem categories. Rows it cannot sort are marked for a person to review."
+      intro="Paste a spreadsheet export of past rejections. Each typed reason is sorted into the same problem list."
     >
       <ImportTool />
     </Page>

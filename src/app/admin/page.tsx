@@ -18,7 +18,7 @@ async function AdminOnly() {
   if (!session) redirect("/login?next=/admin");
   if (session.role !== "admin") {
     return (
-      <EmptyState title="This page is for administrators" icon="shield" action={<LinkButton href={homeFor(session.role)}>Go back to your start page</LinkButton>}>
+      <EmptyState title="This page is for administrators" action={<LinkButton href={homeFor(session.role)}>Go back to your start page</LinkButton>}>
         Your account does not have the administrator role, so there is nothing here for you to change.
       </EmptyState>
     );

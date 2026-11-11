@@ -8,7 +8,7 @@ export default function LogPage() {
   return (
     <Page
       title="Tag a filing"
-      intro="When a filing from someone without a lawyer is rejected or sent back, pick the filing details, choose what was wrong, and save. No names or case numbers are needed. It should take a few seconds."
+      intro="A filing is sent back. Tag what was wrong in a few clicks, with no names or case numbers."
     >
       <TagFiling />
     </Page>

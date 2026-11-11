@@ -26,7 +26,8 @@ export default function ErrorPage({ error, retry }: { error: unknown; retry: () 
         </p>
       ) : null}
       <div className={styles.actions}>
-        <Button variant="primary" icon="refresh" onClick={() => retry()}>
+        {/* The one main action of this screen. */}
+        <Button variant="accent" onClick={() => retry()}>
           Try again
         </Button>
         <LinkButton href="/">Go to the start page</LinkButton>

@@ -83,7 +83,7 @@ describe("proxy: matcher", () => {
   const pattern = new RegExp(`^${config.matcher[0]}$`);
 
   it("skips Next's assets and the static files in /public", () => {
-    for (const path of ["/_next/static/chunks/main.js", "/_next/image", "/favicon.ico", "/media/courthouse_leaves_loop.mp4", "/media/courthouse_leaves_still.png", "/file.svg", "/fonts/lato.woff2"]) {
+    for (const path of ["/_next/static/chunks/main.js", "/_next/image", "/favicon.ico", "/brand/courthouse-ascii-hero.jpg", "/brand/mark.svg", "/icon.svg", "/apple-icon.png", "/fonts/lato.woff2"]) {
       expect(pattern.test(path)).toBe(false);
     }
   });

@@ -179,3 +179,43 @@ test("import: discarding the preview and adding the rows leave focus on what com
   await expect(page.locator(":focus")).toContainText("Added 10 rows.");
   expect(await focusIsOnBody(page)).toBe(false);
 });
+
+test("admin: deleting a change leaves focus on the Delete button that took its place, and on the section once none are left", async ({ page }) => {
+  await signInAs(page, "demo-admin");
+  await page.goto("/admin");
+  const deletes = page.getByRole("region", { name: "Changes on file" }).getByRole("button", { name: /^Delete/ });
+  await expect(deletes).toHaveCount(3);
+  const confirm = page.getByRole("dialog").getByRole("button", { name: "Delete change" });
+  const nameOf = (button: Locator) => button.evaluate((element) => element.textContent ?? "");
+
+  // The first row goes: the row that was second is now first, and its Delete button has focus.
+  const second = await nameOf(deletes.nth(1));
+  await pressEnterOn(deletes.first());
+  await pressEnterOn(confirm);
+  await expect(deletes).toHaveCount(2);
+  await expect(deletes.first()).toBeFocused();
+  expect(await nameOf(deletes.first())).toBe(second);
+
+  // The last row goes: nothing took its place, so focus goes to the row that is last now.
+  await pressEnterOn(deletes.last());
+  await pressEnterOn(confirm);
+  await expect(deletes).toHaveCount(1);
+  await expect(deletes.first()).toBeFocused();
+
+  // The only row goes: the table is gone, and focus lands on the Changes section.
+  await page.keyboard.press("Enter");
+  await pressEnterOn(confirm);
+  await expect(deletes).toHaveCount(0);
+  await expect(page.getByText("No changes on file")).toBeVisible();
+  await expect(page.getByRole("region", { name: /^Changes 0 on file$/ })).toBeFocused();
+  expect(await focusIsOnBody(page)).toBe(false);
+
+  // Cancelling leaves the row, and the dialog gives focus back to the button that opened it.
+  await resetDemoData();
+  await page.reload();
+  await expect(deletes).toHaveCount(3);
+  await pressEnterOn(deletes.nth(1));
+  await pressEnterOn(page.getByRole("dialog").getByRole("button", { name: "Cancel" }));
+  await expect(deletes).toHaveCount(3);
+  await expect(deletes.nth(1)).toBeFocused();
+});

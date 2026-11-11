@@ -6,8 +6,9 @@ import type { ChangeEvent, County } from "@/lib/domain";
 import { PANEL_SIZES } from "@/lib/panels";
 import type { PanelSize, PanelSpec } from "@/lib/panels";
 import type { StatFlag } from "@/lib/stats";
+import { FilterTag } from "@/components/panels/FilterTag";
 import { Panel } from "@/components/panels/Panel";
-import { Button, Icon, IconButton, RemovableChip, Select, buttonAfterRemoval, useFocusAfterUpdate } from "@/components/ui";
+import { Button, Icon, IconButton, Select, buttonAfterRemoval, useFocusAfterUpdate } from "@/components/ui";
 import { FilterChipEditor } from "./FilterChipEditor";
 import type { DragHandle } from "./Grid";
 import { SIZE_LABELS, panelChips, removeChip } from "./model";
@@ -96,6 +97,7 @@ export function WorkspacePanel({
       todayIso={todayIso}
       viewerCounty={viewerCounty}
       minimized={minimized}
+      dense
       lead={
         <button
           type="button"
@@ -129,11 +131,11 @@ export function WorkspacePanel({
                 {chips.map((chip) => (
                   <li key={chip.key}>
                     {chip.removable ? (
-                      <RemovableChip
+                      <FilterTag
                         label={chip.label}
                         onRemove={() => {
                           onChange(removeChip(spec, chip.key, events));
-                          // The chip is gone once this is drawn: land on the one that took its place.
+                          // The filter is gone once this is drawn: land on the one that took its place.
                           const place = removable.indexOf(chip);
                           focusAfterUpdate(() => buttonAfterRemoval(chipList.current, place) ?? editButton.current);
                         }}

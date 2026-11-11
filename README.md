@@ -37,7 +37,10 @@ The [quickstart](specs/001-filing-problem-tracker/quickstart.md) has the setting
 
 ## Where AI is used
 
-Only in Import. Keyword rules sort most reasons, and an [OpenJev](https://huggingface.co/openjev/OpenJev-Flash-9B) decision model sorts the rest when one is running, on a Mac or a Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)). The page labels every row the model sorted. Tagging and the dashboard use no AI, and every number is counted by code. The Render demo runs no AI.
+- **Static demo.** Only in Import. Keyword rules sort most reasons, and an [OpenJev](https://huggingface.co/openjev/OpenJev-Flash-9B) decision model sorts the rest when one is running, on a Mac or a Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)). The Render demo runs no AI.
+- **App.** None unless `ANTHROPIC_API_KEY` is set. With a key, the model named in `AI_MODEL` sorts Import reasons when asked, writes the dashboard summary, and reads requests typed into the workspace.
+
+Every page says in its footer whether AI is on and which model, and labels each row a model sorted. Tagging uses no AI, and every number is counted by code.
 
 ## Docs
 

@@ -1,19 +1,13 @@
+/* Plain text where the content would be. No box. */
 .empty {
   display: grid;
-  justify-items: center;
-  gap: var(--space-2);
-  padding: var(--space-8) var(--space-4);
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-card);
-  text-align: center;
+  justify-items: start;
+  gap: var(--space-1);
+  padding: var(--space-4) 0;
 }
 
 .compact {
-  padding: var(--space-4);
-}
-
-.icon {
-  color: var(--color-muted-foreground);
+  padding: var(--space-1) 0;
 }
 
 .title {
@@ -22,9 +16,9 @@
 
 .body {
   max-width: 52ch;
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .action {
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
 }

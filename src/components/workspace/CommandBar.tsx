@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { Alert, Button, useFocusAfterUpdate } from "@/components/ui";
+import { Alert, Button, useFocusAfterUpdate, usePinnedRowHeight } from "@/components/ui";
 import { errorMessage } from "@/components/data/apiClient";
 import { REQUEST_MAX } from "./model";
 import styles from "./workspace.module.css";
@@ -14,9 +14,9 @@ export interface CommandResult {
 }
 
 interface CommandBarProps {
-  /** "hero": large and centered, for an empty workspace. "docked": one compact row above the panels. */
+  /** "hero": the page's one boxed section, for an empty workspace. "docked": one compact row above the panels. */
   mode: "hero" | "docked";
-  /** Requests to try, shown as chips in hero mode. */
+  /** Requests to try, listed as plain lines in hero mode. */
   examples: readonly string[];
   /** Sends the request. Resolves when the panels are open; throws when the server cannot be reached. */
   onSubmit: (request: string) => Promise<CommandResult>;
@@ -38,6 +38,9 @@ export function CommandBar({ mode, examples, onSubmit, children }: CommandBarPro
   const problemId = useId();
   const input = useRef<HTMLInputElement>(null);
   const focusAfterUpdate = useFocusAfterUpdate();
+  // Docked, the row stays under the tab bar: a control that takes keyboard focus is scrolled clear of it.
+  const bar = useRef<HTMLElement>(null);
+  usePinnedRowHeight(bar, mode);
 
   /** `fromExample`: the request came from an example chip, which is switched off and then usually removed. */
   const send = async (text: string, fromExample = false) => {
@@ -68,7 +71,7 @@ export function CommandBar({ mode, examples, onSubmit, children }: CommandBarPro
   };
 
   return (
-    <section className={mode === "hero" ? styles.commandHero : styles.commandDock} aria-label="Ask for panels">
+    <section ref={bar} className={mode === "hero" ? styles.commandHero : styles.commandDock} aria-label="Ask for panels">
       <form className={styles.commandForm} onSubmit={onFormSubmit} noValidate>
         <label htmlFor={COMMAND_INPUT_ID} className={mode === "hero" ? styles.commandLabelHero : styles.commandLabel}>
           What do you want to see?
@@ -107,7 +110,7 @@ export function CommandBar({ mode, examples, onSubmit, children }: CommandBarPro
       ) : null}
       {mode === "hero" ? (
         <div className={styles.examples}>
-          <p className={styles.examplesLabel} id={`${hintId}-examples`}>
+          <p className="label-sm" id={`${hintId}-examples`}>
             Or try one of these
           </p>
           <ul className={styles.exampleList} aria-labelledby={`${hintId}-examples`}>

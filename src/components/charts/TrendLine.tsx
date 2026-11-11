@@ -1,6 +1,6 @@
 "use client";
 
-import { monthShort } from "@/lib/time";
+import { monthLabel, monthShort } from "@/lib/time";
 import { axisMax, axisTicks, dateX, labelStep, slotX, valueY } from "./geometry";
 import type { PlotBox } from "./geometry";
 import { useElementWidth } from "./useElementWidth";
@@ -24,29 +24,38 @@ interface TrendLineProps {
   seriesLabel: string;
   /** Legend text for open rings. Needed when any point is open. */
   openLabel?: string;
-  /** A dashed vertical line at a date, such as the day a change took effect. */
-  marker?: { date: string; label: string } | null;
+  /** A dashed vertical line at a date, such as the day a change took effect. `label` is the word printed beside it; `title` is its tooltip. */
+  marker?: { date: string; label: string; title?: string } | null;
   /** A shorter chart for small panels. */
   compact?: boolean;
 }
 
 const INITIAL_WIDTH = 640;
-const MIN_WIDTH = 260;
-const MARGIN = { left: 40, right: 12, top: 34, bottom: 42 };
+/** The narrowest the chart is drawn. A 320px screen leaves it 246px, and it must fit: a plot that scrolls
+ * sideways cannot be reached by keyboard. */
+const MIN_WIDTH = 240;
+/** The width the demo's chart is drawn at, and how far the picture may grow past it. */
+const DESIGN_WIDTH = 760;
+const MAX_SCALE = 1.3;
+/** The demo's chart: 240 tall, 40 left for the scale, 16 right and top. The bottom also holds the year under a month. */
+const MARGIN = { left: 40, right: 16, top: 16, bottom: 42 };
 /** Room a month label needs, in pixels. */
 const LABEL_WIDTH = 44;
-/** Counts are printed above the points when each month has at least this much room. */
-const VALUE_LABEL_MIN_SLOT = 30;
 
 /**
- * Monthly counts as a line with a marker on every month. It is drawn at the element's real width so
- * the text is never scaled down. Screen readers get `summary`; the exact numbers are in the panel's
- * table view.
+ * Monthly counts as a line with a marker on every month: solid grid lines, no fill under the line, and
+ * the change marker drawn over the grid. It is drawn at the element's real width, so the text is never
+ * scaled down; in a wide panel the whole picture grows a little. Screen readers get `summary`; the exact numbers are in the panel's table view, and each
+ * point names its month and count when the pointer rests on it.
  */
 export function TrendLine({ points, max, summary, seriesLabel, openLabel, marker, compact = false }: TrendLineProps) {
   const [ref, measured] = useElementWidth<HTMLDivElement>(INITIAL_WIDTH);
-  const width = Math.max(MIN_WIDTH, measured);
-  const height = compact ? 170 : 250;
+  const outer = Math.max(MIN_WIDTH, measured);
+  // The demo draws 760 units wide and lets the picture grow with the page. Here it grows too, up to
+  // 1.3 times, and never shrinks: below 760px one unit is one pixel and the text keeps its size.
+  const scale = Math.min(MAX_SCALE, Math.max(1, outer / DESIGN_WIDTH));
+  const width = Math.round(outer / scale);
+  const height = compact ? 170 : 240;
   const box: PlotBox = {
     left: MARGIN.left,
     top: MARGIN.top,
@@ -58,20 +67,21 @@ export function TrendLine({ points, max, summary, seriesLabel, openLabel, marker
   const months = points.map((point) => point.month);
   const placed = points.map((point, i) => ({ ...point, x: slotX(i, points.length, box), y: valueY(point.count, top, box) }));
   const step = labelStep(points.length, box.width, LABEL_WIDTH);
-  const showValues = points.length > 0 && box.width / points.length >= VALUE_LABEL_MIN_SLOT;
   const markerX = marker ? dateX(marker.date, months, box) : null;
   const anyOpen = points.some((point) => point.open);
   const baseline = box.top + box.height;
+  /** The word beside the marker sits on the side with more room. */
+  const markerLeft = markerX !== null && markerX > box.left + box.width - 64;
 
   return (
     <figure className={styles.trend}>
       <div ref={ref} className={styles.trendPlot}>
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={summary} focusable="false">
+        <svg width={outer} height={Math.round(height * scale)} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={summary} focusable="false">
           {ticks.map((tick) => {
             const y = valueY(tick, top, box);
             return (
               <g key={tick}>
-                <line className={tick === 0 ? styles.axisLine : styles.gridLine} x1={box.left} x2={box.left + box.width} y1={y} y2={y} />
+                <line className={styles.gridLine} x1={box.left} x2={box.left + box.width} y1={y} y2={y} />
                 <text className={styles.axisText} x={box.left - 8} y={y} dy="0.32em" textAnchor="end">
                   {tick.toLocaleString("en-US")}
                 </text>
@@ -83,72 +93,53 @@ export function TrendLine({ points, max, summary, seriesLabel, openLabel, marker
               <text key={point.month} className={styles.axisText} x={point.x} y={baseline + 18} textAnchor="middle">
                 {monthShort(point.month)}
                 {i === 0 || point.month.endsWith("-01") ? (
-                  <tspan x={point.x} dy="15">
+                  <tspan x={point.x} dy="14">
                     {point.month.slice(0, 4)}
                   </tspan>
                 ) : null}
               </text>
             ) : null,
           )}
+          {/* After the grid, so the marker is drawn over it; before the line, so the line stays whole. */}
           {markerX !== null && marker ? (
             <g>
-              <line className={styles.markerLine} x1={markerX} x2={markerX} y1={box.top - 18} y2={baseline} />
-              <text
-                className={styles.markerText}
-                x={markerX > box.left + box.width / 2 ? markerX - 6 : markerX + 6}
-                y={box.top - 22}
-                textAnchor={markerX > box.left + box.width / 2 ? "end" : "start"}
-              >
+              {marker.title ? <title>{marker.title}</title> : null}
+              <line className={styles.markerLine} x1={markerX} x2={markerX} y1={box.top} y2={baseline} />
+              <text className={styles.markerText} x={markerLeft ? markerX - 6 : markerX + 6} y={box.top + 10} textAnchor={markerLeft ? "end" : "start"}>
                 {marker.label}
               </text>
             </g>
           ) : null}
-          {placed.slice(1).map((point, i) => {
-            const from = placed[i];
-            return (
-              <line
-                key={point.month}
-                className={from.open || point.open ? styles.seriesOpen : styles.series}
-                x1={from.x}
-                y1={from.y}
-                x2={point.x}
-                y2={point.y}
-              />
-            );
-          })}
+          <polyline className={styles.series} points={placed.map((point) => `${point.x},${point.y}`).join(" ")} />
           {placed.map((point) => (
-            <g key={point.month}>
-              <circle className={point.open ? styles.pointOpen : styles.point} cx={point.x} cy={point.y} r="4" />
-              {showValues ? (
-                <text className={styles.valueText} x={point.x} y={point.y - 9} textAnchor="middle">
-                  {point.count.toLocaleString("en-US")}
-                </text>
-              ) : null}
-            </g>
+            <circle key={point.month} className={point.open ? styles.pointOpen : styles.point} cx={point.x} cy={point.y} r={point.open ? 5 : 3.5}>
+              <title>
+                {monthLabel(point.month)}: {point.count.toLocaleString("en-US")}
+                {point.open && openLabel ? ` (${openLabel.toLowerCase()})` : ""}
+              </title>
+            </circle>
           ))}
         </svg>
       </div>
       <figcaption className={styles.legend}>
         <span className={styles.legendItem}>
-          <svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false">
-            <line className={styles.series} x1="1" x2="27" y1="6" y2="6" />
-            <circle className={styles.point} cx="14" cy="6" r="4" />
+          <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true" focusable="false">
+            <line className={styles.series} x1="0" x2="16" y1="6" y2="6" />
           </svg>
           {seriesLabel}
         </span>
         {anyOpen && openLabel ? (
           <span className={styles.legendItem}>
-            <svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false">
-              <line className={styles.seriesOpen} x1="1" x2="27" y1="6" y2="6" />
-              <circle className={styles.pointOpen} cx="14" cy="6" r="4" />
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+              <circle className={styles.pointOpen} cx="7" cy="7" r="5" />
             </svg>
             {openLabel}
           </span>
         ) : null}
         {markerX !== null && marker ? (
           <span className={styles.legendItem}>
-            <svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true" focusable="false">
-              <line className={styles.markerLine} x1="14" x2="14" y1="0" y2="12" />
+            <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true" focusable="false">
+              <line className={styles.markerLine} x1="0" x2="16" y1="6" y2="6" />
             </svg>
             Date of the change
           </span>

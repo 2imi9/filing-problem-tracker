@@ -3,8 +3,6 @@
 import type { BeforeAfterPanelData } from "@/lib/panels";
 import type { BeforeAfter, PhaseAverage } from "@/lib/stats";
 import { TrendLine } from "@/components/charts/TrendLine";
-import { Icon } from "@/components/ui";
-import type { IconName } from "@/components/ui";
 import styles from "./panels.module.css";
 
 const perMonth = (value: number) => value.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -27,8 +25,6 @@ function changeDetail(comparison: BeforeAfter): string {
   }
 }
 
-const DIRECTION_ICONS: Record<BeforeAfter["direction"], IconName | null> = { down: "arrowDown", up: "arrowUp", flat: "minus", unknown: null };
-
 /**
  * Before and after one change: the monthly average on each side (full months only), the change between
  * them, and the months as a line with a dashed marker on the day the change took effect.
@@ -36,32 +32,27 @@ const DIRECTION_ICONS: Record<BeforeAfter["direction"], IconName | null> = { dow
 export function BeforeAfterPanel({ data }: { data: BeforeAfterPanelData }) {
   const { event, comparison } = data;
   if (!event || !comparison) return null;
-  const icon = DIRECTION_ICONS[comparison.direction];
   return (
     <>
       {event.description ? <p className={styles.hint}>{event.description}</p> : null}
       <dl className={styles.compare}>
         <div className={styles.compareItem}>
-          <dt className={styles.eyebrow}>Before {data.eventDateLabel}</dt>
-          <dd className={styles.compareValue}>
-            <span className={styles.kpiNumber}>{perMonth(comparison.before.perMonth)}</span> <span className={styles.unit}>per month</span>
-          </dd>
-          <dd className={styles.kpiDetail}>{averageDetail(comparison.before)}</dd>
+          <dt className="label-sm">Before {data.eventDateLabel}</dt>
+          <dd className={styles.compareValue}>{perMonth(comparison.before.perMonth)}</dd>
+          <dd className={styles.compareDetail}>per month, {averageDetail(comparison.before)}</dd>
         </div>
         <div className={styles.compareItem}>
-          <dt className={styles.eyebrow}>After</dt>
-          <dd className={styles.compareValue}>
-            <span className={styles.kpiNumber}>{perMonth(comparison.after.perMonth)}</span> <span className={styles.unit}>per month</span>
-          </dd>
-          <dd className={styles.kpiDetail}>{averageDetail(comparison.after)}</dd>
+          <dt className="label-sm">After</dt>
+          <dd className={styles.compareValue}>{perMonth(comparison.after.perMonth)}</dd>
+          <dd className={styles.compareDetail}>per month, {averageDetail(comparison.after)}</dd>
         </div>
         <div className={styles.compareItem}>
-          <dt className={styles.eyebrow}>Change</dt>
+          <dt className="label-sm">Change</dt>
+          {/* The sign and the words under it say the direction; the color only repeats it. */}
           <dd className={styles.compareValue} data-direction={comparison.direction}>
-            {icon ? <Icon name={icon} size={24} /> : null}
-            <span className={styles.kpiNumber}>{data.changeLabel}</span>
+            {data.changeLabel}
           </dd>
-          <dd className={styles.kpiDetail}>{changeDetail(comparison)}</dd>
+          <dd className={styles.compareDetail}>{changeDetail(comparison)}</dd>
         </div>
       </dl>
       {data.total > 0 ? (
@@ -75,11 +66,13 @@ export function BeforeAfterPanel({ data }: { data: BeforeAfterPanelData }) {
           summary={data.summary}
           seriesLabel={`Filings with ${comparison.tag}, per month`}
           openLabel="Month left out of the averages"
-          marker={{ date: event.date, label: data.eventDateLabel ?? event.date }}
+          marker={{ date: event.date, label: "Change", title: data.eventDateLabel ?? event.date }}
         />
       ) : null}
-      <p className={styles.hint}>{data.caveat}</p>
-      <p className={styles.hint}>These are counts of flagged filings, not a share of all filings, so a busy month can look worse than it was.</p>
+      <div className={styles.hints}>
+        <p className={styles.hint}>{data.caveat}</p>
+        <p className={styles.hint}>These are counts of flagged filings, not a share of all filings, so a busy month can look worse than it was.</p>
+      </div>
     </>
   );
 }

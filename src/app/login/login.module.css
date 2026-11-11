@@ -1,48 +1,60 @@
-.wrap {
+/*
+  The sign-in pages (/login and /auth/confirm). They sit under the shared header with no tabs.
+  The look follows the approved demo: one opening sentence, then a section under a plain rule.
+  No card frames and no capsule shapes.
+*/
+
+/* The page column. Its sections are spaced like those of every other page. */
+.page {
+  /* Holds the screen-reader-only <h1>. */
+  position: relative;
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--section-gap);
   width: 100%;
-  max-width: 520px;
+  max-width: var(--content-max);
 }
 
+/* The section under the opening sentence: as wide as the main column of the demo's first screen. */
+.section {
+  max-width: 620px;
+}
+
+/* The demo roles: plain rows with a thin rule between them. */
 .roles {
   display: grid;
-  gap: var(--space-2);
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.roles li + li {
+  border-top: 1px solid var(--line);
+}
+
+/* One role: the whole row is the button. */
 .role {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  width: 100%;
+  gap: var(--space-4);
+  /* Twelve pixels wider than the list on each side, so the focus ring stands clear of the text while the
+     text itself stays on the edge of the page column. The phone gutter (16px) has room for it. */
+  width: calc(100% + 24px);
   min-height: 64px;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-card);
-  background: var(--color-card);
-  color: var(--color-foreground);
+  margin: 0 -12px;
+  padding: 14px 12px;
+  border: 0;
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease);
-}
-
-.role:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
 }
 
 .role:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-.role > svg:first-child {
-  color: var(--color-primary);
 }
 
 .roleText {
@@ -54,16 +66,31 @@
 
 .roleName {
   font-weight: 700;
+  transition: color var(--duration-fast) ease;
 }
 
 .roleSummary {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
   font-size: var(--text-sm);
+}
+
+/* The arrow at the end of a row says the row goes somewhere. */
+.go {
+  flex: none;
+  color: var(--accent);
+}
+
+/* Hover is shown on the name (underline and color), not by a box around the row. */
+.role:hover:not(:disabled) .roleName {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .form {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
   justify-items: start;
 }
 
@@ -73,4 +100,9 @@
 
 .form > button {
   width: auto;
+}
+
+/* One field: no wider than an email address needs. */
+.narrowField {
+  max-width: 420px;
 }

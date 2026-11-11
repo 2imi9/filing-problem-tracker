@@ -1,15 +1,21 @@
-// Chips: a toggle chip, and a removable chip for active filters.
+// Choice rows: a checkbox row (choose any) and a radio row (choose one).
+// They are square-cornered rows with a mark at the left, not rounded pills.
+// (An active filter that can be taken off is a FilterTag, in src/components/panels.)
 //
 //   <ChipGroup label="What was wrong? Choose all that apply.">
 //     <Chip pressed={on} onPressedChange={setOn} shortcut="1">Missing signature</Chip>
 //   </ChipGroup>
 //
-//   <RemovableChip label="County: Marion" onRemove={() => ...} />
+//   <ChipGroup label="What happened to the filing?">
+//     <Chip radio tone="danger" pressed={outcome === "Rejected"} onPressedChange={() => setOutcome("Rejected")}>Rejected</Chip>
+//   </ChipGroup>
 //
-// Chip is a <button aria-pressed>. The check mark and the filled background both show the pressed
-// state, so color is never the only signal. `shortcut` only prints a key hint on the chip; the page
-// that owns the chips listens for the key.
-// `tone` colors the pressed state: "primary" (default), "danger", "warning" or "success".
+// Chip is a <button aria-pressed>. Checkbox row: a 16px square that becomes a tick when pressed.
+// Radio row: a round mark that becomes a thick ring when pressed, in the color of `tone`
+// ("danger" red for Rejected, "warning" gold for Returned to fix, "success" green for Fixed at counter,
+// "primary" navy). Pressed rows also get a soft fill and an accent outline, so color is never the only signal.
+// A chip with a tone other than "primary" is drawn as a radio row unless `radio` says otherwise.
+// `shortcut` only prints a key hint on the chip; the page that owns the chips listens for the key.
 
 "use client";
 
@@ -25,33 +31,42 @@ export interface ChipProps {
   children: ReactNode;
   /** A key hint printed on the chip, for example "1". */
   shortcut?: string;
-  /** Color of the pressed state. Default "primary". */
+  /** Color of a radio row's ring when pressed. Default "primary". */
   tone?: ChipTone;
+  /** Draw the round mark of a choose-one row. Default: true when `tone` is not "primary". */
+  radio?: boolean;
   disabled?: boolean;
   id?: string;
   className?: string;
   ref?: Ref<HTMLButtonElement>;
 }
 
-export function Chip({ pressed, onPressedChange, children, shortcut, tone = "primary", disabled, id, className, ref }: ChipProps) {
+export function Chip({ pressed, onPressedChange, children, shortcut, tone = "primary", radio, disabled, id, className, ref }: ChipProps) {
+  const round = radio ?? tone !== "primary";
   return (
     <button
       ref={ref}
       id={id}
       type="button"
-      className={[styles.chip, styles[tone], className].filter(Boolean).join(" ")}
+      className={[styles.chip, round ? styles.radio : styles.check, styles[tone], className].filter(Boolean).join(" ")}
       aria-pressed={pressed}
       aria-keyshortcuts={shortcut}
       disabled={disabled}
       onClick={() => onPressedChange(!pressed)}
     >
+      <span className={styles.mark} aria-hidden="true">
+        {pressed && !round ? (
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" focusable="false">
+            <path d="M3 8.5l3.2 3.2L13 4.8" />
+          </svg>
+        ) : null}
+      </span>
+      <span>{children}</span>
       {shortcut ? (
         <kbd className={styles.key} aria-hidden="true">
           {shortcut}
         </kbd>
       ) : null}
-      <span>{children}</span>
-      {pressed ? <Icon name="check" size={16} /> : null}
     </button>
   );
 }
@@ -83,7 +98,7 @@ export function ChipGroup({ label, hint, error, id, children }: ChipGroupProps) 
       aria-label={labelId ? undefined : label}
       aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
     >
-      <div className={styles.groupLabel} id={labelId}>
+      <div className={`label-sm ${styles.groupLabel}`} id={labelId}>
         {label}
       </div>
       {hint ? (
@@ -99,23 +114,5 @@ export function ChipGroup({ label, hint, error, id, children }: ChipGroupProps) 
         </p>
       ) : null}
     </div>
-  );
-}
-
-export interface RemovableChipProps {
-  /** The chip text, for example "County: Marion". */
-  label: string;
-  onRemove: () => void;
-  className?: string;
-}
-
-/** A chip for an active filter. The whole chip is one button that removes it. */
-export function RemovableChip({ label, onRemove, className }: RemovableChipProps) {
-  return (
-    <button type="button" className={[styles.chip, styles.removable, className].filter(Boolean).join(" ")} onClick={onRemove}>
-      <span>{label}</span>
-      <Icon name="close" size={16} />
-      <span className="visually-hidden">Remove filter</span>
-    </button>
   );
 }

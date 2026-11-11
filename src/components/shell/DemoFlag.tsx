@@ -1,4 +1,5 @@
-// The notice shown on every page in demo mode. The wording is fixed by the spec.
+// The notice shown in the header band on every page in demo mode, the sign-in pages included. The wording
+// is fixed by the spec. The shell already shows it; a page does not need its own.
 
 import styles from "./DemoFlag.module.css";
 

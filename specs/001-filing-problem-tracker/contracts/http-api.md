@@ -6,8 +6,8 @@ Every handler runs inside `handle()` (`src/server/http.ts`), calls `requireSessi
 
 | Route | Who | Purpose |
 |---|---|---|
-| `GET /api/health` | anyone | `{ ok, mode, ai, time }`. No sign-in. |
-| `GET /api/me` | signed in | `{ user, mode, ai, today }`. |
+| `GET /api/health` | anyone | `{ ok, mode, ai, aiModel, time }`. No sign-in. `aiModel` is the configured model's name when AI is on and `null` when it is off; the page footer names it. |
+| `GET /api/me` | signed in | `{ user, mode, ai, aiModel, today }`. |
 | `GET /api/flags` | signed in | Flags in the caller's scope, without notes or reasons. |
 | `POST /api/flags` | clerk, admin | Creates one flag. A note that fails the personal-data check gets 422 with what was found. |
 | `DELETE /api/flags/[id]`, `POST /api/flags/[id]/restore` | clerk, admin | Remove an entry, and undo that. |

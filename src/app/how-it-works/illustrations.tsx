@@ -1,5 +1,5 @@
 // The three line drawings on the How it's used page. Plain inline SVG, 1.5px strokes, colored with the
-// design tokens through CSS classes so they follow the theme.
+// design tokens through CSS classes so they follow the theme. They sit straight on the page background.
 
 import styles from "./how.module.css";
 
@@ -16,7 +16,7 @@ const frame = {
   role: "img",
 } as const;
 
-/** A clerk behind a counter, a monitor showing problem chips, and a returned filing on the counter. */
+/** A clerk behind a counter, a monitor showing problem choices (square rows, as in the app), and a returned filing on the counter. */
 export function CounterIllustration({ className }: IllustrationProps) {
   return (
     <svg {...frame} className={className} aria-label="A clerk behind a counter. A monitor shows a row of problem labels, two of them selected. A returned filing lies on the counter.">
@@ -29,18 +29,18 @@ export function CounterIllustration({ className }: IllustrationProps) {
         {/* monitor */}
         <rect x="66" y="40" width="80" height="54" rx="3" />
         <path d="M106 94v18M92 112h28" />
-        {/* problem chips on the screen */}
-        <rect x="74" y="49" width="30" height="10" rx="5" />
-        <rect x="108" y="64" width="30" height="10" rx="5" />
+        {/* problem choices on the screen */}
+        <rect x="74" y="49" width="30" height="10" rx="1.5" />
+        <rect x="108" y="64" width="30" height="10" rx="1.5" />
         {/* the filing */}
         <path d="M26 112V82h18l6 6v24" />
         <path d="M44 82v6h6M31 94h14M31 100h14M31 106h8" />
       </g>
       <g className={styles.primaryFill}>
-        <rect x="108" y="49" width="30" height="10" rx="5" />
-        <rect x="74" y="64" width="30" height="10" rx="5" />
+        <rect x="108" y="49" width="30" height="10" rx="1.5" />
+        <rect x="74" y="64" width="30" height="10" rx="1.5" />
       </g>
-      <rect className={styles.primaryFill} x="74" y="80" width="24" height="8" rx="2" />
+      <rect className={styles.primaryFill} x="74" y="80" width="24" height="8" rx="1.5" />
       <g className={styles.bad}>
         <circle cx="52" cy="76" r="7" />
         <path d="M49.5 73.5l5 5M54.5 73.5l-5 5" />

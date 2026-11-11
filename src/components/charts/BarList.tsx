@@ -33,9 +33,10 @@ export function BarList({ rows, max, label }: BarListProps) {
         return (
           <li key={row.key} className={styles.barRow}>
             <span className={styles.barLabel}>{row.label}</span>
-            <svg className={styles.barTrack} viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <rect className={styles.barBack} x="0" y="0" width="100" height="8" rx="1" />
-              <rect className={styles.barFill} x="0" y="0" width={share} height="8" rx="1" />
+            {/* Sized in percent, so the bar needs no inline style and its corners stay 2px at any width. */}
+            <svg className={styles.barTrack} width="100%" height="18" aria-hidden="true" focusable="false">
+              <rect className={styles.barBack} x="0" y="0" width="100%" height="18" rx="2" />
+              <rect className={styles.barFill} x="0" y="0" width={`${share}%`} height="18" rx="2" />
             </svg>
             <span className={styles.barValue}>
               <span className="num">{row.primary}</span>

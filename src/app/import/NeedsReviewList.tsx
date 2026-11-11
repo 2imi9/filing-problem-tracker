@@ -39,7 +39,7 @@ export function NeedsReviewList({ version }: { version: number }) {
 
   return (
     <Card title="Needs review" note={state.status === "ready" ? `${total.toLocaleString("en-US")} imported ${total === 1 ? "row" : "rows"}` : undefined}>
-      <p>Imported rows that could not be sorted into a problem. They are counted on the dashboard under Needs review.</p>
+      <p className="hint">Imported rows that could not be sorted into a problem. They are counted on the dashboard under Needs review.</p>
 
       {state.status === "loading" ? <Spinner label="Loading rows that need review" announce /> : null}
 
@@ -50,7 +50,7 @@ export function NeedsReviewList({ version }: { version: number }) {
       ) : null}
 
       {state.status === "ready" && total === 0 ? (
-        <EmptyState title="Nothing is waiting for review" icon="check" compact>
+        <EmptyState title="Nothing is waiting for review" compact>
           Every imported row has been sorted into at least one problem.
         </EmptyState>
       ) : null}
@@ -71,7 +71,7 @@ export function NeedsReviewList({ version }: { version: number }) {
               <tbody>
                 {shown.map((row) => (
                   <tr key={row.id}>
-                    <td className={`num ${styles.shortCell}`}>{row.date}</td>
+                    <td className="code">{row.date}</td>
                     <td className={styles.shortCell}>{row.county}</td>
                     <td className={styles.shortCell}>{row.caseType}</td>
                     <td className={styles.formCell}>{row.form}</td>
@@ -82,7 +82,7 @@ export function NeedsReviewList({ version }: { version: number }) {
             </table>
           </div>
           {total > shown.length ? (
-            <p className={styles.hint}>
+            <p className="hint">
               Showing the first {shown.length.toLocaleString("en-US")} of {total.toLocaleString("en-US")} rows.
             </p>
           ) : null}

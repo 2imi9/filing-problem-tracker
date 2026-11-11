@@ -35,12 +35,12 @@ function DemoReset({ onReset }: { onReset: () => void }) {
 
   return (
     <Card title="Demo data">
-      <p>
+      <p className={styles.lead}>
         Puts the tracker back to the made-up sample: 900 filings and three changes. Everything added since the server started is removed, for every demo
         account: tagged filings, imports, changes, saved folders and the audit log.
       </p>
       <div>
-        <Button variant="danger" icon="refresh" onClick={() => setConfirming(true)}>
+        <Button variant="danger" onClick={() => setConfirming(true)}>
           Reset demo data
         </Button>
       </div>

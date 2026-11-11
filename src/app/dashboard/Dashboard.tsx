@@ -1,27 +1,53 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CASE_TYPES, TAGS, isCaseType, isCounty, isTag } from "@/lib/domain";
 import type { Tag } from "@/lib/domain";
 import { computePanel, filterChips, monthChoices } from "@/lib/panels";
 import { isMonth, monthLabel } from "@/lib/time";
 import { DataGate, useLoadedData } from "@/components/data/DataProvider";
+import { FilterTag } from "@/components/panels/FilterTag";
 import { Panel } from "@/components/panels/Panel";
 import { dashboardPanels, normalizeDashboardFilters } from "@/components/panels/dashboardSpecs";
 import type { DashboardFilters } from "@/components/panels/dashboardSpecs";
 import { summaryRequest } from "@/components/panels/summaryReply";
-import { Button, EmptyState, RemovableChip, Select, buttonAfterRemoval, useFocusAfterUpdate } from "@/components/ui";
+import { Button, Card, EmptyState, Select, buttonAfterRemoval, useFocusAfterUpdate, usePinnedRowHeight } from "@/components/ui";
 import { countiesIn, eventsFor } from "@/components/workspace/model";
 import { AiSummary } from "./AiSummary";
 import styles from "./dashboard.module.css";
 
-/** The leader's view: a filter bar and a fixed set of panels, all computed from the same records. */
+/** The leader's view: a row of filters and a fixed set of panels, all computed from the same records. */
 export function Dashboard() {
   return (
     <DataGate>
       <LoadedDashboard />
     </DataGate>
   );
+}
+
+/**
+ * True once the page has scrolled far enough that the filters are pinned under the tab bar. The mark
+ * sits where the filters start; when it has gone under the bar, they are pinned. Only then do the
+ * filters get a hairline under them, so at rest they are a plain row with no box.
+ */
+function usePinned() {
+  const mark = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(false);
+  useEffect(() => {
+    const node = mark.current;
+    if (!node) return;
+    const bar = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tabbar-height")) || 53;
+    // Read on scroll only, and only once the page has scrolled: a full-page capture or a print moves
+    // the viewport without scrolling, and must show the filters as they are at rest.
+    const read = () => setPinned(window.scrollY > 0 && node.getBoundingClientRect().top < bar);
+    const first = window.requestAnimationFrame(read);
+    window.addEventListener("scroll", read, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(first);
+      window.removeEventListener("scroll", read);
+    };
+  }, []);
+  return { mark, pinned };
 }
 
 function LoadedDashboard() {
@@ -40,20 +66,25 @@ function LoadedDashboard() {
   const headline = useMemo(() => computePanel(specs.kpi, records, events, todayIso, { county: viewerCounty }), [specs.kpi, records, events, todayIso, viewerCounty]);
   const chips = filterChips(filters);
   const setFilters = (next: DashboardFilters) => setFilterState(normalizeDashboardFilters(next));
-  // A removed chip and "Clear all filters" take themselves off the page: focus needs somewhere to land.
+  // A removed filter and "Clear all filters" take themselves off the page: focus needs somewhere to land.
   const filterFields = useRef<HTMLDivElement>(null);
   const chipList = useRef<HTMLUListElement>(null);
   const focusAfterUpdate = useFocusAfterUpdate();
   const firstFilter = () => filterFields.current?.querySelector<HTMLElement>("select");
   const event = specs.event;
+  const { mark, pinned } = usePinned();
+  // A control that takes keyboard focus is scrolled clear of the pinned filters, not only of the tab bar.
+  const filterBar = useRef<HTMLElement>(null);
+  usePinnedRowHeight(filterBar);
+  const summary = summaryRequest(filters, event?.id ?? null, tag);
 
   return (
     <div className={styles.dashboard}>
-      <section className={styles.filterBar} aria-label="Filters">
+      <div ref={mark} className={styles.pinMark} aria-hidden="true" />
+      <section ref={filterBar} className={styles.filterBar} aria-label="Filters" data-pinned={pinned}>
         <div ref={filterFields} className={styles.filterFields}>
           {counties.length > 1 ? (
             <Select
-              compact
               label="County"
               value={filters.county ?? ""}
               placeholder="All counties"
@@ -62,7 +93,6 @@ function LoadedDashboard() {
             />
           ) : null}
           <Select
-            compact
             label="Case type"
             value={filters.caseType ?? ""}
             placeholder="All case types"
@@ -70,7 +100,6 @@ function LoadedDashboard() {
             onChange={(value) => setFilters({ ...filters, caseType: isCaseType(value) ? value : undefined })}
           />
           <Select
-            compact
             label="From"
             value={filters.fromMonth ?? ""}
             placeholder="First month"
@@ -78,7 +107,6 @@ function LoadedDashboard() {
             onChange={(value) => setFilters({ ...filters, fromMonth: isMonth(value) ? value : undefined })}
           />
           <Select
-            compact
             label="To"
             value={filters.toMonth ?? ""}
             placeholder="Latest month"
@@ -87,12 +115,15 @@ function LoadedDashboard() {
           />
         </div>
         <div className={styles.filterState}>
+          <p className={styles.filterCount} role="status">
+            <span className="num">{headline.total.toLocaleString("en-US")}</span> flagged {headline.total === 1 ? "filing" : "filings"}: {headline.scope}
+          </p>
           {chips.length > 0 ? (
             <>
               <ul ref={chipList} className={styles.chipList} aria-label="Active filters">
                 {chips.map((chip, place) => (
                   <li key={chip.key}>
-                    <RemovableChip
+                    <FilterTag
                       label={chip.label}
                       onRemove={() => {
                         setFilters({ ...filters, [chip.key]: undefined });
@@ -114,18 +145,16 @@ function LoadedDashboard() {
               </Button>
             </>
           ) : null}
-          <p className={styles.filterCount} role="status">
-            <span className="num">{headline.total.toLocaleString("en-US")}</span> flagged {headline.total === 1 ? "filing" : "filings"}: {headline.scope}
-          </p>
         </div>
         {user.role === "clerk" && user.county ? (
           <p className={styles.scopeNote}>You see {user.county} County only. A clerk&apos;s dashboard covers the filings of their own county.</p>
         ) : null}
       </section>
 
-      <AiSummary request={summaryRequest(filters, event?.id ?? null, tag)} scope={headline.scope} enabled={ai} />
+      {ai ? <AiSummary request={summary} scope={headline.scope} enabled /> : null}
 
-      <Panel spec={specs.kpi} records={records} events={events} todayIso={todayIso} viewerCounty={viewerCounty} />
+      {/* The four key numbers: one row under a rule. Its heading and its sentence are for screen readers; the row says both in view. */}
+      <Panel spec={specs.kpi} records={records} events={events} todayIso={todayIso} viewerCounty={viewerCounty} look="bare" />
 
       <div className={styles.split}>
         <Panel spec={specs.problems} records={records} events={events} todayIso={todayIso} viewerCounty={viewerCounty} />
@@ -150,10 +179,10 @@ function LoadedDashboard() {
           events={events}
           todayIso={todayIso}
           viewerCounty={viewerCounty}
+          look="boxed"
           toolbar={
             <div className={styles.changeFields}>
               <Select
-                compact
                 label="Change to check"
                 value={event.id}
                 options={offered.map((e) => ({ value: e.id, label: e.name }))}
@@ -162,27 +191,21 @@ function LoadedDashboard() {
                   setTag(null);
                 }}
               />
-              <Select
-                compact
-                label="Problem to follow"
-                value={tag ?? event.tag}
-                options={TAGS}
-                onChange={(value) => setTag(isTag(value) ? value : null)}
-              />
-              <p className={styles.changeNote}>
-                This panel follows the county and case type of the change ({event.county} County, {event.caseType}), not the filters at the top.
-              </p>
+              <Select label="Problem to follow" value={tag ?? event.tag} options={TAGS} onChange={(value) => setTag(isTag(value) ? value : null)} />
             </div>
           }
+          note={`This panel follows the county and case type of the change (${event.county} County, ${event.caseType}), not the filters at the top.`}
         />
       ) : (
-        <section className={styles.emptyPanel} aria-labelledby="no-changes-title">
-          <h2 id="no-changes-title">Before and after a change</h2>
+        <Card title="Before and after a change">
           <EmptyState title="No changes have been recorded yet" compact>
             When an administrator records a change, such as a revised form or a new guide, this panel compares the months before it with the months after.
           </EmptyState>
-        </section>
+        </Card>
       )}
+
+      {/* With AI switched off the summary is one quiet line, after everything the page does show. */}
+      {ai ? null : <AiSummary request={summary} scope={headline.scope} enabled={false} />}
     </div>
   );
 }

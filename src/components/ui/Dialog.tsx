@@ -2,7 +2,7 @@
 // to the element that opened it).
 //
 //   <Dialog open={open} onClose={() => setOpen(false)} title="Choose the problems"
-//           footer={<><Button onClick={close}>Cancel</Button><Button variant="primary" onClick={apply}>Apply</Button></>}>
+//           footer={<><Button onClick={close}>Cancel</Button><Button variant="accent" onClick={apply}>Apply</Button></>}>
 //     ...content...
 //   </Dialog>
 //
@@ -98,7 +98,8 @@ export function ConfirmDialog({ open, title, children, confirmLabel, cancelLabel
       footer={
         <>
           <Button onClick={onCancel}>{cancelLabel}</Button>
-          <Button variant={tone} loading={busy} onClick={onConfirm}>
+          {/* The dialog is a screen of its own, so its main action is the gold button; a delete is quiet and red. */}
+          <Button variant={tone === "danger" ? "danger" : "accent"} loading={busy} onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </>

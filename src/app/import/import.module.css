@@ -1,29 +1,42 @@
+/* The sections of the page, spaced like the direct children of <Page>. */
 .stack {
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--section-gap);
   min-width: 0;
+}
+
+/* What the file must hold and what it must not: two quiet lines under the heading, close together. */
+.notes {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: 12px;
 }
 
-.hint {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
-}
-
+/* Where focus lands when a preview or a result appears. */
 .previewAnchor {
   min-width: 0;
   border-radius: var(--radius-card);
   scroll-margin-top: calc(var(--header-height) + var(--space-4));
 }
 
+/* The focus ring stands a little off the section, which has no frame of its own to hold it. */
+.previewAnchor:focus-visible {
+  outline-offset: var(--space-2);
+}
+
+/* The reason as the clerk typed it: the data face, smaller and in secondary text. */
 .reasonCell {
-  min-width: 22ch;
+  min-width: 17ch;
+  color: var(--muted);
   font-family: var(--font-mono);
+  font-size: 0.82rem;
   overflow-wrap: anywhere;
 }
 
@@ -34,7 +47,19 @@
 }
 
 .formCell {
-  min-width: 20ch;
+  min-width: 17ch;
+}
+
+/* The preview has ten columns. With a little less room at the sides of each cell, and two column heads
+   on two lines, all ten fit the page column on a desktop screen and nothing hides under the Change column. */
+table.previewTable th,
+table.previewTable td {
+  padding-right: var(--space-2);
+  padding-left: var(--space-2);
+}
+
+table.previewTable thead th.wrapHead {
+  white-space: normal;
 }
 
 /* A long table scrolls inside its wrapper, so the column heads stay in view (they are sticky). */
@@ -48,11 +73,11 @@ td.actionCell,
 th.actionCell {
   position: sticky;
   right: 0;
-  border-left: 1px solid var(--color-border);
 }
 
+/* Opaque, in the color of the page the table sits on. */
 td.actionCell {
-  background: var(--color-card);
+  background: var(--bg);
 }
 
 /* On a phone the pinned column would take two fifths of the table's width. */
@@ -66,39 +91,34 @@ td.actionCell {
   }
 }
 
-.tags,
-.problems {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
+/* The problems a row was sorted into: text with commas (the global .tag-list), wide enough for one per line. */
 .tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  min-width: 16ch;
+  min-width: 22ch;
 }
 
 .problems {
   display: grid;
   gap: var(--space-1);
   min-width: 26ch;
-}
-
-.dialogLabel {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .reason {
   font-family: var(--font-mono);
+  font-size: 0.82rem;
   overflow-wrap: anywhere;
+}
+
+.dialogReason {
+  display: grid;
+  gap: 6px;
 }
 
 .dialogActions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--space-2);
+  gap: 12px;
 }

@@ -10,7 +10,8 @@ export default function NotFound() {
       <h1>Page not found</h1>
       <p className={styles.lead}>There is no page at this address. It may have been typed wrong, or the link may be old.</p>
       <div className={styles.actions}>
-        <LinkButton href="/" variant="primary">
+        {/* The one main action of this screen. */}
+        <LinkButton href="/" variant="accent">
           Go to the start page
         </LinkButton>
       </div>

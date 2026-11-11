@@ -6,8 +6,9 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <div className={styles.wrap}>
-      <h1>Sign in</h1>
+    <div className={styles.page}>
+      {/* Not drawn: the header band names the product and the section below names the task. */}
+      <h1 className="visually-hidden">Sign in</h1>
       <LoginPanel />
     </div>
   );

@@ -1,4 +1,7 @@
-/* Charts: plain SVG and tables, colored from the tokens. No inline styles, so a strict CSP is fine. */
+/*
+  Charts: plain SVG and tables, colored from the tokens, with the approved design's values (.bars,
+  .bar-row, td.heat, .legend and the line chart). No inline styles, so a strict CSP is fine.
+*/
 
 /* Sparkline */
 .spark {
@@ -8,155 +11,171 @@
 }
 
 .sparkBase {
-  stroke: var(--color-border);
+  stroke: var(--line);
   stroke-width: 1;
 }
 
 .sparkLine {
   fill: none;
-  stroke: var(--color-primary);
+  stroke: var(--accent);
   stroke-width: 1.5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .sparkDot {
-  fill: var(--color-primary);
+  fill: var(--accent);
 }
 
-/* Bar list */
+/* Bar list (demo .bars and .bar-row) */
 .bars {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-3);
+  /* The labels take the width of the longest one, up to the demo's 220px; the figures take what they need. */
+  grid-template-columns: fit-content(220px) minmax(0, 1fr) auto;
+  gap: 14px 12px;
+  font-size: var(--text-data);
 }
 
+/* Every row uses the list's columns, so the bars start and end in line. */
 .barRow {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "label value"
-    "track track"
-    "detail detail";
-  column-gap: var(--space-3);
-  row-gap: var(--space-1);
-  align-items: baseline;
+  grid-template-columns: subgrid;
+  row-gap: 4px;
+  align-items: center;
 }
 
 .barLabel {
-  grid-area: label;
+  grid-area: 1 / 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 .barTrack {
-  grid-area: track;
+  grid-area: 1 / 2;
   display: block;
   width: 100%;
-  height: 8px;
+  height: 18px;
 }
 
 .barBack {
-  fill: var(--color-muted);
+  fill: var(--quiet);
 }
 
 .barFill {
-  fill: var(--color-primary);
+  fill: var(--accent);
 }
 
 .barValue {
-  grid-area: value;
+  grid-area: 1 / 3;
   display: inline-flex;
   justify-content: flex-end;
-  gap: var(--space-2);
   align-items: baseline;
+  gap: var(--space-2);
   white-space: nowrap;
-  font-weight: 500;
+  font-size: 0.88rem;
 }
 
 .barShare {
   min-width: 4ch;
   text-align: right;
-  font-size: var(--text-sm);
-  font-weight: 400;
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .barDetail {
-  grid-area: detail;
-  font-size: var(--text-sm);
-  color: var(--color-muted-foreground);
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
-/* With room, the label, bar and value share one line. */
-@container panel (min-width: 520px) {
-  .barRow {
-    /* Fixed side columns: each row is its own grid, and the bars must start and end in line. */
-    grid-template-columns: 15rem minmax(0, 1fr) 7.5rem;
-    grid-template-areas:
-      "label track value"
-      "detail detail detail";
-    align-items: center;
+/* With little room the label and the figures share a line and the bar runs under them, as the demo does on a phone. */
+@container panel (max-width: 400px) {
+  .bars {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .barValue {
+    grid-area: 1 / 2;
+  }
+
+  .barTrack {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .barDetail {
+    grid-row: 3;
   }
 }
 
-/* Heat table */
+/* Heat table (demo #heat and td.heat) */
 .heatWrap {
   display: grid;
   gap: var(--space-3);
+  min-width: 0;
 }
 
+.heat {
+  min-width: 600px;
+}
+
+/* The column heads wrap, so every problem fits on the page without scrolling sideways. */
 .heat thead th.heatHead {
   white-space: normal;
-  min-width: 6.5rem;
-  max-width: 9rem;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.heat thead th.heatHead:last-child {
   text-align: right;
 }
 
 .heat tbody th {
+  font-weight: 400;
   white-space: nowrap;
 }
 
+.heat td.heatCell {
+  text-align: center;
+}
+
+/* Shading stays light: the count is printed in the page's own text color in every cell. */
 .heatCell[data-step="1"],
 .legendSwatch[data-step="1"] {
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-card));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
 }
 
 .heatCell[data-step="2"],
 .legendSwatch[data-step="2"] {
-  background: color-mix(in srgb, var(--color-primary) 16%, var(--color-card));
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
 }
 
 .heatCell[data-step="3"],
 .legendSwatch[data-step="3"] {
-  background: color-mix(in srgb, var(--color-primary) 24%, var(--color-card));
+  background: color-mix(in srgb, var(--accent) 32%, var(--surface));
 }
 
 .heatCell[data-step="4"],
 .legendSwatch[data-step="4"] {
-  background: color-mix(in srgb, var(--color-primary) 32%, var(--color-card));
-  font-weight: 500;
+  background: color-mix(in srgb, var(--accent) 45%, var(--surface));
 }
 
 .heatCell[data-step="0"] {
-  color: var(--color-muted-foreground);
-}
-
-.heatTotal {
-  font-weight: 500;
-  border-left: 1px solid var(--color-border);
+  color: var(--muted);
 }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
+  gap: var(--space-2) var(--space-4);
   align-items: center;
   margin: 0;
   font-size: var(--text-sm);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .legendScale {
@@ -167,16 +186,17 @@
 
 .legendSwatch {
   display: inline-block;
-  width: 20px;
+  width: 14px;
   height: 14px;
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-card);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel-bg, var(--bg));
 }
 
 .legendItem {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
 }
 
 /* Plain data table behind a chart */
@@ -184,11 +204,16 @@
   font-weight: 400;
 }
 
-/* Trend line */
+.plainTable caption {
+  padding-left: 0;
+  font-size: var(--text-sm);
+}
+
+/* Trend line (the demo's line chart) */
 .trend {
   margin: 0;
   display: grid;
-  gap: var(--space-2);
+  gap: 22px;
   min-width: 0;
 }
 
@@ -205,61 +230,44 @@
 }
 
 .gridLine {
-  stroke: var(--color-border);
-  stroke-width: 1;
-  stroke-dasharray: 2 4;
-}
-
-.axisLine {
-  stroke: var(--color-border-strong);
+  stroke: var(--line);
   stroke-width: 1;
 }
 
 .axisText,
-.valueText,
 .markerText {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
-  fill: var(--color-muted-foreground);
-}
-
-.valueText {
-  fill: var(--color-foreground);
+  fill: var(--muted);
 }
 
 .markerText {
-  font-family: var(--font-body);
-  font-weight: 700;
-  fill: var(--color-foreground);
+  fill: var(--warn);
 }
 
-.series,
-.seriesOpen {
+.series {
   fill: none;
-  stroke: var(--color-primary);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.seriesOpen {
-  stroke-dasharray: 2 5;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
 }
 
 .point {
-  fill: var(--color-primary);
-  stroke: var(--color-card);
-  stroke-width: 1.5;
+  fill: var(--accent);
+  stroke: var(--accent);
+  stroke-width: 2;
 }
 
+/* A month that is not over, or left out of an average: a ring filled with the color behind the chart. */
 .pointOpen {
-  fill: var(--color-card);
-  stroke: var(--color-primary);
+  fill: var(--panel-bg, var(--bg));
+  stroke: var(--accent);
   stroke-width: 2;
 }
 
 .markerLine {
-  stroke: var(--color-foreground);
-  stroke-width: 1.5;
+  stroke: var(--warn);
+  stroke-width: 2;
   stroke-dasharray: 5 4;
 }

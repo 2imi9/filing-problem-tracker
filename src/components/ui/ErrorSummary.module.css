@@ -1,11 +1,11 @@
+/* The problems to fix, between two thin red rules. No box and no fill. */
 .summary {
   display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 2px solid var(--color-destructive-text);
-  border-radius: var(--radius-card);
-  background: var(--color-destructive-soft);
-  color: var(--color-foreground);
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--bad);
+  border-bottom: 1px solid var(--bad);
+  color: var(--ink);
 }
 
 .title {
@@ -13,7 +13,7 @@
   align-items: center;
   gap: var(--space-2);
   font-weight: 700;
-  color: var(--color-destructive-text);
+  color: var(--bad);
 }
 
 .list {
@@ -30,6 +30,6 @@
 .list a {
   display: block;
   padding: var(--space-2) 0;
-  color: var(--color-destructive-text);
+  color: var(--bad);
   font-weight: 700;
 }

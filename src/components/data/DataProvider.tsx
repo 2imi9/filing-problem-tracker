@@ -15,6 +15,7 @@
 //   data.user        SessionUser | null (null until loaded, and when signed out)
 //   data.mode        "demo" | "supabase" | null
 //   data.ai          true when the server has AI features switched on
+//   data.aiModel     the configured model, by name, when AI is on; otherwise null
 //   data.todayIso    the app's today, "YYYY-MM-DD", from the server ("" until loaded). Pass it to
 //                    computePanel; never use the browser's clock for "today".
 //   data.refresh()   reloads everything; resolves when done. Call it after every successful mutation.
@@ -60,6 +61,7 @@ export interface DataContextValue {
   user: SessionUser | null;
   mode: AppMode | null;
   ai: boolean;
+  aiModel: string | null;
   todayIso: string;
   refresh: () => Promise<void>;
   refreshing: boolean;
@@ -212,6 +214,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       user: state.me?.user ?? null,
       mode,
       ai: state.me?.ai ?? false,
+      aiModel: state.me?.aiModel ?? null,
       todayIso: state.me?.today ?? "",
       refresh,
       refreshing,

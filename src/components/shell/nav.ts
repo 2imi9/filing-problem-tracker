@@ -1,26 +1,22 @@
-// The app's destinations and who sees them. Shared by the sidebar, the bottom tab bar, the page that
-// redirects by role, and the sign-in page.
+// The app's destinations and who sees them. Shared by the tab bar, the page that redirects by role, and
+// the sign-in page. A tab's number is its place in navFor(role), counted from 1.
 
 import type { Role } from "@/lib/domain";
-import type { IconName } from "@/components/ui/Icon";
 
 export interface NavItem {
   href: string;
-  /** Full label, used in the sidebar. */
+  /** The tab's label, and the link's name. The same words at every screen width. */
   label: string;
-  /** One word for the bottom tab bar. */
-  shortLabel: string;
-  icon: IconName;
   roles: readonly Role[];
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/log", label: "Tag a filing", shortLabel: "Tag", icon: "tag", roles: ["clerk", "admin"] },
-  { href: "/import", label: "Import", shortLabel: "Import", icon: "upload", roles: ["clerk", "admin"] },
-  { href: "/dashboard", label: "Dashboard", shortLabel: "Dashboard", icon: "chart", roles: ["clerk", "leader", "admin"] },
-  { href: "/workspace", label: "Workspace", shortLabel: "Workspace", icon: "grid", roles: ["clerk", "leader", "admin"] },
-  { href: "/how-it-works", label: "How it's used", shortLabel: "Guide", icon: "book", roles: ["clerk", "leader", "admin"] },
-  { href: "/admin", label: "Admin", shortLabel: "Admin", icon: "shield", roles: ["admin"] },
+  { href: "/log", label: "Tag a filing", roles: ["clerk", "admin"] },
+  { href: "/import", label: "Import", roles: ["clerk", "admin"] },
+  { href: "/dashboard", label: "Dashboard", roles: ["clerk", "leader", "admin"] },
+  { href: "/workspace", label: "Workspace", roles: ["clerk", "leader", "admin"] },
+  { href: "/how-it-works", label: "How it's used", roles: ["clerk", "leader", "admin"] },
+  { href: "/admin", label: "Admin", roles: ["admin"] },
 ];
 
 /** The destinations this role can use, in menu order. */

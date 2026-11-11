@@ -1,25 +1,70 @@
+/* The tagging form beside the list of recent entries. Values are the approved demo's (.grid-2, .fields, .recent). */
 .columns {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--space-5);
+  gap: 56px;
   align-items: start;
 }
 
-@media (max-width: 1023.98px) {
+@media (max-width: 820px) {
   .columns {
     grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
   }
 }
 
 .form {
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
 }
 
 .fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 14px;
+}
+
+/* The county fixed by the account: the note sits under the value, so the labels and boxes of a row line up. */
+.lockedCounty > p {
+  order: 1;
+}
+
+/* The problem rows, then the switch for the number keys, as one block. */
+.problems {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+/* The switch for the number keys: one small line. The label is the 44px target. */
+.keys {
+  display: grid;
+  justify-items: start;
+}
+
+.keysLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--target-min);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.keysBox {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.keysHint {
+  /* The label row is taller than its text; this brings the note up under the words. */
+  margin-top: -6px;
 }
 
 .note {
@@ -30,11 +75,14 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: 12px;
 }
 
+/* Recent entries: a plain list with a thin rule between entries. */
 .recent {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -42,9 +90,10 @@
 
 .entry {
   display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--color-border);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
 }
 
 .entry:first-child {
@@ -52,34 +101,23 @@
   border-top: 0;
 }
 
+/* The form name at the left, the outcome label at the right. */
 .entryHead {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
 }
 
+/* Date, county, case type and where the entry came from, in the data face. The note uses the same line. */
 .meta {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.entryNote {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
 }
 
-.hint {
-  color: var(--color-muted-foreground);
-  font-size: var(--text-sm);
+/* The Remove button has no outline; pulled left, its icon starts at the edge of the text above it. */
+.remove {
+  margin-left: calc(-1 * var(--space-3));
 }

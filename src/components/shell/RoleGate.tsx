@@ -30,7 +30,7 @@ function Gate({ allow, title, message, children }: RoleGateProps) {
   if (allow.includes(user.role)) return <>{children}</>;
   const home = homeFor(user.role);
   return (
-    <EmptyState title={title} icon="shield" action={<LinkButton href={home}>Go to the {home === "/log" ? "tagging page" : "dashboard"}</LinkButton>}>
+    <EmptyState title={title} action={<LinkButton href={home}>Go to the {home === "/log" ? "tagging page" : "dashboard"}</LinkButton>}>
       {message}
     </EmptyState>
   );

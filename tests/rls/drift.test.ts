@@ -262,7 +262,7 @@ describe("other limits", () => {
     expect(await accepts(`insert into public.audit_log (user_id, role, action, entity, detail) values ('${IDS.admin}', 'admin', 'flag.create', 'flag', $1::jsonb)`, ["[]"])).toBe(false);
   });
 
-  it("a token hashed in SQL the way supabase/README.md says is the hash the app looks up", async () => {
+  it("a token hashed in SQL the way the quickstart says is the hash the app looks up", async () => {
     const token = "an-example-token-0123456789-abcdefghij";
     const [row] = await db.admin("select encode(sha256(convert_to($1, 'UTF8')), 'hex') as hash", [token]);
     expect(row.hash).toBe(hashMcpToken(token));

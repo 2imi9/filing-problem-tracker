@@ -1,56 +1,92 @@
 .card {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  gap: var(--space-4);
+  gap: 22px;
   min-width: 0;
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-card);
-  color: var(--color-card-foreground);
+  color: var(--ink);
 }
 
-/* Grid items default to their content's width; a wide table must scroll inside the card instead. */
+/* Grid items default to their content's width; a wide table must scroll inside the section instead. */
 .card > * {
   min-width: 0;
 }
 
-.dense {
-  gap: var(--space-3);
-  padding: var(--space-3);
+/* A section with a heading: a dark rule across the top. */
+.ruled {
+  padding-top: 20px;
+  border-top: 1px solid var(--ink);
 }
 
-@media (max-width: 480px) {
-  .card {
-    padding: var(--space-4);
-  }
+/* A section inside a section (heading level 3 or 4): a light rule. */
+.ruled.sub {
+  padding-top: var(--space-4);
+  border-top-color: var(--line);
+}
 
-  .dense {
-    padding: var(--space-3);
-  }
+/* The one boxed section of a page: its main task. */
+.boxed {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  /* A pinned table head inside the box matches the box. */
+  --table-head-bg: var(--surface);
+}
+
+.dense {
+  gap: var(--space-3);
+}
+
+.ruled.dense {
+  padding-top: var(--space-3);
+}
+
+.boxed.dense {
+  padding: var(--space-4);
 }
 
 .head {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
 }
 
+/* The note sits beside the title while both fit on a line. When they do not (a phone), the whole note
+   drops under the title instead of breaking in the middle of a phrase. */
 .title {
-  font-size: var(--text-xl);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-2);
+  font-size: var(--text-h2);
+}
+
+.sub .title {
+  font-size: 1.25rem;
 }
 
 .note {
+  color: var(--muted);
   font-family: var(--font-body);
-  font-size: var(--text-sm);
+  font-size: 0.85rem;
   font-weight: 400;
-  color: var(--color-muted-foreground);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .ruled {
+    padding-top: 18px;
+  }
+
+  .boxed {
+    padding: 20px;
+  }
 }

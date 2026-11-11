@@ -12,19 +12,32 @@ export interface PlotBox {
 
 const round1 = (value: number) => Math.round(value * 10) / 10;
 
-/** The top of the value axis: the smallest of 1, 2, 4, 5 or 10 times a power of ten that holds `max`. */
+/**
+ * The top of the value axis: the smallest of 1, 2, 4, 5, 6, 8 or 10 times a power of ten that holds
+ * `max`. The line then fills the plot, as in the approved design (a largest count of 6 gives 0 to 6).
+ */
 export function axisMax(max: number): number {
   if (!(max > 0)) return 1;
   const power = 10 ** Math.floor(Math.log10(max));
-  for (const step of [1, 2, 4, 5, 10]) {
+  for (const step of [1, 2, 4, 5, 6, 8, 10]) {
     if (max <= step * power) return step * power;
   }
   return 10 * power;
 }
 
-/** Evenly spaced values from 0 to `top` for the grid lines: whole numbers only, at most five. */
+/** True for 1, 2 or 5 times a power of ten: the steps a scale is easiest to read in. */
+function tidyStep(step: number): boolean {
+  const lead = step / 10 ** Math.floor(Math.log10(step));
+  return lead === 1 || lead === 2 || lead === 5;
+}
+
+/**
+ * Evenly spaced values from 0 to `top` for the grid lines: whole numbers only, at most five steps, in
+ * steps of 1, 2 or 5 (times ten, a hundred and so on) when `top` allows it.
+ */
 export function axisTicks(top: number): number[] {
-  const divisions = [4, 5, 2, 1].find((count) => Number.isInteger(top / count)) ?? 1;
+  const whole = [4, 5, 3, 2, 1].filter((count) => Number.isInteger(top / count));
+  const divisions = whole.find((count) => tidyStep(top / count)) ?? whole[0] ?? 1;
   return Array.from({ length: divisions + 1 }, (_, i) => (top / divisions) * i);
 }
 

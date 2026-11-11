@@ -1,21 +1,25 @@
 .field {
   display: grid;
   align-content: start;
-  gap: var(--space-1);
+  gap: 6px;
   min-width: 0;
 }
 
+/* A small capital label over the control, the same as the global .label-sm. */
 .label {
+  color: var(--muted);
+  font-size: var(--text-label);
   font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .optional {
   font-weight: 400;
-  color: var(--color-muted-foreground);
 }
 
 .hint {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
   font-size: var(--text-sm);
 }
 
@@ -23,7 +27,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  color: var(--color-destructive-text);
+  color: var(--bad);
   font-size: var(--text-sm);
   font-weight: 700;
 }
@@ -31,33 +35,46 @@
 .control {
   width: 100%;
   min-height: var(--target-min);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-strong);
+  padding: 10px 12px;
+  border: 1px solid var(--field);
   border-radius: var(--radius-input);
-  background: var(--color-card);
-  color: var(--color-foreground);
+  background: var(--surface);
+  color: var(--ink);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  transition: border-color var(--duration-fast) var(--ease);
+  transition: border-color var(--duration-fast) ease;
 }
 
-.control:hover:not(:disabled) {
-  border-color: var(--color-primary);
+/* A text box, a date and a dropdown are drawn at different heights by the browser (46.8px, 48.8px and
+   44px). One height, the demo's, keeps their edges level when they share a row. */
+input.control,
+select.control {
+  height: var(--target-min);
+}
+
+/* A field that cannot be changed does not answer to the pointer. */
+.control:hover:not(:disabled, [readonly]) {
+  border-color: var(--accent);
 }
 
 .control::placeholder {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
   opacity: 1;
 }
 
 .control:disabled,
 .control[readonly] {
-  background: var(--color-muted);
-  color: var(--color-muted-foreground);
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+/* A value fixed by something else (the county of a clerk's account): filled, so it reads as set, not as empty. */
+.control[readonly] {
+  background: var(--quiet);
 }
 
 .control[aria-invalid="true"] {
-  border-color: var(--color-destructive-text);
+  border-color: var(--bad);
   border-width: 2px;
 }
 
@@ -68,7 +85,7 @@
 
 .mono {
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-size: 0.82rem;
   white-space: pre;
   overflow-wrap: normal;
   overflow-x: auto;
@@ -83,10 +100,10 @@
 
 .box {
   flex: none;
-  width: 24px;
-  height: 24px;
-  margin: 10px 0;
-  accent-color: var(--color-primary);
+  width: 20px;
+  height: 20px;
+  margin: 12px 0;
+  accent-color: var(--accent);
 }
 
 .checkText {
@@ -100,6 +117,6 @@
 }
 
 .box:disabled + .checkText .checkLabel {
-  color: var(--color-muted-foreground);
+  color: var(--muted);
   cursor: not-allowed;
 }

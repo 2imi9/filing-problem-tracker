@@ -1,45 +1,76 @@
-/* The dashboard: a sticky filter bar over a column of panels. Tokens come from globals.css. */
+/*
+  The dashboard, as the approved design's #dashboard screen: a plain row of filters, the key numbers,
+  then sections under rules. Values are the demo's (.filters, .grid-2); tokens come from globals.css.
+*/
 
 .dashboard {
+  /* Holds the mark that tells when the filters are pinned. */
+  position: relative;
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--section-gap);
   min-width: 0;
 }
 
+/* Out of the flow: it marks the place where the filters start and takes no row of its own. */
+.pinMark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* A plain row of labelled selects: no box and no rule. */
 .filterBar {
   display: grid;
-  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-card);
 }
 
-/* Stays under the app header while the panels scroll. On a phone it would cover too much, so it scrolls away. */
-@media (min-width: 820px) and (min-height: 600px) {
+/*
+  The filters stay under the tab bar while the panels scroll. The page color behind them, and a hairline
+  only while they are pinned. On a phone or a short window they would cover too much, so they scroll away.
+*/
+@media (min-width: 820px) and (min-height: 700px) {
   .filterBar {
     position: sticky;
     top: var(--header-height);
     z-index: var(--z-sticky);
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+    /* The padding gives the pinned row air; the margins take it back, so at rest nothing moves. */
+    margin-block: calc(var(--space-3) * -1);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid transparent;
+    background: var(--bg);
+  }
+
+  .filterBar[data-pinned="true"] {
+    border-bottom-color: var(--line);
+  }
+
+  /* The pinned row is always in view: focus moving into it must not scroll the page. */
+  .filterBar :is(select, button) {
+    scroll-margin-top: 0;
   }
 }
 
 .filterFields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
   min-width: 0;
 }
 
+/* One quiet line under the selects: how many filings match, then the filters that are on. */
 .filterState {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: 0 var(--space-4);
   min-width: 0;
+  min-height: 36px;
 }
 
 .chipList {
@@ -48,97 +79,55 @@
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 0 var(--space-4);
 }
 
 .filterCount {
-  margin-left: auto;
+  margin-right: auto;
   font-size: var(--text-sm);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
 .filterCount :global(.num) {
-  color: var(--color-foreground);
+  color: var(--ink);
   font-weight: 500;
 }
 
-.scopeNote,
-.changeNote {
-  max-width: var(--measure);
+.scopeNote {
   font-size: var(--text-sm);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
 }
 
-/* Ranked problems beside outcomes, 3 to 2. */
+/* Ranked problems beside outcomes, 3 to 2 (demo .grid-2). */
 .split {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--space-4);
-  align-items: stretch;
+  gap: 56px;
+  align-items: start;
   min-width: 0;
 }
 
-@media (max-width: 899.98px) {
+@media (max-width: 820px) {
   .split {
     grid-template-columns: minmax(0, 1fr);
+    gap: var(--section-gap);
   }
 }
 
+/* The two selects of the before/after panel (demo .filters). */
 .changeFields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
   align-items: end;
   min-width: 0;
 }
 
-.changeNote {
-  grid-column: 1 / -1;
-}
-
-.emptyPanel {
+/* AI summary, when AI is on: a plain section. */
+.summaryStack {
   display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-card);
-}
-
-/* AI summary */
-.summary {
-  display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-primary);
-  border-radius: var(--radius-card);
-  background: var(--color-card);
-}
-
-.summaryHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
-}
-
-.summaryTitles {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-.summaryTitle {
-  font-size: var(--text-xl);
-}
-
-.summaryLabel {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--color-muted-foreground);
 }
 
 .summaryBody {
@@ -153,5 +142,11 @@
 
 .summaryHint {
   font-size: var(--text-sm);
-  color: var(--color-muted-foreground);
+  color: var(--muted);
+}
+
+/* AI summary, when AI is off: one quiet line. */
+.summaryOff {
+  font-size: var(--text-sm);
+  color: var(--muted);
 }

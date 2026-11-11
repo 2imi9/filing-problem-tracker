@@ -85,7 +85,8 @@ describe("GET /api/health", () => {
   it("answers without a session", async () => {
     const result = await call<HealthResponse>(h(healthRoute.GET), "GET", "/api/health");
     expect(result.status).toBe(200);
-    expect(result.body).toMatchObject({ ok: true, mode: "demo", ai: false });
+    // AI is off in the test environment, so no model is named.
+    expect(result.body).toMatchObject({ ok: true, mode: "demo", ai: false, aiModel: null });
     expect(Number.isNaN(Date.parse(result.body.time))).toBe(false);
     expect(result.headers.get("cache-control")).toBe("no-store");
   });
@@ -130,6 +131,7 @@ describe("demo sign-in", () => {
       user: { id: "demo-clerk-marion", email: "clerk.marion@demo.invalid", role: "clerk", county: "Marion" },
       mode: "demo",
       ai: false,
+      aiModel: null,
       today: "2026-10-30",
     });
   });

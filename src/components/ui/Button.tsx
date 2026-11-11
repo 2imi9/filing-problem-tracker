@@ -1,14 +1,17 @@
-// Buttons and button-styled links.
+// Buttons and button-styled links. Two looks: one gold button for the main action of a screen, and a
+// quiet outline for everything else. All have 4px corners.
 //
-//   <Button onClick={...}>Clear</Button>                    secondary (outlined), the default
-//   <Button variant="accent" type="submit">Save tags</Button>  the ONE main action of a view
-//   <Button variant="primary">Sort into categories</Button> navy, for other important actions
-//   <Button variant="ghost" icon="refresh">Refresh</Button> quiet, for toolbars
-//   <Button variant="danger">Delete</Button>
+//   <Button variant="accent" type="submit">Save tags</Button>  gold: the ONE main action of a screen
+//   <Button onClick={...}>Clear</Button>                    secondary (quiet outline), the default
+//   <Button variant="ghost" icon="refresh">Refresh</Button> quiet with no outline, for toolbars
+//   <Button variant="danger">Delete</Button>                quiet outline with red text
 //   <Button loading>Save tags</Button>                      shows a spinner, sets aria-busy, ignores clicks
 //   <Button size="sm">...</Button>                          36px tall for dense toolbars (still 44px wide tap area on touch)
 //   <IconButton icon="close" label="Close panel" />         icon only; `label` is required and becomes aria-label and tooltip
-//   <LinkButton href="/dashboard" variant="primary">Open the dashboard</LinkButton>
+//   <LinkButton href="/dashboard">Open the dashboard</LinkButton>
+//
+// One gold button per screen. When the main action changes (Import: "Sort into categories" first, then
+// the add button once the preview shows), move variant="accent" to the new one and make the old one secondary.
 //
 // Button passes every other prop to <button> and defaults type to "button" (not "submit").
 // All sizes are at least 44px tall on touch screens.
@@ -21,11 +24,11 @@ import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
 import styles from "./Button.module.css";
 
-export type ButtonVariant = "secondary" | "primary" | "accent" | "ghost" | "danger";
+export type ButtonVariant = "secondary" | "accent" | "ghost" | "danger";
 export type ButtonSize = "md" | "sm";
 
 interface Shared {
-  /** Default "secondary". Use "accent" for the single main action of a view and nowhere else. */
+  /** Default "secondary". Use "accent" (gold) for the single main action of a screen and nowhere else. */
   variant?: ButtonVariant;
   /** Default "md" (44px). "sm" is 36px on pointer devices. */
   size?: ButtonSize;

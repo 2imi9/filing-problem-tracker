@@ -1,0 +1,8 @@
+.mark {
+  flex: none;
+  fill: currentColor;
+}
+
+.lamp {
+  fill: var(--hero-flag);
+}

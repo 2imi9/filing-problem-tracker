@@ -6,7 +6,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { OutcomePill, Pill, TagPill } from "@/components/ui/Pill";
+import { OutcomePill, TagPill } from "@/components/ui/Pill";
 import { Spinner } from "@/components/ui/Spinner";
 import type { FlagRecord } from "@/lib/domain";
 import { formatDate } from "@/lib/time";
@@ -94,7 +94,7 @@ export function RecentEntries({ version, canRemoveAnyTime, onRemove }: RecentEnt
       ) : null}
 
       {state.status === "ready" && state.entries.length === 0 ? (
-        <EmptyState title="No entries yet" icon="tag" compact>
+        <EmptyState title="No entries yet" compact>
           Entries you save appear here, newest first.
         </EmptyState>
       ) : null}
@@ -108,21 +108,21 @@ export function RecentEntries({ version, canRemoveAnyTime, onRemove }: RecentEnt
                 <div className={styles.entryHead}>
                   <strong>{entry.form}</strong>
                   <OutcomePill outcome={entry.outcome} />
-                  {entry.source === "import" ? <Pill>Imported</Pill> : null}
                 </div>
-                <p className={`${styles.meta} num`}>
+                <p className={styles.meta}>
                   <time dateTime={entry.date}>{formatDate(entry.date)}</time> · {entry.county} · {entry.caseType}
+                  {entry.source === "import" ? " · imported" : null}
                 </p>
-                <ul className={styles.tags} aria-label="Problems">
+                <ul className="tag-list" aria-label="Problems">
                   {entry.tags.map((tag) => (
                     <li key={tag}>
                       <TagPill tag={tag} />
                     </li>
                   ))}
                 </ul>
-                {entry.note ? <p className={styles.entryNote}>Note: {entry.note}</p> : null}
+                {entry.note ? <p className={styles.meta}>Note: {entry.note}</p> : null}
                 {removable ? (
-                  <div>
+                  <div className={styles.remove}>
                     <Button size="sm" variant="ghost" icon="undo" loading={removing === entry.id} disabled={removing !== null && removing !== entry.id} onClick={() => void remove(entry.id)}>
                       Remove<span className="visually-hidden">: {entry.form}, {formatDate(entry.date)}</span>
                     </Button>
@@ -134,7 +134,7 @@ export function RecentEntries({ version, canRemoveAnyTime, onRemove }: RecentEnt
         </ul>
       ) : null}
 
-      <p className={styles.hint}>
+      <p className="hint">
         Each saved entry is added to the dashboard right away. {canRemoveAnyTime ? "An administrator can remove an entry at any time." : "You can remove an entry for 5 minutes after saving it."}
       </p>
     </Card>
