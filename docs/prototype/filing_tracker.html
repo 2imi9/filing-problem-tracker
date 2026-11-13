@@ -142,6 +142,15 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .tag:not(:last-child)::after { content: ","; margin-right: 6px; }
 .tag.none { color: var(--bad); font-weight: 700; }
 .by { font-size: 0.78rem; color: var(--muted); }
+/* Suggestion under the note: plain text and two quiet buttons, no box. The clerk makes the final call. */
+.suggest { display: grid; gap: 8px; margin-top: -10px; }
+.suggest .src { color: var(--accent); }
+.suggest ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.suggest li strong { font-weight: 700; }
+.suggest .conf { font-size: 0.85rem; color: var(--muted); margin-left: 6px; }
+.why { font-size: 0.875rem; color: var(--muted); }
+.suggest .actions { gap: 8px; }
+.btn.sm { min-height: 36px; padding: 6px 14px; font-size: 0.92rem; }
 /* Outcome: a coloured dot and one short word. */
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; }
 /* Each outline hugs its word. An unseen copy of the longest label holds the slot's width, so the dots line up. */
@@ -234,7 +243,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
     <!-- View 1: clerk tagging -->
     <section class="view" id="view-log" aria-labelledby="h-log">
-      <p class="intro">A filing is sent back. The clerk tags what was wrong in a few clicks, with no names or case numbers.</p>
+      <p class="intro">A filing is sent back. The clerk tags what was wrong in a few clicks, with no names or case numbers. Type a short note and a suggestion appears; the clerk accepts or changes it.</p>
       <div class="grid-2">
         <form class="panel" id="logForm" novalidate>
           <h2 id="h-log">Tag a filing problem</h2>
@@ -244,11 +253,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
             <label class="f">Form<select id="logForm1"></select></label>
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
+          <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
+          <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
           <div class="label-sm" id="outLabel">What happened to the filing?</div>
           <div class="outcomes" id="logOutcome" role="group" aria-labelledby="outLabel"></div>
-          <label class="f">Optional note<input type="text" id="logNote" maxlength="200" placeholder="Short note. Do not include names or case numbers."></label>
           <div class="actions">
             <button class="btn" type="submit" id="logSave" disabled>Save tags</button>
             <button class="btn secondary" type="button" id="logClear">Clear</button>
@@ -340,7 +350,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Import sorts with keyword rules, and every number is counted by code.</span> Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -357,25 +367,27 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "Name change": ["Petition for change of name"]
   };
   var CASE_W = [6, 3, 4, 2.5, 1];
-  var TAGS = ["Missing signature", "Wrong form", "Wrong county or court", "Missing required details", "Missing fee or fee waiver", "Citation not found or wrong", "Missing addresses for service", "Not verified or notarized", "Pages missing or unreadable"];
+  var TAGS = ["Missing signature", "Wrong form", "Wrong county or court", "Missing required details", "Missing fee or fee waiver", "Citation not found or wrong", "Missing addresses for service", "Not verified or notarized", "Pages missing or unreadable", "Missing repeated-conduct facts"];
+  var REPEATED = "Missing repeated-conduct facts";
   var OUTCOMES = ["Rejected", "Returned to fix", "Fixed at counter"];
   var NEEDS_REVIEW = "Needs review";
 
-  // How likely each problem is for each case type (sample weights)
+  // How likely each problem is for each case type (sample weights). Repeated-conduct facts are drawn
+  // as "Missing required details" and relabelled after the draw, so the random sequence stays the same.
   var TAG_W = {
-    "Small claims":     [6, 2, 4, 5, 3, 1, 4, 1, 1],
-    "Protective order": [4, 2, 2, 7, 0.3, 1, 3, 3, 1],
-    "Family":           [4, 4, 2, 5, 3, 1.5, 2, 4, 2],
-    "Eviction":         [3, 3, 3, 4, 1, 2.5, 1, 1, 1],
-    "Name change":      [3, 2, 2, 3, 3, 0.3, 1, 3, 1]
+    "Small claims":     [6, 2, 4, 5, 3, 1, 4, 1, 1, 0],
+    "Protective order": [4, 2, 2, 7, 0.3, 1, 3, 3, 1, 0],
+    "Family":           [4, 4, 2, 5, 3, 1.5, 2, 4, 2, 0],
+    "Eviction":         [3, 3, 3, 4, 1, 2.5, 1, 1, 1, 0],
+    "Name change":      [3, 2, 2, 3, 3, 0.3, 1, 3, 1, 0]
   };
 
   // Made-up changes for the before/after panel
   var EVENTS = [
     { id: "sc-form", name: "Revised small claims form (Marion, Jun 1)", date: "2026-06-01", county: "Marion", caseType: "Small claims", tag: "Missing signature", factor: 0.35,
       desc: "Sample change: Marion County small claims court adds a clearer signature box and a one-page checklist to its notice of claim form on June 1, 2026." },
-    { id: "po-guide", name: "Protective order guide (Lake, Jul 15)", date: "2026-07-15", county: "Lake", caseType: "Protective order", tag: "Missing required details", factor: 0.45,
-      desc: "Sample change: Lake County starts giving filers a short guide that explains what details a protective order petition needs, starting July 15, 2026." },
+    { id: "po-guide", name: "Protective order guide (Lake, Jul 15)", date: "2026-07-15", county: "Lake", caseType: "Protective order", tag: "Missing repeated-conduct facts", seedTag: "Missing required details", factor: 0.45,
+      desc: "Sample change: Lake County starts giving stalking and harassment filers a short guide on July 15, 2026, explaining that the petition must describe every incident, not only the latest one." },
     { id: "fam-kiosk", name: "Self-help kiosk (Allen, Aug 1)", date: "2026-08-01", county: "Allen", caseType: "Family", tag: "Wrong form", factor: 0.55,
       desc: "Sample change: Allen County puts a form-finder kiosk in the clerk's lobby for family cases on August 1, 2026." }
   ];
@@ -398,7 +410,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var form = CASES[ct][Math.floor(rnd() * CASES[ct].length)];
     var w = TAG_W[ct].slice();
     EVENTS.forEach(function (ev) {
-      if (county === ev.county && ct === ev.caseType && date >= ev.date) w[TAGS.indexOf(ev.tag)] *= ev.factor;
+      if (county === ev.county && ct === ev.caseType && date >= ev.date) w[TAGS.indexOf(ev.seedTag || ev.tag)] *= ev.factor;
     });
     var nTags = rnd() < 0.55 ? 1 : (rnd() < 0.75 ? 2 : 3);
     var tags = [];
@@ -408,6 +420,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var outcome = pickW(OUTCOMES, [4, 4, 2]);
     records.push({ date: date, county: county, caseType: ct, form: form, tags: tags, outcome: outcome, source: "sample" });
   }
+
+  // Most protective order petitions sent back for missing details lack facts showing repeated conduct.
+  var poDetails = 0;
+  records.forEach(function (r) {
+    var i = r.tags.indexOf("Missing required details");
+    if (r.caseType === "Protective order" && i >= 0 && poDetails++ % 5 < 3) r.tags[i] = REPEATED;
+  });
 
   // ---------- Helpers ----------
   function $(id) { return document.getElementById(id); }
@@ -451,15 +470,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   syncForms();
 
   TAGS.forEach(function (t) {
-    var b = el("button", { type: "button", "class": "chip", "aria-pressed": "false" }, t);
-    b.addEventListener("click", function () {
-      if (!startedAt) startedAt = Date.now();
-      var i = selTags.indexOf(t);
-      if (i < 0) selTags.push(t); else selTags.splice(i, 1);
-      b.setAttribute("aria-pressed", i < 0 ? "true" : "false");
-      $("logSave").disabled = selTags.length === 0;
-      $("logStatus").textContent = "";
-    });
+    var b = el("button", { type: "button", "class": "chip", "aria-pressed": "false", "data-t": t }, t);
+    b.addEventListener("click", function () { pressTag(t, selTags.indexOf(t) < 0); });
     $("logTags").appendChild(b);
   });
   OUTCOMES.forEach(function (o) {
@@ -470,8 +482,17 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     });
     $("logOutcome").appendChild(b);
   });
+  function pressTag(t, on) {
+    if (!startedAt) startedAt = Date.now();
+    var i = selTags.indexOf(t);
+    if (on && i < 0) selTags.push(t);
+    if (!on && i >= 0) { selTags.splice(i, 1); delete accepted[t]; }
+    $("logTags").querySelector('[data-t="' + t + '"]').setAttribute("aria-pressed", on ? "true" : "false");
+    $("logSave").disabled = selTags.length === 0;
+    $("logStatus").textContent = "";
+  }
   function clearLog() {
-    selTags = []; startedAt = null;
+    selTags = []; startedAt = null; sugg = null; accepted = {}; lastNote = ""; liveRun++; clearTimeout(liveTimer); renderSuggest(false);
     $("logTags").querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
     $("logNote").value = "";
     $("logSave").disabled = true;
@@ -500,11 +521,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     }
     $("logErr").hidden = true;
     var secs = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : null;
-    var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: $("logNote").value.trim(), source: "clerk" };
+    var note = scrub($("logNote").value.trim());
+    var ai = selTags.filter(function (t) { return accepted[t]; }).map(function (t) { return { tag: t, by: accepted[t].by, why: accepted[t].why }; });
+    var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: note.text, ai: ai, source: "clerk" };
     records.push(rec);
     recent.unshift(rec);
     renderRecent();
-    $("logStatus").textContent = "Saved. " + rec.tags.length + (rec.tags.length === 1 ? " problem" : " problems") + " logged" + (secs ? " in " + secs + (secs === 1 ? " second." : " seconds.") : ".");
+    $("logStatus").textContent = "Saved. " + rec.tags.length + (rec.tags.length === 1 ? " problem" : " problems") + " logged" + (secs ? " in " + secs + (secs === 1 ? " second." : " seconds.") : ".") + (note.removed ? " Taken out of the note: " + note.removed + "." : "");
     clearLog();
     $("logTags").querySelector(".chip").focus({ preventScroll: true });
   });
@@ -532,6 +555,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var tg = el("div", { "class": "tags" });
       r.tags.forEach(function (t) { tg.appendChild(el("span", { "class": "tag" }, t)); });
       li.appendChild(tg);
+      (r.ai || []).forEach(function (a) { li.appendChild(el("div", { "class": "by" }, (a.by === "model" ? MODEL_NAME : "Keyword rules") + " suggested " + a.tag + " because " + a.why + ". The clerk accepted.")); });
       if (r.note) li.appendChild(el("div", { "class": "meta" }, "Note: " + r.note));
       ul.appendChild(li);
     });
@@ -551,15 +575,19 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "2026-09-15,Hamilton,Name change,Petition for change of name,called filer - will bring in tomorrow",
     "2026-09-16,Vanderburgh,Small claims,Small claims notice of claim,filing fee not paid",
     "2026-09-17,Monroe,Small claims,Small claims notice of claim,did not bring the money to file",
-    "2026-09-18,St. Joseph,Eviction,Tenant answer or request for hearing,page 3 missing / scan unreadable"
+    "2026-09-18,St. Joseph,Eviction,Tenant answer or request for hearing,page 3 missing / scan unreadable",
+    "2026-09-21,Lake,Protective order,Petition for order of protection,describes only one incident; stalking needs repeated conduct",
+    "2026-09-22,Allen,Protective order,Petition for order of protection,petition tells about being followed home last week and nothing else"
   ].join("\n");
   $("csvText").value = SAMPLE_CSV;
 
-  // Keyword rules: clerk free text to categories
+  // Keyword rules: clerk free text to categories. Each rule also says why, in the clerk's own words.
+  var ONE_INCIDENT = /\b(only|just)\s+(one|1|a single)\s+(incident|event|time|occasion|instance)\b|\bsingle (incident|event|occasion)\b|\bone[- ]time\b|\bonce\b|\bisolated\b/i;
   var RULES = [
     [/\b(sign|signed|signature|unsigned)\b/i, "Missing signature"],
     [/\b(wrong|old|outdated)\s+(version|form)|\bused .*form|incorrect form/i, "Wrong form"],
     [/wrong (county|court)|lives in|\bvenue\b|jurisdiction/i, "Wrong county or court"],
+    [new RegExp(ONE_INCIDENT.source + "|\\brepeated\\b|\\bcourse of conduct\\b|\\bpattern\\b|more than (once|one)", "i"), REPEATED],
     [/\b(needs?|missing|lacks?)\b.*\b(date|dates|detail|details|description|incident|amount|facts)\b/i, "Missing required details"],
     [/\bfee\b|waiver|\bpaid\b|payment/i, "Missing fee or fee waiver"],
     [/\bcit(e|es|ed|ation)\b|case that does not exist|statute|fake/i, "Citation not found or wrong"],
@@ -567,25 +595,65 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     [/notar|verif|sworn|affirm/i, "Not verified or notarized"],
     [/\bpages?\b.*\b(missing|blank)\b|\b(missing|blank)\b.*\bpages?\b|scan|unreadable|illegible/i, "Pages missing or unreadable"]
   ];
-  function classify(reason) {
+  // The part of the note a rule matched: its clause if short, else the matched words.
+  function quoteFor(text, m) {
+    var start = m.index, end = m.index + m[0].length, cut = /[;,.\/]|\s-\s/g, x, from = 0, to = text.length;
+    while ((x = cut.exec(text))) { if (x.index < start) from = x.index + x[0].length; else if (x.index >= end) { to = x.index; break; } }
+    var clause = text.slice(from, to).trim();
+    return clause.length <= 48 ? clause : m[0].trim();
+  }
+  // Problems the rules find, each with a reason, e.g. { tag: "Missing signature", why: 'the note says "unsigned"' }.
+  function classifyWhy(text) {
     var out = [];
-    RULES.forEach(function (r) { if (r[0].test(reason) && out.indexOf(r[1]) < 0) out.push(r[1]); });
+    RULES.forEach(function (r) {
+      var m = r[0].exec(text);
+      if (!m || out.some(function (o) { return o.tag === r[1]; })) return;
+      out.push({ tag: r[1], why: r[1] === REPEATED && ONE_INCIDENT.test(text) ? "the note mentions only one incident" : "the note says “" + quoteFor(text, m) + "”" });
+    });
     return out;
   }
+  function classify(reason) { return classifyWhy(reason).map(function (o) { return o.tag; }); }
+
+  // Takes out what looks like a name, case number, phone or email before a note is saved or sent anywhere.
+  var KEEP_WORDS = ("I Indiana County Court Clerk Judge Petitioner Respondent Filer Plaintiff Defendant Odyssey AI Protective Order Petition Small Claims Notice Form Eviction Family Name Change Tenant Answer " + COUNTIES.join(" ") + " St Joseph " +
+    MONTHS.join(" ") + " January February March April June July August September October November December Monday Tuesday Wednesday Thursday Friday Saturday Sunday").split(/\s+/);
+  function scrub(text) {
+    var gone = { name: 0, "case number": 0, "contact detail": 0 };
+    function cut(kind, label) { return function () { gone[kind]++; return "[" + label + "]"; }; }
+    var t = String(text)
+      .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, cut("contact detail", "email"))
+      .replace(/(\+?1[-. ]?)?\(?\b\d{3}\)?[-. ]\d{3}[-. ]\d{4}\b/g, cut("contact detail", "phone"))
+      .replace(/\b(case|cause)\s*(no\.?|number|#)\s*:?\s*\S*\d\S*/gi, cut("case number", "case number"))
+      .replace(/\b(?=[\w-]*\d)(?=[\w-]*[A-Za-z])\w+(-\w+)+\b/g, cut("case number", "case number"))
+      .replace(/#?\b\d{5,}\b/g, cut("case number", "number"))
+      .replace(/\b(Mr|Mrs|Ms|Miss|Mx|Dr)\.?\s+[A-Z][\w'-]*(\s+[A-Z][\w'-]*)?/g, cut("name", "name"))
+      .replace(/\b([A-Z][a-z'-]+)\s+([A-Z][a-z'-]+)\b/g, function (both, a, b) {
+        if (KEEP_WORDS.indexOf(a) >= 0 || KEEP_WORDS.indexOf(b) >= 0) return both;
+        gone.name++; return "[name]";
+      })
+      .replace(/\b[A-Z][a-z'-]+\b/g, function (word, at, all) {
+        // A capital at the start of a sentence is not a name; one in the middle of a sentence may be.
+        if (/(^|[.!?;:]|\s-)\s*$/.test(all.slice(0, at)) || KEEP_WORDS.indexOf(word) >= 0) return word;
+        gone.name++; return "[name]";
+      });
+    var said = Object.keys(gone).filter(function (k) { return gone[k]; }).map(function (k) { return gone[k] + " " + k + (gone[k] > 1 ? "s" : ""); });
+    return { text: t, removed: said.join(", ") };
+  }
+
   // Sorting model (OpenJev Flash 9B). Used only where the page is served next to the model at the same
   // address: on this computer by scripts/serve-local.py, or on a Hugging Face Space by space/server.py.
   // The static site never looks for it.
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
   var MODEL_NAME = "OpenJev (AI)", MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space";
-  if (MODEL_HOST) $("aiNote").textContent = "AI use: Import only, where the OpenJev Flash 9B model sorts the rows the keyword rules cannot. Tagging and the dashboard use no AI, and every number is counted by code.";
+  if (MODEL_HOST) $("aiNote").textContent = "AI use: the OpenJev Flash 9B model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. It picks each reason from a fixed list and writes no free text. The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
   function fetchWithin(ms, url, options) {
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
     options = options || {}; if (ctl) options.signal = ctl.signal;
     return fetch(url, options).then(function (r) { clearTimeout(timer); return r; }, function (e) { clearTimeout(timer); throw e; });
   }
-  var MIN_CONFIDENCE = 0.6, NONE_OF_THESE = "None of these";
+  var MIN_CONFIDENCE = 0.6, HIGH_CONFIDENCE = 0.8, NONE_OF_THESE = "None of these";
   var TAG_HELP = {
     "Missing signature": "The filing or a page of it was not signed.",
     "Wrong form": "The wrong form, or an old version of the form, was used.",
@@ -595,14 +663,34 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "Citation not found or wrong": "It cites a case or statute that does not exist or does not say that.",
     "Missing addresses for service": "An address needed to serve the other party is missing.",
     "Not verified or notarized": "It needed to be sworn, verified or notarized and was not.",
-    "Pages missing or unreadable": "Pages are missing, blank or cannot be read."
+    "Pages missing or unreadable": "Pages are missing, blank or cannot be read.",
+    "Missing repeated-conduct facts": "A stalking or harassment petition describes only one incident, but the law asks for repeated or continuing conduct."
   };
+  // The reasons the model may give. It picks one problem-and-reason pair; it never writes its own text.
+  var REASONS = [
+    [REPEATED, "the note mentions only one incident"],
+    [REPEATED, "the note says no pattern of repeated contact is described"],
+    ["Missing required details", "the note says dates or a description of what happened are missing"],
+    ["Missing required details", "the note says an amount or another fact the form asks for is missing"],
+    ["Missing signature", "the note says the filing or a page is not signed"],
+    ["Wrong form", "the note says the wrong form or an old version was used"],
+    ["Wrong county or court", "the note says it belongs in another county or court"],
+    ["Missing fee or fee waiver", "the note says the fee was not paid and no waiver was filed"],
+    ["Citation not found or wrong", "the note says a cited case or statute does not exist or is wrong"],
+    ["Missing addresses for service", "the note says an address for the other party is missing"],
+    ["Not verified or notarized", "the note says it was not sworn, verified or notarized"],
+    ["Pages missing or unreadable", "the note says pages are missing, blank or unreadable"],
+    [NONE_OF_THESE, "the note does not say what was wrong with the filing"]
+  ];
+  function confWord(c) { return c >= HIGH_CONFIDENCE ? "high confidence" : "medium confidence"; }
   // Says on the Import tab whether the model is there, so its work is not invisible.
+  var modelReady = null, modelCheckedAt = 0;
   function showModel(ready) {
+    modelReady = ready; modelCheckedAt = Date.now();
     if (!MODEL_HOST) return;
     $("modelLine").hidden = false;
     $("modelLine").textContent = ready
-      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot."
+      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, and says why."
       : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
   }
   function modelAvailable() {
@@ -611,23 +699,112 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       .then(function (ok) { showModel(ok); return ok; });
   }
   modelAvailable();
-  // One typed decision per row: a problem from the list, or null when the model is unsure.
-  function askModel(p) {
-    var criteria = {};
-    TAGS.forEach(function (t) { criteria[t] = TAG_HELP[t]; });
-    criteria[NONE_OF_THESE] = "The note does not say what was wrong with the filing.";
+  // One typed decision per note: { tag, why, confidence }. tag is null when the model is unsure or picks
+  // "None of these". The note is cleaned of names and case numbers before it is sent.
+  function askModel(caseType, form, note) {
+    var criteria = {}, keys = [];
+    REASONS.forEach(function (r) { var k = r[0] + ", because " + r[1]; keys.push(k); criteria[k] = TAG_HELP[r[0]] || "No problem on the list fits the note."; });
     return fetchWithin(120000, "/v1/systemone", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openjev-flash-9b",
-        state: { case_type: p.caseType, form: p.form, clerk_note: p.reason },
-        questions: { problem: { type: "choice", instructions: "A court clerk turned this filing away and typed the note. Which one problem does the note describe?", criteria: criteria } }
+        state: { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text },
+        questions: { problem: { type: "choice", instructions: "A court clerk turned this filing away and typed the note. Which problem does the note describe, and why?", criteria: criteria } }
       })
     }).then(function (r) { if (!r.ok) throw new Error("model " + r.status); return r.json(); }).then(function (j) {
       var a = j && j.answers && j.answers.problem;
-      return a && TAGS.indexOf(a.choice) >= 0 && a.confidence >= MIN_CONFIDENCE ? a.choice : null;
+      if (!a || keys.indexOf(a.choice) < 0) return { tag: null };
+      // Add up the chances of each problem over its reasons, then keep the likeliest reason for the winner.
+      var byTag = {}, tags = [];
+      REASONS.forEach(function (r, i) {
+        var pr = a.probabilities && typeof a.probabilities[keys[i]] === "number" ? a.probabilities[keys[i]] : (keys[i] === a.choice ? 1 : 0);
+        if (!byTag[r[0]]) { byTag[r[0]] = { p: 0, best: -1, why: "" }; tags.push(r[0]); }
+        byTag[r[0]].p += pr;
+        if (pr > byTag[r[0]].best) { byTag[r[0]].best = pr; byTag[r[0]].why = r[1]; }
+      });
+      var win = tags.reduce(function (m, t) { return byTag[t].p > byTag[m].p ? t : m; }, tags[0]);
+      var u = 1 / tags.length, conf = a.probabilities ? Math.max(0, (byTag[win].p - u) / (1 - u)) : a.confidence;
+      if (TAGS.indexOf(win) < 0 || !(conf >= MIN_CONFIDENCE)) return { tag: null, confidence: conf };
+      return { tag: win, why: byTag[win].why, confidence: conf };
     });
   }
+  // ---------- Live suggestion on the Tag tab ----------
+  // As the clerk types a note, the keyword rules answer at once and, where the model is served, OpenJev
+  // answers when typing pauses. Nothing is pressed until the clerk clicks Accept.
+  var sugg = null, accepted = {}, liveTimer = null, liveRun = 0, lastNote = "";
+  function sameTags(a, b) { return a && b && a.items.map(function (i) { return i.tag; }).join("|") === b.items.map(function (i) { return i.tag; }).join("|"); }
+  function renderSuggest(reading) {
+    var box = $("suggest"); box.innerHTML = "";
+    if (!sugg && !reading) { box.hidden = true; return; }
+    box.hidden = false;
+    var removed = scrub($("logNote").value).removed;
+    if (sugg && sugg.items.length && sugg.state !== "set aside") {
+      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "AI suggests" : "Keyword rules suggest"));
+      var ul = el("ul");
+      sugg.items.forEach(function (it) {
+        var li = el("li");
+        li.appendChild(el("strong", null, it.tag));
+        li.appendChild(el("span", { "class": "conf" }, sugg.by === "model" ? "(" + confWord(it.confidence) + ")" : "(keyword match)"));
+        li.appendChild(el("div", { "class": "why" }, "Because " + it.why + "."));
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+      if (sugg.state === "open") {
+        var act = el("div", { "class": "actions" });
+        var n = sugg.items.length;
+        var ok = el("button", { type: "button", "class": "btn secondary sm", id: "suggestAccept" }, n === 1 ? "Accept" : n === 2 ? "Accept both" : "Accept all " + n);
+        ok.addEventListener("click", function () {
+          sugg.items.forEach(function (it) { pressTag(it.tag, true); accepted[it.tag] = { by: sugg.by, why: it.why }; });
+          sugg.state = "accepted"; renderSuggest(false);
+          $("logTags").querySelector('[data-t="' + sugg.items[0].tag + '"]').focus({ preventScroll: true });
+        });
+        var change = el("button", { type: "button", "class": "btn secondary sm", id: "suggestChange" }, "Change");
+        change.addEventListener("click", function () {
+          sugg.state = "set aside"; renderSuggest(false);
+          $("logTags").querySelector(".chip").focus({ preventScroll: true });
+        });
+        act.appendChild(ok); act.appendChild(change);
+        box.appendChild(act);
+      } else box.appendChild(el("p", { "class": "hint" }, "Accepted and ticked below. You can still change the problems."));
+    } else if (sugg && sugg.state === "set aside") box.appendChild(el("p", { "class": "hint" }, "Suggestion set aside. Pick the problems below."));
+    else if (sugg && sugg.unsure) box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
+    var foot = [];
+    if (reading) foot.push(MODEL_NAME + " is reading the note" + (removed ? ", without " + removed : "") + "...");
+    else if (sugg && sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
+    else if (sugg && sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
+    else if (sugg && sugg.items.length) foot.push((MODEL_HOST ? "Keyword rules only right now." : "No AI on this copy.") + " You make the final call.");
+    if (removed && !reading && !(sugg && sugg.by === "model")) foot.push("When you save, the note loses " + removed + ".");
+    if (foot.length) box.appendChild(el("p", { "class": "hint" }, foot.join(" ")));
+  }
+  function keepState(next) { if (next && sameTags(sugg, next) && sugg.by === next.by) next.state = sugg.state; return next; }
+  function suggestNow() {
+    var note = $("logNote").value.trim();
+    if (note === lastNote) return;
+    lastNote = note;
+    var run = ++liveRun;
+    if (note.length < 8 || note.split(/\s+/).length < 2) { sugg = null; renderSuggest(false); return; }
+    var rules = classifyWhy(note);
+    sugg = keepState(rules.length ? { by: "rules", items: rules, state: "open" } : null);
+    var tryModel = MODEL_HOST && window.fetch && (modelReady || Date.now() - modelCheckedAt > 30000);
+    renderSuggest(!!tryModel);
+    if (!tryModel) return;
+    (modelReady ? Promise.resolve(true) : modelAvailable()).then(function (ok) {
+      if (run !== liveRun) return;
+      if (!ok) { renderSuggest(false); return; }
+      askModel($("logCase").value, $("logForm1").value, note).then(function (ans) {
+        if (run !== liveRun) return;
+        if (ans.tag) sugg = keepState({ by: "model", items: [{ tag: ans.tag, why: ans.why, confidence: ans.confidence }], state: "open" });
+        else if (sugg) sugg.modelUnsure = true;
+        else sugg = { by: "model", items: [], unsure: true };
+        renderSuggest(false);
+      }, function () { if (run !== liveRun) return; showModel(false); renderSuggest(false); });
+    });
+  }
+  $("logNote").addEventListener("input", function () {
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(suggestNow, 700);
+  });
+
   function parseCSV(text) {
     var rows = [], row = [], cur = "", q = false;
     for (var i = 0; i < text.length; i++) {
@@ -656,8 +833,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var td = el("td"); var box = el("div", { "class": "tags" });
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
       td.appendChild(box);
-      if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME)); }
+      if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + ".")); }
       else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
+      else if (p.why && p.why.length) {
+        // A quote of the whole reason only repeats the row, so it is left out.
+        var whys = p.why.filter(function (w) { return w !== "the note says \u201c" + p.reason + "\u201d"; });
+        td.appendChild(el("div", { "class": "by" }, "Keyword rules" + (whys.length ? ": because " + whys.join("; ") + "." : "")));
+      }
       tr.appendChild(td);
       body.appendChild(tr);
     });
@@ -683,10 +865,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (idx.reason < 0) { $("csvStatus").className = "status err"; $("csvStatus").textContent = "The header needs a column named reason."; $("previewPanel").hidden = true; return; }
     pending = rows.slice(1).map(function (r) {
       var reason = (r[idx.reason] || "").trim();
-      var tags = classify(reason);
+      var found = classifyWhy(reason), tags = found.map(function (o) { return o.tag; });
       var county = (r[idx.county] || "").trim().replace(/\s+county$/i, "");
       COUNTIES.forEach(function (c) { if (c.toLowerCase() === county.toLowerCase()) county = c; });
-      return { date: (r[idx.date] || "").trim(), county: county || "Not given", caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], outcome: "Rejected", source: "import" };
+      return { date: (r[idx.date] || "").trim(), county: county || "Not given", caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], why: found.map(function (o) { return o.why; }), outcome: "Rejected", source: "import" };
     });
     renderPreview();
     // Rules first. Rows the rules could not sort go to the model, one at a time, if it is running.
@@ -706,9 +888,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           return;
         }
         var p = left[i++];
-        askModel(p).then(function (tag) {
+        askModel(p.caseType, p.form, p.reason).then(function (ans) {
           if (run !== sortRun) return;
-          if (tag) { p.tags = [tag]; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
+          if (ans.tag) { p.tags = [ans.tag]; p.why = ans.why; p.confidence = ans.confidence; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
           renderPreview();
           next();
         }, function () { showModel(false); done(MODEL_NAME + " stopped answering. "); });

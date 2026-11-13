@@ -13,7 +13,7 @@ A small web tool for Indiana trial courts. Clerks tag why a filing from someone 
 
 ## What it does
 
-- **Tag a filing.** A clerk picks the county, case type and form, clicks what was wrong, and saves. No names or case numbers.
+- **Tag a filing.** A clerk picks the county, case type and form, types a short note, accepts or changes the suggested problem, and saves. No names or case numbers.
 - **Import past rejections.** Paste a spreadsheet export and the tool sorts each typed reason into the same problem list.
 - **Dashboard.** The most common problems by county, case type and form.
 - **Before and after.** Whether a change, such as a revised form, reduced a problem.
@@ -37,7 +37,7 @@ The [quickstart](specs/001-filing-problem-tracker/quickstart.md) has the setting
 
 ## Where AI is used
 
-Only in Import. Keyword rules sort most reasons, and an [OpenJev](https://huggingface.co/openjev/OpenJev-Flash-9B) decision model sorts the rest when one is running, on a Mac or a Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)). The page labels every row the model sorted. Tagging and the dashboard use no AI, and every number is counted by code. The Render demo runs no AI.
+When an [OpenJev](https://huggingface.co/openjev/OpenJev-Flash-9B) decision model is running, on a Mac or a Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)), it suggests a problem while a clerk types a note and sorts the import rows the keyword rules cannot. Each AI tag is labelled and shows a short reason the model picked from a fixed list. The clerk accepts or changes every suggestion, and names and case numbers are taken out of a note before it is sent. The dashboard uses no AI, and every number is counted by code. The Render demo runs no AI: its suggestions come from keyword rules and say so.
 
 ## Docs
 

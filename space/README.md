@@ -14,4 +14,4 @@ Student prototype for Northeastern CS4535 AI for Impact, Team 1. Not affiliated 
 
 Code and docs: https://github.com/2imi9/filing-problem-tracker
 
-AI is used only in Import: keyword rules sort most rows, and the rows they cannot sort go to [OpenJev Flash 9B](https://huggingface.co/openjev/OpenJev-Flash-9B-GGUF), which runs inside this Space. The page labels each row it sorted "OpenJev (AI)". Tagging and the dashboard use no AI. Its weights are CC BY-NC 4.0 (non-commercial use, with attribution). OpenJev is an independent project.
+AI comes from [OpenJev Flash 9B](https://huggingface.co/openjev/OpenJev-Flash-9B-GGUF), which runs inside this Space. On Tag a filing it suggests a problem while a clerk types a note; on Import it sorts the rows the keyword rules cannot. Each AI tag is labelled "OpenJev (AI)" with a short reason picked from a fixed list, and the clerk accepts or changes every suggestion. Names and case numbers are taken out of a note before it is sent. The dashboard uses no AI. The model weights are CC BY-NC 4.0 (non-commercial use, with attribution). OpenJev is an independent project.

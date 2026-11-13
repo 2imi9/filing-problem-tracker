@@ -25,7 +25,7 @@ Clerks land on Tag a filing, leaders and admins on Dashboard. A page a role cann
 |---|---|---|
 | `/login` | Sign in | Demo mode: choose a demo role. Supabase mode: ask for a sign-in link by work email. |
 | `/auth/confirm` | Finish signing in | Where an emailed link lands; a Sign in button completes it. |
-| `/log` | Tag a filing | County (fixed for a clerk), case type, form, filing date, problems, outcome, optional note with a live personal-data warning, Save tags, then recent entries with Undo. |
+| `/log` | Tag a filing | County (fixed for a clerk), case type, form, filing date, optional note with a live personal-data warning (in the prototype, above the problems with a live suggestion), problems, outcome, Save tags, then recent entries with Undo. |
 | `/import` | Import | Paste or upload a CSV, sort it, review the preview and the rows left out, add the rows. Rows that need review are listed below. |
 | `/dashboard` | Dashboard | Filters, four key numbers, most common problems, outcomes, county by problem table, forms table, before and after a change, optional AI summary. |
 | `/workspace` | Workspace | A request box that opens live panels, an add-panel menu that needs no AI, and saved folders. Panels can be filtered, resized (small, wide, large), moved by drag or keyboard, minimized, duplicated and closed. |
@@ -38,6 +38,7 @@ Clerks land on Tag a filing, leaders and admins on Dashboard. A page a role cann
 - **Problem choices** are square checkbox rows: 4px radius, a 16px square mark, and when chosen a soft accent background, an accent border and a navy tick. Keys 1 to 9 toggle them unless the person turns that off; Enter saves.
 - **Outcome choices** are radio rows: a round mark that fills as a 5px ring in the outcome's colour.
 - **Outcome labels in lists** are a coloured dot and one short word inside a thin neutral outline, all the same width so dots and words line up: "Pass" (Fixed at counter, green), "Fix" (Returned to fix, gold), "Reject" (Rejected, red). Screen readers get the full outcome name. This is the only capsule shape in the app.
+- **Suggestions**: under the note on Tag a filing, plain text with no box: a small label ("AI suggests" or "Keyword rules suggest"), the problem in bold with its confidence in brackets, one muted "Because ..." line, then quiet Accept and Change buttons and one line saying where the suggestion came from.
 - **Buttons**: one gold button per screen, for the main action. Everything else is quiet. On Import, once the preview shows, "Sort into categories" turns quiet and the add button is the gold one.
 - **Forms**: a failed save shows an error summary at the top that takes focus and links to each field, and inline errors stay. Every save shows that it is working, then success or an error with a way to recover.
 
