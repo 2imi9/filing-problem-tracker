@@ -4,7 +4,9 @@
 It serves the static page, starts llama.cpp with OpenJev Flash 9B, and answers
 POST /v1/systemone for Choice questions the way the OpenJev helper does: state,
 question and lettered options go in, the scores of the option letters at the
-first output position come out as probabilities. Standard library only.
+first output position come out as probabilities. POST /v1/explain streams the
+model thinking a clerk's note through in its own words, before the page asks
+it to pick a problem. Standard library only.
 """
 import json, math, os, shutil, subprocess, threading, urllib.error, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -19,6 +21,7 @@ LETTERS = [chr(65 + i) for i in range(26)]
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/index.html": ("index.html", "text/html; charset=utf-8"),
           "/courthouse-ascii-hero.jpg": ("courthouse-ascii-hero.jpg", "image/jpeg"), "/mark.svg": ("mark.svg", "image/svg+xml")}
 MAX_BODY, MAX_STATE, MAX_OPTIONS, MAX_QUESTIONS = 20_000, 4_000, 26, 4
+MAX_NOTE, MAX_PROBLEM, EXPLAIN_TOKENS = 400, 80, 110
 one_at_a_time = threading.Lock()  # a free Space has two CPU cores; answer one question at a time
 
 
@@ -77,6 +80,24 @@ def answer_choice(state_text, question):
             "probabilities": {k: round(p, 4) for (k, _), p in zip(options, probs)}, "confidence": round(confidence, 4)}
 
 
+def explain_prompt(body):
+    note, problems = body.get("clerk_note"), body.get("problems")
+    if not isinstance(note, str) or not note.strip():
+        raise BadRequest("clerk_note is required")
+    if not isinstance(problems, list) or not 1 <= len(problems) <= MAX_OPTIONS:
+        raise BadRequest("problems must be a list of 1 to 26 names")
+    if len(note) > MAX_NOTE or any(not isinstance(p, str) or len(p) > MAX_PROBLEM for p in problems):
+        raise BadRequest("clerk_note or a problem name is too long")
+    case_type = str(body.get("case_type") or "not given")[:60]
+    form = str(body.get("form") or "not given")[:80]
+    names = "\n".join("- " + p for p in problems)
+    return (f"A court clerk turned a filing away and typed this note.\n\nCase type: {case_type}\nForm: {form}\n"
+            f"Clerk's note: <note>{note.replace('<', '&lt;')}</note>\n\nProblems it could be:\n{names}\n\n"
+            "Think it through out loud in two or three short sentences: what does the note say is wrong, and which "
+            "problem on the list fits best, or does none fit? Use only what the note says and add no new facts. "
+            "Do not name anyone and do not give legal advice. Write plain sentences only.")
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -106,12 +127,52 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(200, f.read(), kind)
         self.reply(404, {"error": "not found"})
 
+    def explain(self, body):
+        """Streams the model's words to the page as plain text chunks while llama.cpp writes them."""
+        prompt = explain_prompt(body)
+        req = {"messages": [{"role": "user", "content": prompt}], "max_tokens": EXPLAIN_TOKENS, "temperature": 0.2,
+               "stream": True, "chat_template_kwargs": {"enable_thinking": False}}
+        request = urllib.request.Request(LLAMA + "/v1/chat/completions", data=json.dumps(req).encode(),
+                                         headers={"Content-Type": "application/json"})
+        with one_at_a_time, urllib.request.urlopen(request, timeout=110) as r:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Accel-Buffering", "no")
+            self.send_header("Transfer-Encoding", "chunked")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            try:
+                for raw in r:
+                    line = raw.decode("utf-8", "replace").strip()
+                    if not line.startswith("data:") or line == "data: [DONE]":
+                        continue
+                    try:
+                        piece = json.loads(line[5:])["choices"][0]["delta"].get("content") or ""
+                    except (ValueError, KeyError, IndexError, TypeError):
+                        continue
+                    if piece:
+                        data = piece.encode()
+                        self.wfile.write(b"%x\r\n%s\r\n" % (len(data), data))
+                        self.wfile.flush()
+                self.wfile.write(b"0\r\n\r\n")
+            except OSError:
+                pass  # the page moved on or the model stopped; closing the model's stream stops it writing
+
     def do_POST(self):
         length = int(self.headers.get("Content-Length") or 0)
-        if self.path.split("?")[0].rstrip("/") != "/v1/systemone":
+        path = self.path.split("?")[0].rstrip("/")
+        if path not in ("/v1/systemone", "/v1/explain"):
             return self.reply(404, {"error": "not found"})
         if length > MAX_BODY:
             return self.reply(413, {"error": "request too large"})
+        if path == "/v1/explain":
+            try:
+                return self.explain(json.loads(self.rfile.read(length) or b"{}"))
+            except (BadRequest, json.JSONDecodeError, AttributeError) as error:
+                return self.reply(422, {"error": str(error)})
+            except OSError:
+                return self.reply(502, {"error": "the model did not answer"})
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
             state, questions = body.get("state"), body.get("questions")
