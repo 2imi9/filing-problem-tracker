@@ -150,6 +150,10 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .suggest .conf { font-size: 0.85rem; color: var(--muted); margin-left: 6px; }
 .why { font-size: 0.875rem; color: var(--muted); }
 .suggest .actions { gap: 8px; }
+.reasoning summary { cursor: pointer; color: var(--accent); font-size: 0.875rem; font-weight: 700; width: max-content; }
+.reasoning p { margin: 6px 0 0; font-size: 0.875rem; color: var(--ink); }
+.reasoning p.by { margin-top: 2px; font-size: 0.78rem; color: var(--muted); }
+.thought { margin: 0; color: var(--ink); }
 .btn.sm { min-height: 36px; padding: 6px 14px; font-size: 0.92rem; }
 /* Outcome: a coloured dot and one short word. */
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; line-height: 1.5; color: var(--ink); white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 8px; }
@@ -492,7 +496,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     $("logStatus").textContent = "";
   }
   function clearLog() {
-    selTags = []; startedAt = null; sugg = null; accepted = {}; lastNote = ""; liveRun++; clearTimeout(liveTimer); renderSuggest(false);
+    selTags = []; startedAt = null; sugg = null; accepted = {}; lastNote = ""; thinking = null; liveRun++; clearTimeout(liveTimer); renderSuggest();
     $("logTags").querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
     $("logNote").value = "";
     $("logSave").disabled = true;
@@ -522,7 +526,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     $("logErr").hidden = true;
     var secs = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 1000)) : null;
     var note = scrub($("logNote").value.trim());
-    var ai = selTags.filter(function (t) { return accepted[t]; }).map(function (t) { return { tag: t, by: accepted[t].by, why: accepted[t].why }; });
+    var ai = selTags.filter(function (t) { return accepted[t]; }).map(function (t) { return { tag: t, by: accepted[t].by, why: accepted[t].why, words: accepted[t].words }; });
     var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: note.text, ai: ai, source: "clerk" };
     records.push(rec);
     recent.unshift(rec);
@@ -555,7 +559,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var tg = el("div", { "class": "tags" });
       r.tags.forEach(function (t) { tg.appendChild(el("span", { "class": "tag" }, t)); });
       li.appendChild(tg);
-      (r.ai || []).forEach(function (a) { li.appendChild(el("div", { "class": "by" }, (a.by === "model" ? MODEL_NAME : "Keyword rules") + " suggested " + a.tag + " because " + a.why + ". The clerk accepted.")); });
+      (r.ai || []).forEach(function (a) {
+        li.appendChild(el("div", { "class": "by" }, (a.by === "model" ? MODEL_NAME : "Keyword rules") + " suggested " + a.tag + " because " + a.why + ". The clerk accepted."));
+        if (a.words) li.appendChild(reasoningBox(a.words));
+      });
       if (r.note) li.appendChild(el("div", { "class": "meta" }, "Note: " + r.note));
       ul.appendChild(li);
     });
@@ -615,7 +622,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function classify(reason) { return classifyWhy(reason).map(function (o) { return o.tag; }); }
 
   // Takes out what looks like a name, case number, phone or email before a note is saved or sent anywhere.
-  var KEEP_WORDS = ("I Indiana County Court Clerk Judge Petitioner Respondent Filer Plaintiff Defendant Odyssey AI Protective Order Petition Small Claims Notice Form Eviction Family Name Change Tenant Answer " + COUNTIES.join(" ") + " St Joseph " +
+  var KEEP_WORDS = ("I Indiana County Court Clerk Judge Petitioner Respondent Filer Plaintiff Defendant Odyssey AI OpenJev The This It Missing Wrong Citation Not Pages Protective Order Petition Small Claims Notice Form Eviction Family Name Change Tenant Answer " + COUNTIES.join(" ") + " St Joseph " +
     MONTHS.join(" ") + " January February March April June July August September October November December Monday Tuesday Wednesday Thursday Friday Saturday Sunday").split(/\s+/);
   function scrub(text) {
     var gone = { name: 0, "case number": 0, "contact detail": 0 };
@@ -646,7 +653,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
   var MODEL_NAME = "OpenJev (AI)", MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space";
-  if (MODEL_HOST) $("aiNote").textContent = "AI use: the OpenJev Flash 9B model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. It picks each reason from a fixed list and writes no free text. The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
+  if (MODEL_HOST) $("aiNote").textContent = "AI use: the OpenJev Flash 9B model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list. The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
   function fetchWithin(ms, url, options) {
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
@@ -682,6 +689,41 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     ["Pages missing or unreadable", "the note says pages are missing, blank or unreadable"],
     [NONE_OF_THESE, "the note does not say what was wrong with the filing"]
   ];
+  // OpenJev thinks the note through in its own words before it picks a problem. onText gets the cleaned
+  // text so far; the promise gives the final text, or "" where the server cannot write (the Mac helper).
+  function tidy(t) {
+    t = scrub(t.replace(/\s+/g, " ").trim()).text;
+    return t.length > 360 ? t.slice(0, 360).replace(/\s+\S*$/, "") + "..." : t;
+  }
+  function thinkModel(caseType, form, note, stale, onText) {
+    if (!window.fetch || !window.ReadableStream || !window.TextDecoder) return Promise.resolve("");
+    var text = "";
+    return fetchWithin(120000, "/v1/explain", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text, problems: TAGS })
+    }).then(function (r) {
+      if (!r.ok || !r.body) return "";
+      var reader = r.body.getReader(), dec = new TextDecoder();
+      return (function pump() {
+        return reader.read().then(function (x) {
+          if (stale()) { reader.cancel(); return ""; }
+          if (x.done) return tidy(text);
+          text += dec.decode(x.value, { stream: true });
+          if (text.length > 480) { reader.cancel(); return tidy(text); }
+          onText(tidy(text));
+          return pump();
+        });
+      })();
+    }).catch(function () { return text ? tidy(text) : ""; });
+  }
+  // "Show reasoning": the model's own words, folded away once the suggestion is up.
+  function reasoningBox(text) {
+    var d = el("details", { "class": "reasoning" });
+    d.appendChild(el("summary", null, "Show reasoning"));
+    d.appendChild(el("p", null, text));
+    d.appendChild(el("p", { "class": "by" }, MODEL_NAME + ", in its own words. It can be wrong."));
+    return d;
+  }
   function confWord(c) { return c >= HIGH_CONFIDENCE ? "high confidence" : "medium confidence"; }
   // Says on the Import tab whether the model is there, so its work is not invisible.
   var modelReady = null, modelCheckedAt = 0;
@@ -690,7 +732,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (!MODEL_HOST) return;
     $("modelLine").hidden = false;
     $("modelLine").textContent = ready
-      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, and says why."
+      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, thinking each through in its own words first."
       : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
   }
   function modelAvailable() {
@@ -701,14 +743,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   modelAvailable();
   // One typed decision per note: { tag, why, confidence }. tag is null when the model is unsure or picks
   // "None of these". The note is cleaned of names and case numbers before it is sent.
-  function askModel(caseType, form, note) {
+  function askModel(caseType, form, note, thought) {
     var criteria = {}, keys = [];
     REASONS.forEach(function (r) { var k = r[0] + ", because " + r[1]; keys.push(k); criteria[k] = TAG_HELP[r[0]] || "No problem on the list fits the note."; });
     return fetchWithin(120000, "/v1/systemone", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "openjev-flash-9b",
-        state: { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text },
+        state: thought ? { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text, your_reasoning: thought }
+          : { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text },
         questions: { problem: { type: "choice", instructions: "A court clerk turned this filing away and typed the note. Which problem does the note describe, and why?", criteria: criteria } }
       })
     }).then(function (r) { if (!r.ok) throw new Error("model " + r.status); return r.json(); }).then(function (j) {
@@ -729,16 +772,23 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     });
   }
   // ---------- Live suggestion on the Tag tab ----------
-  // As the clerk types a note, the keyword rules answer at once and, where the model is served, OpenJev
-  // answers when typing pauses. Nothing is pressed until the clerk clicks Accept.
-  var sugg = null, accepted = {}, liveTimer = null, liveRun = 0, lastNote = "";
+  // Where the model is served, OpenJev first thinks the note through in its own words (shown as it writes),
+  // then picks one problem from the fixed list. Elsewhere the keyword rules suggest at once.
+  // Nothing is ticked until the clerk clicks Accept.
+  var sugg = null, accepted = {}, liveTimer = null, liveRun = 0, lastNote = "", thinking = null;
   function sameTags(a, b) { return a && b && a.items.map(function (i) { return i.tag; }).join("|") === b.items.map(function (i) { return i.tag; }).join("|"); }
-  function renderSuggest(reading) {
+  function renderSuggest() {
     var box = $("suggest"); box.innerHTML = "";
-    if (!sugg && !reading) { box.hidden = true; return; }
+    if (!sugg && !thinking) { box.hidden = true; return; }
     box.hidden = false;
     var removed = scrub($("logNote").value).removed;
-    if (sugg && sugg.items.length && sugg.state !== "set aside") {
+    if (thinking) {
+      box.appendChild(el("div", { "class": "label-sm src" }, thinking.deciding ? "OpenJev is choosing a problem..." : "OpenJev is thinking..."));
+      box.appendChild(el("p", { "class": "why thought", "data-think": "1" }, thinking.text ? thinking.text + (thinking.deciding ? "" : " ▍") : "Reading the note..."));
+      box.appendChild(el("p", { "class": "hint" }, "OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + "."));
+      return;
+    }
+    if (sugg.items.length && sugg.state !== "set aside") {
       box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "AI suggests" : "Keyword rules suggest"));
       var ul = el("ul");
       sugg.items.forEach(function (it) {
@@ -754,51 +804,67 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         var n = sugg.items.length;
         var ok = el("button", { type: "button", "class": "btn secondary sm", id: "suggestAccept" }, n === 1 ? "Accept" : n === 2 ? "Accept both" : "Accept all " + n);
         ok.addEventListener("click", function () {
-          sugg.items.forEach(function (it) { pressTag(it.tag, true); accepted[it.tag] = { by: sugg.by, why: it.why }; });
-          sugg.state = "accepted"; renderSuggest(false);
+          sugg.items.forEach(function (it) { pressTag(it.tag, true); accepted[it.tag] = { by: sugg.by, why: it.why, words: sugg.by === "model" ? sugg.thought || "" : "" }; });
+          sugg.state = "accepted"; renderSuggest();
           $("logTags").querySelector('[data-t="' + sugg.items[0].tag + '"]').focus({ preventScroll: true });
         });
         var change = el("button", { type: "button", "class": "btn secondary sm", id: "suggestChange" }, "Change");
         change.addEventListener("click", function () {
-          sugg.state = "set aside"; renderSuggest(false);
+          sugg.state = "set aside"; renderSuggest();
           $("logTags").querySelector(".chip").focus({ preventScroll: true });
         });
         act.appendChild(ok); act.appendChild(change);
         box.appendChild(act);
       } else box.appendChild(el("p", { "class": "hint" }, "Accepted and ticked below. You can still change the problems."));
-    } else if (sugg && sugg.state === "set aside") box.appendChild(el("p", { "class": "hint" }, "Suggestion set aside. Pick the problems below."));
-    else if (sugg && sugg.unsure) box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
+    } else if (sugg.state === "set aside") box.appendChild(el("p", { "class": "hint" }, "Suggestion set aside. Pick the problems below."));
+    else if (sugg.unsure) box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
+    if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
     var foot = [];
-    if (reading) foot.push(MODEL_NAME + " is reading the note" + (removed ? ", without " + removed : "") + "...");
-    else if (sugg && sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
-    else if (sugg && sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
-    else if (sugg && sugg.items.length) foot.push((MODEL_HOST ? "Keyword rules only right now." : "No AI on this copy.") + " You make the final call.");
-    if (removed && !reading && !(sugg && sugg.by === "model")) foot.push("When you save, the note loses " + removed + ".");
+    if (sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
+    else if (sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
+    else if (sugg.items.length) foot.push((MODEL_HOST ? "Keyword rules only right now." : "No AI on this copy.") + " You make the final call.");
+    if (removed && sugg.by !== "model") foot.push("When you save, the note loses " + removed + ".");
     if (foot.length) box.appendChild(el("p", { "class": "hint" }, foot.join(" ")));
   }
-  function keepState(next) { if (next && sameTags(sugg, next) && sugg.by === next.by) next.state = sugg.state; return next; }
+  function keepState(next) { if (next && sugg && sameTags(sugg, next) && sugg.by === next.by) next.state = sugg.state; return next; }
   function suggestNow() {
     var note = $("logNote").value.trim();
     if (note === lastNote) return;
     lastNote = note;
     var run = ++liveRun;
-    if (note.length < 8 || note.split(/\s+/).length < 2) { sugg = null; renderSuggest(false); return; }
+    function stale() { return run !== liveRun; }
+    thinking = null;
+    if (note.length < 8 || note.split(/\s+/).length < 2) { sugg = null; renderSuggest(); return; }
     var rules = classifyWhy(note);
-    sugg = keepState(rules.length ? { by: "rules", items: rules, state: "open" } : null);
+    var fromRules = rules.length ? { by: "rules", items: rules, state: "open" } : null;
+    function useRules(extra) {
+      thinking = null; sugg = keepState(fromRules);
+      if (sugg && extra) for (var k in extra) sugg[k] = extra[k];
+      renderSuggest();
+    }
     var tryModel = MODEL_HOST && window.fetch && (modelReady || Date.now() - modelCheckedAt > 30000);
-    renderSuggest(!!tryModel);
-    if (!tryModel) return;
+    if (!tryModel) { useRules(); return; }
+    var caseType = $("logCase").value, form = $("logForm1").value;
+    thinking = { text: "" }; var mine = thinking; renderSuggest();
     (modelReady ? Promise.resolve(true) : modelAvailable()).then(function (ok) {
-      if (run !== liveRun) return;
-      if (!ok) { renderSuggest(false); return; }
-      askModel($("logCase").value, $("logForm1").value, note).then(function (ans) {
-        if (run !== liveRun) return;
-        if (ans.tag) sugg = keepState({ by: "model", items: [{ tag: ans.tag, why: ans.why, confidence: ans.confidence }], state: "open" });
-        else if (sugg) sugg.modelUnsure = true;
-        else sugg = { by: "model", items: [], unsure: true };
-        renderSuggest(false);
-      }, function () { if (run !== liveRun) return; showModel(false); renderSuggest(false); });
-    });
+      if (stale()) return;
+      if (!ok) { useRules(); return; }
+      return thinkModel(caseType, form, note, stale, function (t) {
+        mine.text = t;
+        var n = $("suggest").querySelector("[data-think]");
+        if (n) n.textContent = t + " ▍"; else renderSuggest();
+      }).then(function (thought) {
+        if (stale()) return;
+        mine.text = thought; mine.deciding = true; renderSuggest();
+        return askModel(caseType, form, note, thought).then(function (ans) {
+          if (stale()) return;
+          thinking = null;
+          if (ans.tag) { sugg = keepState({ by: "model", items: [{ tag: ans.tag, why: ans.why, confidence: ans.confidence }], state: "open" }); sugg.thought = thought; renderSuggest(); }
+          else if (fromRules) useRules({ modelUnsure: true, thought: thought });
+          else { sugg = { by: "model", items: [], unsure: true, thought: thought }; renderSuggest(); }
+        });
+      });
+    }).catch(function () { if (stale()) return; showModel(false); useRules(); });
   }
   $("logNote").addEventListener("input", function () {
     clearTimeout(liveTimer);
@@ -833,6 +899,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var td = el("td"); var box = el("div", { "class": "tags" });
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
       td.appendChild(box);
+      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, "OpenJev is thinking... " + p.thinking + " \u258d"));
       if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + ".")); }
       else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
       else if (p.why && p.why.length) {
@@ -840,6 +907,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         var whys = p.why.filter(function (w) { return w !== "the note says \u201c" + p.reason + "\u201d"; });
         td.appendChild(el("div", { "class": "by" }, "Keyword rules" + (whys.length ? ": because " + whys.join("; ") + "." : "")));
       }
+      if (p.thought && p.thinking == null) td.appendChild(reasoningBox(p.thought));
       tr.appendChild(td);
       body.appendChild(tr);
     });
@@ -888,8 +956,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           return;
         }
         var p = left[i++];
-        askModel(p.caseType, p.form, p.reason).then(function (ans) {
-          if (run !== sortRun) return;
+        p.thinking = ""; renderPreview();
+        thinkModel(p.caseType, p.form, p.reason, function () { return run !== sortRun; }, function (t) { p.thinking = t; renderPreview(); }).then(function (thought) {
+          if (run !== sortRun) return null;
+          p.thinking = null; p.thought = thought;
+          return askModel(p.caseType, p.form, p.reason, thought);
+        }).then(function (ans) {
+          if (run !== sortRun || !ans) return;
           if (ans.tag) { p.tags = [ans.tag]; p.why = ans.why; p.confidence = ans.confidence; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
           renderPreview();
           next();
