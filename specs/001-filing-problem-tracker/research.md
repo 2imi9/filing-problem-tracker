@@ -40,6 +40,7 @@ Credits and the licence each one declares:
 | Lato. Copyright (c) 2010-2011 by tyPoland Lukasz Dziedzic, Reserved Font Name "Lato" | Body text | SIL Open Font License 1.1 |
 | IBM Plex Mono. Copyright 2017 IBM Corp. | Numbers, dates and data | SIL Open Font License 1.1 |
 | Lucide upload icon (lucide.dev) | The single-file demo | ISC |
+| Indiana county boundaries, US Census Bureau cartographic boundary file (via the `plotly/datasets` GeoJSON), simplified to SVG paths | The county map in the single-file demo | Public domain (US government work) |
 | `next`, `react`, `react-dom`, `zod`, `@supabase/supabase-js`, `@supabase/ssr`, `@modelcontextprotocol/sdk` | The running app | MIT |
 | `@anthropic-ai/sdk` | The running app | Apache-2.0 |
 | `eslint`, `eslint-config-next`, `vitest`, `vite`, `@vitejs/plugin-react`, `@types/*` | Build and tests | MIT |
