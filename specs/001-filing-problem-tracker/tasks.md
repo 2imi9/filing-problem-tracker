@@ -67,6 +67,7 @@
 - [x] T019 [P] [US4] AI sorting of reasons with the rules fallback in `src/server/ai/classify.ts`
 - [x] T019a [US4] Prototype: local model sorting of leftover rows in `docs/prototype/filing_tracker.html`, served by `scripts/serve-local.py`
 - [x] T019b [US4] Prototype: the same page and model on a Hugging Face Space in `space/`
+- [x] T019d [US3] Prototype: Indiana county map with a per-county breakdown, CSV exports and a print view in `docs/prototype/filing_tracker.html`
 - [x] T019c [US1] Prototype: live suggestion with Accept and Change while a note is typed, a reason under every AI or rule tag, and note cleaning before anything is sent
 
 ## Phase 7: User Story 5 - Ask for a view (Priority: P3)
