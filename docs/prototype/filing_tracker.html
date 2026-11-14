@@ -203,8 +203,8 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .compare .down { color: var(--good); } .compare .up { color: var(--bad); }
 .compare .s { font-size: 0.85rem; color: var(--muted); }
 /* County map: one shade of navy per step, grey where the pilot has no data. */
-.map-grid { display: grid; grid-template-columns: minmax(240px, 340px) minmax(0, 1fr); gap: 40px; align-items: start; }
-@media (max-width: 760px) { .map-grid { grid-template-columns: minmax(0, 1fr); } .map { max-width: 340px; } }
+.map-grid { display: grid; grid-template-columns: minmax(300px, 540px) minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 860px) { .map-grid { grid-template-columns: minmax(0, 1fr); } .map { max-width: 540px; } }
 .map { margin: 0; display: grid; gap: 12px; }
 #inMap { width: 100%; height: auto; display: block; }
 #inMap path { stroke: var(--surface); stroke-width: 0.8; stroke-linejoin: round; }
@@ -212,7 +212,7 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #inMap path.pilot { cursor: pointer; }
 #inMap path.pilot:hover, #inMap path.pilot:focus-visible { stroke: var(--ink); stroke-width: 1.6; outline: none; }
 #inMap path.sel { stroke: var(--cta); stroke-width: 2.4; }
-#inMap text { fill: var(--surface); font-size: 9px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+#inMap text { fill: var(--surface); font-size: 7.5px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 #inMap text.dark { fill: var(--ink); }
 .legend i.box.none { background: var(--quiet); }
 .county-panel { display: grid; gap: 18px; min-width: 0; }
@@ -336,6 +336,17 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     <section class="view" id="view-dashboard" aria-labelledby="h-dash" hidden>
       <p class="intro">Which mistakes are most common, where, on which forms, and whether a change helped.</p>
       <div class="panel plain">
+        <h2>By county <small>click a county to see its breakdown and filter the dashboard</small></h2>
+        <div class="map-grid">
+          <figure class="map">
+            <svg id="inMap" viewBox="-6 -6 312 485" role="group" aria-label="Map of Indiana's 92 counties, shaded by flagged filings"></svg>
+            <figcaption class="legend" id="mapLegend"></figcaption>
+          </figure>
+          <div class="county-panel" id="countyPanel" aria-live="polite"></div>
+        </div>
+        <p class="hint">County lines from the US Census Bureau (public domain). The made-up sample covers 8 pilot counties; the other 84 have no data.</p>
+      </div>
+      <div class="panel plain">
         <h2 id="h-dash" class="sr">Filters</h2>
         <div class="filters">
           <label class="f">County<select id="fCounty"></select></label>
@@ -351,17 +362,6 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         </div>
       </div>
       <div class="kpis" id="kpis"></div>
-      <div class="panel plain">
-        <h2>By county <small>click a county to see its breakdown and filter the dashboard</small></h2>
-        <div class="map-grid">
-          <figure class="map">
-            <svg id="inMap" viewBox="-6 -6 312 485" role="group" aria-label="Map of Indiana's 92 counties, shaded by flagged filings"></svg>
-            <figcaption class="legend" id="mapLegend"></figcaption>
-          </figure>
-          <div class="county-panel" id="countyPanel" aria-live="polite"></div>
-        </div>
-        <p class="hint">County lines from the US Census Bureau (public domain). The made-up sample covers 8 pilot counties; the other 84 have no data.</p>
-      </div>
       <div class="grid-2">
         <div class="panel plain">
           <h2>Most common problems <small id="barsNote"></small></h2>
