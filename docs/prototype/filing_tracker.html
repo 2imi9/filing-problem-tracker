@@ -51,7 +51,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f
 .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 10; background: var(--surface); color: var(--accent); padding: 10px 14px; border-radius: 4px; font-weight: 700; }
 .skip:focus { top: 12px; }
-a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, label.btn:focus-within, .table-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible, label.btn:focus-within, .table-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 nav.tabs a:focus-visible { outline-offset: -3px; }
 ::placeholder { color: var(--muted); opacity: 1; }
 
@@ -222,6 +222,8 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #inMap text.dark { fill: var(--ink); }
 .legend i.box.none { background: var(--quiet); }
 .linkish { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+/* Links that stand on their own still get a 44px target; links inside a sentence keep the line height. */
+.actions > .linkish, .legend > .linkish, .county-panel > .linkish, .data-line > .linkish { min-height: 44px; justify-self: start; }
 /* Where to act first: a plain numbered list, one finding and one possible fix per item. */
 .insights { margin: 0; padding-left: 1.4em; display: grid; gap: 18px; max-width: 76ch; }
 .insights li::marker { font-family: var(--font-data); color: var(--muted); }
@@ -237,9 +239,9 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #times th:last-child { text-align: right; }
 td.mid { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 #colMapBox { display: grid; gap: 12px; }
-#colMapBox > summary { cursor: pointer; font-size: 0.875rem; color: var(--muted); width: fit-content; }
-#colMapBox > summary b { color: var(--accent); font-weight: 700; margin-left: 4px; }
-#colMapBox[open] > summary { margin-bottom: 12px; }
+#colMapBox > summary { cursor: pointer; font-size: 0.875rem; color: var(--muted); width: fit-content; padding-block: 11px; }
+#colMapBox > summary b { color: var(--accent); font-weight: 700; }
+#colMapBox[open] > summary { margin-bottom: 4px; }
 #colMapBox .fields + .hint { margin-top: 12px; }
 /* Export: one quiet button that opens a short list. */
 .menu { position: relative; width: fit-content; }
@@ -247,7 +249,7 @@ td.mid { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 .menu > summary::-webkit-details-marker { display: none; }
 .menu > summary::after { content: ""; width: 7px; height: 7px; margin-left: 10px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
 .menu[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
-.menu-list { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; min-width: 280px; display: grid; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.menu-list { position: absolute; z-index: 4; top: calc(100% + 6px); left: 0; min-width: 280px; display: grid; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
 .menu-list button { font: inherit; text-align: left; color: var(--ink); background: none; border: 0; border-radius: 4px; min-height: 44px; padding: 8px 12px; cursor: pointer; }
 .menu-list button:hover { background: var(--quiet); }
 .menu.end .menu-list { left: auto; right: 0; }
@@ -918,7 +920,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     box.hidden = false;
     var removed = scrub($("logNote").value).removed;
     if (thinking) {
-      box.appendChild(el("div", { "class": "label-sm src" }, thinking.deciding ? "OpenJev is choosing a problem..." : "OpenJev is thinking..."));
+      box.appendChild(el("div", { "class": "label-sm src" }, thinking.deciding ? MODEL_NAME + " is choosing a problem..." : MODEL_NAME + " is thinking..."));
       box.appendChild(el("p", { "class": "why thought", "data-think": "1" }, thinking.text ? thinking.text + (thinking.deciding ? "" : " ▍") : "Reading the note..."));
       if (removed) box.appendChild(el("p", { "class": "hint" }, "Sent without " + removed + "."));
       return;
@@ -1065,7 +1067,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       colMapSummary();
       return;
     }
-    colMapSig = sig; box.innerHTML = "";
+    colMapSig = sig; box.innerHTML = ""; $("colMapBox").open = false;
     FIELDS.forEach(function (f) {
       var lab = el("label", { "class": "f" }, f.label + (f.need ? "" : " (optional)"));
       var sel = el("select", { "data-k": f.k });
@@ -1082,6 +1084,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function colMapSummary() {
     var got = FIELDS.filter(function (f) { return colMap[f.k] != null; }).map(function (f) { return f.label.toLowerCase(); });
     var sum = $("colMapSum"); sum.textContent = got.length ? "Columns read: " + got.join(", ") + "." : "No columns matched yet.";
+    sum.appendChild(document.createTextNode(" "));
     sum.appendChild(el("b", null, "Change"));
     if (FIELDS.some(function (f) { return f.need && colMap[f.k] == null; })) $("colMapBox").open = true;
   }
@@ -1163,7 +1166,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var td = el("td"); var box = el("div", { "class": "tags" });
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); });
       td.appendChild(box);
-      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, "OpenJev is thinking... " + p.thinking + " ▍"));
+      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " is thinking... " + p.thinking + " ▍"));
       if (p.sortedBy === "model") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + "."));
       else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
       else if (p.why && p.why.length) {
@@ -1515,8 +1518,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     box.appendChild(p);
     var b = el("button", { type: "button", "class": "linkish" }, "Show the made-up sample");
     b.addEventListener("click", function () { useData("sample"); var t = $("dataText"); if (t) t.focus(); });
-    p.appendChild(document.createTextNode(" "));
-    p.appendChild(b);
+    box.appendChild(b);
   }
 
   // ---------- When flagged filings were sent ----------
@@ -1782,8 +1784,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (sel) {
       var all2 = el("button", { type: "button", "class": "linkish" }, "Show all counties");
       all2.addEventListener("click", function () { pickCounty(sel); });
-      var line = el("p", { "class": "hint" }, "Export from the menu under the map gets only " + sel + ". ");
-      line.appendChild(all2); box.appendChild(line);
+      box.appendChild(el("p", { "class": "hint" }, "Export, under the map, now gets only " + sel + "."));
+      box.appendChild(all2);
     }
   }
 
@@ -1820,15 +1822,18 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       return [c, rs.length].concat(curHasSubs ? [sent[c] || 0] : []).concat(TAGS.map(function (t) { return tc[t] || 0; })).concat(OUTCOMES.map(function (o) { return oc[o] || 0; }));
     })));
   });
-  $("exPrint").addEventListener("click", function () { $("exMenu").open = false; window.print(); });
+  $("exPrint").addEventListener("click", function () { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); window.print(); });
   ["exRows", "exCounties", "exAll"].forEach(function (id) { $(id).addEventListener("click", function () { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); }); });
   // The list opens to the right of the button, or to its left when there is no room.
-  $("exMenu").addEventListener("toggle", function () {
+  function placeExMenu() {
     var m = $("exMenu"); m.classList.remove("end");
     if (m.open && m.querySelector(".menu-list").getBoundingClientRect().right > document.documentElement.clientWidth - 8) m.classList.add("end");
-  });
+  }
+  $("exMenu").addEventListener("toggle", placeExMenu);
+  window.addEventListener("resize", placeExMenu);
+  $("exMenu").addEventListener("focusout", function (e) { if (e.relatedTarget && !$("exMenu").contains(e.relatedTarget)) $("exMenu").open = false; });
   document.addEventListener("click", function (e) { if ($("exMenu").open && !$("exMenu").contains(e.target)) $("exMenu").open = false; });
-  $("exMenu").addEventListener("keydown", function (e) { if (e.key === "Escape" && $("exMenu").open) { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("exMenu").open) { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); } });
 
   function renderEvent() {
     var ev = currentEvent(), tag = $("evTag").value;
