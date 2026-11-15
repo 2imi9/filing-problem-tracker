@@ -14,8 +14,8 @@ A small web tool for Indiana trial courts. Clerks tag why a filing from someone 
 ## What it does
 
 - **Tag a filing.** A clerk picks the county, case type and form, types a short note, accepts or changes the suggested problem, and saves. No names or case numbers.
-- **Import past rejections.** Paste a spreadsheet export and the tool sorts each typed reason into the same problem list.
-- **Dashboard.** The most common problems by county, case type and form, an Indiana county map with a breakdown for each county, and CSV or PDF exports.
+- **Import past filings.** Paste or upload a spreadsheet export with any column names and the tool sorts each typed reason into the same problem list. The dashboard can then show only those rows.
+- **Dashboard.** The most common problems by county, case type and form, the share of filings sent back, when they were sent, an Indiana county map with a breakdown for each county, a short list of where to act first, and CSV or PDF exports.
 - **Before and after.** Whether a change, such as a revised form, reduced a problem.
 
 It sits next to Odyssey and e-filing and never connects to them.
