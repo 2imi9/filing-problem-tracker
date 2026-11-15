@@ -212,8 +212,9 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #inMap path { stroke: var(--surface); stroke-width: 0.8; stroke-linejoin: round; }
 #inMap path.none { fill: var(--quiet); }
 #inMap path.pilot { cursor: pointer; }
-#inMap path.pilot:hover, #inMap path.pilot:focus-visible { stroke: var(--ink); stroke-width: 1.6; outline: none; }
+#inMap path.pilot:focus { outline: none; }
 #inMap path.sel { stroke: var(--cta); stroke-width: 2.4; }
+#inMap path.hover-line { fill: none; stroke: var(--ink); stroke-width: 1.6; pointer-events: none; }
 #inMap text { fill: var(--surface); font-size: 7.5px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 #inMap text.dark { fill: var(--ink); }
 .legend i.box.none { background: var(--quiet); }
@@ -1159,11 +1160,16 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // ---------- County map and breakdown ----------
   var SVGNS = "http://www.w3.org/2000/svg", mapNote = "";
   function svgEl(tag, attrs, text) { var e = document.createElementNS(SVGNS, tag); for (var a in attrs) e.setAttribute(a, attrs[a]); if (text != null) e.textContent = text; return e; }
-  function pickCounty(name) {
+  function pickCounty(name, byKey) {
     mapNote = "";
     $("fCounty").value = $("fCounty").value === name ? "" : name;
     renderDashboard();
+    if (byKey) {  // the map is redrawn, so put keyboard focus back on the same county
+      var back = $("inMap").querySelector('path[data-county="' + name + '"]');
+      if (back) back.focus();
+    }
   }
+  function focusVisible(e) { try { return e.matches(":focus-visible"); } catch (x) { return true; } }
   function renderMap() {
     var all = filtered(true), sel = $("fCounty").value, counts = {};
     all.forEach(function (r) { counts[r.county] = (counts[r.county] || 0) + 1; });
@@ -1172,17 +1178,30 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     function step(v) { return Math.min(STEPS.length - 1, Math.floor(v / max * STEPS.length - 1e-9)); }
     var svg = $("inMap"); svg.innerHTML = "";
     var top = null, labels = [];
+    // Hover and focus outlines go on one extra path drawn above every county.
+    // Outlining the county itself does not work: the counties drawn after it
+    // cover the shared borders, so part of the outline disappears.
+    var hover = svgEl("path", { "class": "hover-line", "aria-hidden": "true" }), hoverP = null, focusP = null;
+    function paintHover() {
+      var p = hoverP || focusP;
+      if (!p || p.classList.contains("sel")) { hover.removeAttribute("d"); return; }
+      hover.setAttribute("d", p.getAttribute("d"));
+    }
     IN_COUNTIES.forEach(function (c) {
       var name = c[0], pilot = COUNTIES.indexOf(name) >= 0, v = counts[name] || 0;
       var path = svgEl("path", { d: c[1], "class": pilot ? "pilot" + (name === sel ? " sel" : "") : "none" });
       if (pilot) {
         var st = step(v);
         path.style.fill = "color-mix(in srgb, var(--accent) " + STEPS[st] + "%, var(--surface))";
-        path.setAttribute("tabindex", "0"); path.setAttribute("role", "button");
+        path.setAttribute("tabindex", "0"); path.setAttribute("role", "button"); path.setAttribute("data-county", name);
         path.setAttribute("aria-pressed", name === sel ? "true" : "false");
         path.setAttribute("aria-label", name + " County, " + v + " flagged filings");
         path.addEventListener("click", function () { pickCounty(name); });
-        path.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickCounty(name); } });
+        path.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickCounty(name, true); } });
+        path.addEventListener("mouseenter", function () { hoverP = path; paintHover(); });
+        path.addEventListener("mouseleave", function () { hoverP = null; paintHover(); });
+        path.addEventListener("focus", function () { focusP = focusVisible(path) ? path : null; paintHover(); });
+        path.addEventListener("blur", function () { focusP = null; paintHover(); });
         labels.push(svgEl("text", { x: c[2], y: c[3], "class": st < 2 ? "dark" : "" }, String(v)));
       } else {
         path.addEventListener("click", function () { mapNote = name; renderCountyPanel(all, counts); });
@@ -1190,7 +1209,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       path.appendChild(svgEl("title", {}, name + " County" + (pilot ? ": " + v + " flagged filings" : ": not in the pilot")));
       if (name === sel) top = path; else svg.appendChild(path);
     });
-    if (top) svg.appendChild(top);  // drawn last so its outline is not covered
+    if (top) svg.appendChild(top);  // drawn after the other counties so its outline is not covered
+    svg.appendChild(hover);
     labels.forEach(function (t) { svg.appendChild(t); });
     var lg = $("mapLegend"); lg.innerHTML = "";
     var per = max / STEPS.length;
