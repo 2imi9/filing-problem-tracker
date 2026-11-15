@@ -357,8 +357,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         <div class="actions">
           <button class="btn secondary" type="button" id="exRows">Export filings (CSV)</button>
           <button class="btn secondary" type="button" id="exCounties">Export county counts (CSV)</button>
+          <button class="btn secondary" type="button" id="exAll">Export all (CSV)</button>
           <button class="btn secondary" type="button" id="exPrint">Print or save as PDF</button>
-          <span class="hint">Exports follow the filters and hold no notes or names.</span>
+          <span class="hint">Exports follow the filters, except "Export all", which holds every filing. None hold notes or names.</span>
         </div>
       </div>
       <div class="kpis" id="kpis"></div>
@@ -1257,12 +1258,16 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     return (county ? county.toLowerCase().replace(/[^a-z]+/g, "-") : "all-counties") + ($("fCase").value ? "-" + $("fCase").value.toLowerCase().replace(/[^a-z]+/g, "-") : "") + "-" + from + "-to-" + to;
   }
   // One row per flagged filing. Notes and raw import reasons stay out, so the file holds no names.
-  function exportRows(rs, county) {
-    download("filing-problems-" + fileTag(county) + ".csv", [["date", "county", "case_type", "form", "problems", "outcome", "source"]].concat(rs.map(function (r) {
+  function exportRows(rs, county, name) {
+    download(name || "filing-problems-" + fileTag(county) + ".csv", [["date", "county", "case_type", "form", "problems", "outcome", "source"]].concat(rs.map(function (r) {
       return [r.date, r.county, r.caseType, r.form, r.tags.join("; "), r.outcome, r.source];
     })));
   }
   $("exRows").addEventListener("click", function () { exportRows(filtered(), $("fCounty").value); });
+  // Every filing on the dashboard, whatever the filters say, oldest first.
+  $("exAll").addEventListener("click", function () {
+    exportRows(records.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }), "", "filing-problems-all.csv");
+  });
   $("exCounties").addEventListener("click", function () {
     var all = filtered(true), sel = $("fCounty").value;
     var names = COUNTIES.concat(all.map(function (r) { return r.county; }).filter(function (c, i, a) { return COUNTIES.indexOf(c) < 0 && a.indexOf(c) === i; }).sort());

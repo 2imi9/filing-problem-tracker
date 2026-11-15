@@ -104,4 +104,4 @@ One free Docker Space serves the page and the model together (the 5.6 GB build o
 sh scripts/build-space.sh   # collects six files into space-build/
 ```
 
-Create a Space with the Docker SDK and upload the six files. The first build downloads the model.
+Create a Space with the Docker SDK and upload the six files. The first build downloads the model. After that, `.github/workflows/space.yml` uploads the files again on every merge to `main` that changes them, once the repository has a secret named `HF_TOKEN` (a Hugging Face token with write access to the Space). Without the secret it does nothing.

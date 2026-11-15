@@ -1,0 +1,49 @@
+name: Update Hugging Face Space
+
+# Copies the demo page and its small server to the Hugging Face Space after a merge to main, so the
+# Space never falls behind. It needs one repository secret, HF_TOKEN: a Hugging Face token with write
+# access to the Space. Without the secret the job does nothing.
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/prototype/**
+      - docs/assets/**
+      - space/**
+      - scripts/build-space.sh
+      - .github/workflows/space.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: space
+  cancel-in-progress: true
+
+jobs:
+  upload:
+    name: Build and upload the Space files
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SPACE: 2imi9/filing-problem-tracker
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build the Space folder
+        run: sh scripts/build-space.sh
+
+      - name: Upload to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::notice::HF_TOKEN is not set, so the Space was not updated."
+            exit 0
+          fi
+          python3 -m pip install --quiet "huggingface_hub==1.32.0"
+          hf upload "$SPACE" space-build . --repo-type space --commit-message "Update from ${GITHUB_SHA::7}"
