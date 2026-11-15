@@ -94,7 +94,7 @@ sh scripts/start-openjev.sh       # terminal 1: OpenJev Flash 9B on 127.0.0.1:30
 python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:8080
 ```
 
-The Import tab says whether the model is ready. Rows the keyword rules cannot sort go to the model and come back marked "OpenJev (AI)" with a reason, or "OpenJev (AI) was not sure" if it left them for review. On Tag a filing, type a note such as "petition only talks about being followed home last week": after you stop typing, "AI suggests" appears with a reason and Accept and Change buttons. The Mac helper only picks from the list, so the "OpenJev is thinking..." step, where the model writes its reasoning, runs on the Space only. Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
+The Import tab says whether the model is ready. Rows the keyword rules cannot sort go to the model and come back marked "OpenJev (AI)" with a reason, or "OpenJev (AI) was not sure" if it left them for review. On Tag a filing, type a note such as "petition only talks about being followed home last week": after you stop typing, "OpenJev (AI) suggests" appears with a reason and Accept and Change buttons. The Mac helper only picks from the list, so the "OpenJev is thinking..." step, where the model writes its reasoning, runs on the Space only. Stop terminal 1 and Import falls back to the rules alone. For a Mac with less memory, start the model with `OPENJEV_MODEL=openjev/OpenJev-Flash-9B-MLX-4bit` (about 5 GB).
 
 ## Run the demo page on a Hugging Face Space (optional)
 
@@ -104,4 +104,4 @@ One free Docker Space serves the page and the model together (the 5.6 GB build o
 sh scripts/build-space.sh   # collects six files into space-build/
 ```
 
-Create a Space with the Docker SDK and upload the six files. The first build downloads the model.
+Create a Space with the Docker SDK and upload the six files. The first build downloads the model. After that, `.github/workflows/space.yml` uploads the files again on every merge to `main` that changes them, once the repository has a secret named `HF_TOKEN` (a Hugging Face token with write access to the Space). Without the secret it does nothing.

@@ -143,6 +143,8 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .tag.none { color: var(--bad); font-weight: 700; }
 .by { font-size: 0.78rem; color: var(--muted); }
 /* Suggestion under the note: plain text and two quiet buttons, no box. The clerk makes the final call. */
+.ai-line { margin-top: -10px; }
+.hint a { color: var(--accent); }
 .suggest { display: grid; gap: 8px; margin-top: -10px; }
 .suggest .src { color: var(--accent); }
 .suggest ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -210,8 +212,9 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #inMap path { stroke: var(--surface); stroke-width: 0.8; stroke-linejoin: round; }
 #inMap path.none { fill: var(--quiet); }
 #inMap path.pilot { cursor: pointer; }
-#inMap path.pilot:hover, #inMap path.pilot:focus-visible { stroke: var(--ink); stroke-width: 1.6; outline: none; }
+#inMap path.pilot:focus { outline: none; }
 #inMap path.sel { stroke: var(--cta); stroke-width: 2.4; }
+#inMap path.hover-line { fill: none; stroke: var(--ink); stroke-width: 1.6; pointer-events: none; }
 #inMap text { fill: var(--surface); font-size: 7.5px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 #inMap text.dark { fill: var(--ink); }
 .legend i.box.none { background: var(--quiet); }
@@ -284,6 +287,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
           <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
+          <p class="hint ai-line" id="aiLine">AI on this tab: none on this copy. Suggestions here come from keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
           <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
@@ -309,7 +313,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <div class="panel">
         <h2 id="h-import">Import a rejection export</h2>
         <p class="hint">Columns: date, county, case_type, form, reason. The box holds a made-up example.</p>
-        <p class="hint" id="modelLine" hidden></p>
+        <p class="hint" id="modelLine">AI on this tab: none on this copy. Rows are sorted by keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
         <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
@@ -357,8 +361,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         <div class="actions">
           <button class="btn secondary" type="button" id="exRows">Export filings (CSV)</button>
           <button class="btn secondary" type="button" id="exCounties">Export county counts (CSV)</button>
+          <button class="btn secondary" type="button" id="exAll">Export all (CSV)</button>
           <button class="btn secondary" type="button" id="exPrint">Print or save as PDF</button>
-          <span class="hint">Exports follow the filters and hold no notes or names.</span>
+          <span class="hint">Exports follow the filters, except "Export all", which holds every filing. None hold notes or names.</span>
         </div>
       </div>
       <div class="kpis" id="kpis"></div>
@@ -397,7 +402,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code.</span> Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, OpenJev Flash 9B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -773,7 +778,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function showModel(ready) {
     modelReady = ready; modelCheckedAt = Date.now();
     if (!MODEL_HOST) return;
-    $("modelLine").hidden = false;
+    $("aiLine").textContent = ready
+      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". Type a note and it thinks it through, then suggests a problem."
+      : "AI on this tab: OpenJev Flash 9B, not ready yet. Until it is, suggestions come from keyword rules.";
     $("modelLine").textContent = ready
       ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, thinking each through in its own words first."
       : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
@@ -832,7 +839,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       return;
     }
     if (sugg.items.length && sugg.state !== "set aside") {
-      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "AI suggests" : "Keyword rules suggest"));
+      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests" : "Keyword rules suggest"));
       var ul = el("ul");
       sugg.items.forEach(function (it) {
         var li = el("li");
@@ -865,7 +872,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var foot = [];
     if (sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
     else if (sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
-    else if (sugg.items.length) foot.push((MODEL_HOST ? "Keyword rules only right now." : "No AI on this copy.") + " You make the final call.");
+    else if (sugg.items.length) foot.push((MODEL_HOST ? "OpenJev is not ready, so these come from keyword rules. " : "") + "You make the final call.");
     if (removed && sugg.by !== "model") foot.push("When you save, the note loses " + removed + ".");
     if (foot.length) box.appendChild(el("p", { "class": "hint" }, foot.join(" ")));
   }
@@ -1153,11 +1160,16 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // ---------- County map and breakdown ----------
   var SVGNS = "http://www.w3.org/2000/svg", mapNote = "";
   function svgEl(tag, attrs, text) { var e = document.createElementNS(SVGNS, tag); for (var a in attrs) e.setAttribute(a, attrs[a]); if (text != null) e.textContent = text; return e; }
-  function pickCounty(name) {
+  function pickCounty(name, byKey) {
     mapNote = "";
     $("fCounty").value = $("fCounty").value === name ? "" : name;
     renderDashboard();
+    if (byKey) {  // the map is redrawn, so put keyboard focus back on the same county
+      var back = $("inMap").querySelector('path[data-county="' + name + '"]');
+      if (back) back.focus();
+    }
   }
+  function focusVisible(e) { try { return e.matches(":focus-visible"); } catch (x) { return true; } }
   function renderMap() {
     var all = filtered(true), sel = $("fCounty").value, counts = {};
     all.forEach(function (r) { counts[r.county] = (counts[r.county] || 0) + 1; });
@@ -1166,17 +1178,30 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     function step(v) { return Math.min(STEPS.length - 1, Math.floor(v / max * STEPS.length - 1e-9)); }
     var svg = $("inMap"); svg.innerHTML = "";
     var top = null, labels = [];
+    // Hover and focus outlines go on one extra path drawn above every county.
+    // Outlining the county itself does not work: the counties drawn after it
+    // cover the shared borders, so part of the outline disappears.
+    var hover = svgEl("path", { "class": "hover-line", "aria-hidden": "true" }), hoverP = null, focusP = null;
+    function paintHover() {
+      var p = hoverP || focusP;
+      if (!p || p.classList.contains("sel")) { hover.removeAttribute("d"); return; }
+      hover.setAttribute("d", p.getAttribute("d"));
+    }
     IN_COUNTIES.forEach(function (c) {
       var name = c[0], pilot = COUNTIES.indexOf(name) >= 0, v = counts[name] || 0;
       var path = svgEl("path", { d: c[1], "class": pilot ? "pilot" + (name === sel ? " sel" : "") : "none" });
       if (pilot) {
         var st = step(v);
         path.style.fill = "color-mix(in srgb, var(--accent) " + STEPS[st] + "%, var(--surface))";
-        path.setAttribute("tabindex", "0"); path.setAttribute("role", "button");
+        path.setAttribute("tabindex", "0"); path.setAttribute("role", "button"); path.setAttribute("data-county", name);
         path.setAttribute("aria-pressed", name === sel ? "true" : "false");
         path.setAttribute("aria-label", name + " County, " + v + " flagged filings");
         path.addEventListener("click", function () { pickCounty(name); });
-        path.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickCounty(name); } });
+        path.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickCounty(name, true); } });
+        path.addEventListener("mouseenter", function () { hoverP = path; paintHover(); });
+        path.addEventListener("mouseleave", function () { hoverP = null; paintHover(); });
+        path.addEventListener("focus", function () { focusP = focusVisible(path) ? path : null; paintHover(); });
+        path.addEventListener("blur", function () { focusP = null; paintHover(); });
         labels.push(svgEl("text", { x: c[2], y: c[3], "class": st < 2 ? "dark" : "" }, String(v)));
       } else {
         path.addEventListener("click", function () { mapNote = name; renderCountyPanel(all, counts); });
@@ -1184,7 +1209,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       path.appendChild(svgEl("title", {}, name + " County" + (pilot ? ": " + v + " flagged filings" : ": not in the pilot")));
       if (name === sel) top = path; else svg.appendChild(path);
     });
-    if (top) svg.appendChild(top);  // drawn last so its outline is not covered
+    if (top) svg.appendChild(top);  // drawn after the other counties so its outline is not covered
+    svg.appendChild(hover);
     labels.forEach(function (t) { svg.appendChild(t); });
     var lg = $("mapLegend"); lg.innerHTML = "";
     var per = max / STEPS.length;
@@ -1257,12 +1283,16 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     return (county ? county.toLowerCase().replace(/[^a-z]+/g, "-") : "all-counties") + ($("fCase").value ? "-" + $("fCase").value.toLowerCase().replace(/[^a-z]+/g, "-") : "") + "-" + from + "-to-" + to;
   }
   // One row per flagged filing. Notes and raw import reasons stay out, so the file holds no names.
-  function exportRows(rs, county) {
-    download("filing-problems-" + fileTag(county) + ".csv", [["date", "county", "case_type", "form", "problems", "outcome", "source"]].concat(rs.map(function (r) {
+  function exportRows(rs, county, name) {
+    download(name || "filing-problems-" + fileTag(county) + ".csv", [["date", "county", "case_type", "form", "problems", "outcome", "source"]].concat(rs.map(function (r) {
       return [r.date, r.county, r.caseType, r.form, r.tags.join("; "), r.outcome, r.source];
     })));
   }
   $("exRows").addEventListener("click", function () { exportRows(filtered(), $("fCounty").value); });
+  // Every filing on the dashboard, whatever the filters say, oldest first.
+  $("exAll").addEventListener("click", function () {
+    exportRows(records.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }), "", "filing-problems-all.csv");
+  });
   $("exCounties").addEventListener("click", function () {
     var all = filtered(true), sel = $("fCounty").value;
     var names = COUNTIES.concat(all.map(function (r) { return r.county; }).filter(function (c, i, a) { return COUNTIES.indexOf(c) < 0 && a.indexOf(c) === i; }).sort());
