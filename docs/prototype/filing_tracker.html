@@ -144,6 +144,8 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .by { font-size: 0.78rem; color: var(--muted); }
 /* Suggestion under the note: plain text and two quiet buttons, no box. The clerk makes the final call. */
 .ai-line { margin-top: -10px; }
+/* While a suggestion shows, its own label says where it came from. */
+.ai-line:has(+ .suggest:not([hidden])) { display: none; }
 .hint a { color: var(--accent); }
 .suggest { display: grid; gap: 8px; margin-top: -10px; }
 .suggest .src { color: var(--accent); }
@@ -151,7 +153,8 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .suggest li strong { font-weight: 700; }
 .suggest .conf { font-size: 0.85rem; color: var(--muted); margin-left: 6px; }
 .why { font-size: 0.875rem; color: var(--muted); }
-.suggest .actions { gap: 8px; }
+.suggest .actions { gap: 8px 16px; }
+.suggest .actions .reasoning[open] { flex-basis: 100%; }
 .reasoning summary { cursor: pointer; color: var(--accent); font-size: 0.875rem; font-weight: 700; width: max-content; }
 .reasoning p { margin: 6px 0 0; font-size: 0.875rem; color: var(--ink); }
 .reasoning p.by { margin-top: 2px; font-size: 0.78rem; color: var(--muted); }
@@ -218,7 +221,6 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #inMap text { fill: var(--surface); font-size: 7.5px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 #inMap text.dark { fill: var(--ink); }
 .legend i.box.none { background: var(--quiet); }
-.map-by { max-width: 300px; }
 .linkish { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 /* Where to act first: a plain numbered list, one finding and one possible fix per item. */
 .insights { margin: 0; padding-left: 1.4em; display: grid; gap: 18px; max-width: 76ch; }
@@ -235,6 +237,24 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #times th:last-child { text-align: right; }
 td.mid { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 #colMapBox { display: grid; gap: 12px; }
+#colMapBox > summary { cursor: pointer; font-size: 0.875rem; color: var(--muted); width: fit-content; }
+#colMapBox > summary b { color: var(--accent); font-weight: 700; margin-left: 4px; }
+#colMapBox[open] > summary { margin-bottom: 12px; }
+#colMapBox .fields + .hint { margin-top: 12px; }
+/* Export: one quiet button that opens a short list. */
+.menu { position: relative; width: fit-content; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu > summary::after { content: ""; width: 7px; height: 7px; margin-left: 10px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
+.menu[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.menu-list { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; min-width: 280px; display: grid; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.menu-list button { font: inherit; text-align: left; color: var(--ink); background: none; border: 0; border-radius: 4px; min-height: 44px; padding: 8px 12px; cursor: pointer; }
+.menu-list button:hover { background: var(--quiet); }
+.menu.end .menu-list { left: auto; right: 0; }
+.menu-list .hint { padding: 8px 12px 4px; border-top: 1px solid var(--line); margin-top: 4px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }
+.filter-row .filters { flex: 1 1 560px; }
+.filter-row .menu > summary { min-height: 44px; padding-block: 0; }
 .county-panel { display: grid; gap: 18px; min-width: 0; }
 .county-panel h3 { font-family: var(--font-head); font-weight: 600; font-size: 1.6rem; line-height: 1.2; margin: 0; }
 .county-panel .big { font-family: var(--font-data); font-size: 2.6rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -243,7 +263,7 @@ td.mid { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 .county-panel .trend rect { fill: var(--accent); }
 .county-panel .actions { gap: 8px; }
 @media print {
-  header.top, .tabbar, footer, .skip, button, #view-log, #view-import, .filters + .actions { display: none !important; }
+  header.top, .tabbar, footer, .skip, button, #view-log, #view-import, .menu { display: none !important; }
   body { background: #fff; } main .wrap { padding-block: 0; }
   .panel { break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -293,7 +313,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
     <!-- View 1: clerk tagging -->
     <section class="view" id="view-log" aria-labelledby="h-log">
-      <p class="intro">A filing is sent back. The clerk tags what was wrong in a few clicks, with no names or case numbers. Type a short note and a suggestion appears; the clerk accepts or changes it.</p>
+      <p class="intro">Tag what was wrong with a filing that was sent back. No names or case numbers.</p>
       <div class="grid-2">
         <form class="panel" id="logForm" novalidate>
           <h2 id="h-log">Tag a filing problem</h2>
@@ -304,7 +324,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
           <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
-          <p class="hint ai-line" id="aiLine">AI on this tab: none on this copy. Suggestions here come from keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
+          <p class="hint ai-line" id="aiLine">Keyword rules suggest here. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> uses OpenJev (AI).</p>
           <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
@@ -312,7 +332,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           <div class="outcomes" id="logOutcome" role="group" aria-labelledby="outLabel"></div>
           <div class="actions">
             <button class="btn" type="submit" id="logSave" disabled>Save tags</button>
-            <button class="btn secondary" type="button" id="logClear">Clear</button>
+            <button class="linkish" type="button" id="logClear">Clear</button>
             <span class="status" id="logStatus" role="status"></span>
           </div>
         </form>
@@ -326,22 +346,21 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
     <!-- View 2: CSV import -->
     <section class="view" id="view-import" aria-labelledby="h-import" hidden>
-      <p class="intro">Paste or upload a spreadsheet export of filings, saved as CSV. Each typed reason is sorted into the same problem list.</p>
+      <p class="intro">Paste or upload a CSV export. Each reason is sorted into the same problem list.</p>
       <div class="panel">
         <h2 id="h-import">Import a filing export</h2>
-        <p class="hint">Any column names work: you match them after sorting. Date and reason are needed. A status column lets accepted filings count too, so the dashboard can show what share gets sent back. The box holds a small made-up example; <button type="button" class="linkish" id="csvDemo">load a bigger made-up export</button> with other column names.</p>
-        <p class="hint" id="modelLine">AI on this tab: none on this copy. Rows are sorted by keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
+        <p class="hint">Any column names work. A date and a reason are needed; a status column lets accepted filings count. <span id="modelLine">Keyword rules sort the rows here; the <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> adds OpenJev (AI).</span> <button type="button" class="linkish" id="csvDemo">Try a bigger made-up export</button></p>
         <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
           <label class="btn secondary" for="csvFile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Upload a CSV file<input type="file" id="csvFile" class="sr" accept=".csv,text/csv"></label>
           <span class="status" id="csvStatus" role="status"></span>
         </div>
-        <div id="colMapBox" hidden>
-          <p class="label-sm">Your columns</p>
+        <details id="colMapBox" hidden>
+          <summary id="colMapSum">Columns</summary>
           <div class="fields" id="colMap"></div>
-          <p class="hint">Guessed from the header row; change any that are wrong. Columns not picked here, such as names or case numbers, are not read.</p>
-        </div>
+          <p class="hint">Guessed from the header row. Columns not picked here, such as names or case numbers, are not read.</p>
+        </details>
       </div>
       <div class="panel plain" id="previewPanel" hidden>
         <h2>Preview <small id="previewSummary"></small></h2>
@@ -353,22 +372,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         </div>
         <p class="hint" id="previewCap" hidden></p>
         <div class="actions">
-          <button class="btn" type="button" id="csvOnly">Show only these rows on the dashboard</button>
-          <button class="btn secondary" type="button" id="csvAdd">Add them to the made-up sample</button>
+          <button class="btn" type="button" id="csvOnly">Show these rows on the dashboard</button>
         </div>
-        <p class="hint">Rows marked "Needs review" keep that label until a clerk tags them. The made-up sample only covers January to October 2026, so other dates are only kept when you show these rows on their own.</p>
+        <p class="hint">Rows marked "Needs review" keep that label until a clerk tags them.</p>
       </div>
     </section>
 
     <!-- View 3: dashboard -->
     <section class="view" id="view-dashboard" aria-labelledby="h-dash" hidden>
-      <p class="intro">Which mistakes are most common, where, on which forms, when, what to fix first, and whether a change helped.</p>
+      <p class="intro">Where filings get sent back, on which forms, when, and what to fix first.</p>
       <div class="data-line" id="dataLine"></div>
       <div class="panel plain">
-        <h2>By county <small>click a county to see its breakdown and filter the dashboard</small></h2>
+        <h2>By county <small>click a county to filter</small></h2>
         <div class="map-grid">
           <figure class="map">
-            <label class="f map-by" id="mapByWrap" hidden>Shade counties by<select id="mapBy"><option value="n">Number of flagged filings</option><option value="rate">Share of submissions flagged</option></select></label>
             <svg id="inMap" viewBox="-6 -6 312 485" role="group" aria-label="Map of Indiana's 92 counties, shaded by flagged filings"></svg>
             <figcaption class="legend" id="mapLegend"></figcaption>
           </figure>
@@ -378,25 +395,30 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       </div>
       <div class="panel plain">
         <h2 id="h-dash" class="sr">Filters</h2>
-        <div class="filters">
-          <label class="f">County<select id="fCounty"></select></label>
-          <label class="f">Case type<select id="fCase"></select></label>
-          <label class="f">From<select id="fFrom"></select></label>
-          <label class="f">To<select id="fTo"></select></label>
-        </div>
-        <div class="actions">
-          <button class="btn secondary" type="button" id="exRows">Export filings (CSV)</button>
-          <button class="btn secondary" type="button" id="exCounties">Export county counts (CSV)</button>
-          <button class="btn secondary" type="button" id="exAll">Export all (CSV)</button>
-          <button class="btn secondary" type="button" id="exPrint">Print or save as PDF</button>
-          <span class="hint">Exports follow the filters, except "Export all", which holds every filing. None hold notes or names.</span>
+        <div class="filter-row">
+          <div class="filters">
+            <label class="f">County<select id="fCounty"></select></label>
+            <label class="f">Case type<select id="fCase"></select></label>
+            <label class="f">From<select id="fFrom"></select></label>
+            <label class="f">To<select id="fTo"></select></label>
+          </div>
+          <details class="menu" id="exMenu">
+            <summary class="btn secondary">Export</summary>
+            <div class="menu-list">
+              <button type="button" id="exRows">Filings shown (CSV)</button>
+              <button type="button" id="exCounties">County counts (CSV)</button>
+              <button type="button" id="exAll">All filings, no filters (CSV)</button>
+              <button type="button" id="exPrint">Print or save as PDF</button>
+              <p class="hint">No notes or names in any export.</p>
+            </div>
+          </details>
         </div>
       </div>
       <div class="kpis" id="kpis"></div>
       <div class="panel plain">
         <h2>Where to act first <small>from the filings shown</small></h2>
         <ol class="insights" id="insights"></ol>
-        <p class="hint">Picked by fixed rules from the counts above, with no AI. They point to where to look; check them with clerks before changing anything.</p>
+        <p class="hint">Fixed rules, no AI. Check with clerks before changing anything.</p>
       </div>
       <div class="grid-2">
         <div class="panel plain">
@@ -676,8 +698,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       r.tags.forEach(function (t) { tg.appendChild(el("span", { "class": "tag" }, t)); });
       li.appendChild(tg);
       (r.ai || []).forEach(function (a) {
-        li.appendChild(el("div", { "class": "by" }, (a.by === "model" ? MODEL_NAME : "Keyword rules") + " suggested " + a.tag + " because " + a.why + ". The clerk accepted."));
-        if (a.words) li.appendChild(reasoningBox(a.words));
+        li.appendChild(el("div", { "class": "by" }, a.tag + ": suggested by " + (a.by === "model" ? MODEL_NAME : "keyword rules") + ", accepted by the clerk."));
       });
       if (r.note) li.appendChild(el("div", { "class": "meta" }, "Note: " + r.note));
       ul.appendChild(li);
@@ -846,12 +867,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function showModel(ready) {
     modelReady = ready; modelCheckedAt = Date.now();
     if (!MODEL_HOST) return;
-    $("aiLine").textContent = ready
-      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". Type a note and it thinks it through, then suggests a problem."
-      : "AI on this tab: OpenJev Flash 9B, not ready yet. Until it is, suggestions come from keyword rules.";
-    $("modelLine").textContent = ready
-      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, thinking each through in its own words first."
-      : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
+    $("aiLine").textContent = ready ? "OpenJev (AI) suggests here, running " + MODEL_PLACE + "." : "OpenJev (AI) is not ready yet, so keyword rules suggest.";
+    $("modelLine").textContent = ready ? "OpenJev (AI) sorts the rows the keyword rules cannot, running " + MODEL_PLACE + "." : "OpenJev (AI) is not ready yet, so keyword rules sort every row.";
   }
   function modelAvailable() {
     if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
@@ -903,11 +920,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (thinking) {
       box.appendChild(el("div", { "class": "label-sm src" }, thinking.deciding ? "OpenJev is choosing a problem..." : "OpenJev is thinking..."));
       box.appendChild(el("p", { "class": "why thought", "data-think": "1" }, thinking.text ? thinking.text + (thinking.deciding ? "" : " ▍") : "Reading the note..."));
-      box.appendChild(el("p", { "class": "hint" }, "OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + "."));
+      if (removed) box.appendChild(el("p", { "class": "hint" }, "Sent without " + removed + "."));
       return;
     }
-    if (sugg.items.length && sugg.state !== "set aside") {
-      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests" : "Keyword rules suggest"));
+    if (sugg.items.length) {
+      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests"
+        : "Keyword rules suggest" + (sugg.modelUnsure ? " (OpenJev was not sure)" : MODEL_HOST && !modelReady ? " (OpenJev not ready)" : "")));
       var ul = el("ul");
       sugg.items.forEach(function (it) {
         var li = el("li");
@@ -926,23 +944,18 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           sugg.state = "accepted"; renderSuggest();
           $("logTags").querySelector('[data-t="' + sugg.items[0].tag + '"]').focus({ preventScroll: true });
         });
-        var change = el("button", { type: "button", "class": "btn secondary sm", id: "suggestChange" }, "Change");
-        change.addEventListener("click", function () {
-          sugg.state = "set aside"; renderSuggest();
-          $("logTags").querySelector(".chip").focus({ preventScroll: true });
-        });
-        act.appendChild(ok); act.appendChild(change);
+        act.appendChild(ok);
+        if (sugg.thought) act.appendChild(reasoningBox(sugg.thought));
         box.appendChild(act);
-      } else box.appendChild(el("p", { "class": "hint" }, "Accepted and ticked below. You can still change the problems."));
-    } else if (sugg.state === "set aside") box.appendChild(el("p", { "class": "hint" }, "Suggestion set aside. Pick the problems below."));
-    else if (sugg.unsure) box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
-    if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
-    var foot = [];
-    if (sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
-    else if (sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
-    else if (sugg.items.length) foot.push((MODEL_HOST ? "OpenJev is not ready, so these come from keyword rules. " : "") + "You make the final call.");
-    if (removed && sugg.by !== "model") foot.push("When you save, the note loses " + removed + ".");
-    if (foot.length) box.appendChild(el("p", { "class": "hint" }, foot.join(" ")));
+      } else {
+        box.appendChild(el("p", { "class": "hint" }, "Ticked below."));
+        if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
+      }
+    } else if (sugg.unsure) {
+      box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
+      if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
+    }
+    if (removed) box.appendChild(el("p", { "class": "hint" }, sugg.by === "model" ? "Sent without " + removed + "." : "When you save, the note loses " + removed + "."));
   }
   function keepState(next) { if (next && sugg && sameTags(sugg, next) && sugg.by === next.by) next.state = sugg.state; return next; }
   function suggestNow() {
@@ -1049,6 +1062,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var box = $("colMap");
     if (sig === colMapSig && !$("colMapBox").hidden) {  // same header: only sync the values, so focus stays put
       box.querySelectorAll("select").forEach(function (sel) { var k = sel.getAttribute("data-k"); sel.value = colMap[k] != null ? String(colMap[k]) : ""; });
+      colMapSummary();
       return;
     }
     colMapSig = sig; box.innerHTML = "";
@@ -1062,6 +1076,14 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       lab.appendChild(sel); box.appendChild(lab);
     });
     $("colMapBox").hidden = false;
+    colMapSummary();
+  }
+  // Folded to one line: which columns are read. It opens by itself when a needed column is missing.
+  function colMapSummary() {
+    var got = FIELDS.filter(function (f) { return colMap[f.k] != null; }).map(function (f) { return f.label.toLowerCase(); });
+    var sum = $("colMapSum"); sum.textContent = got.length ? "Columns read: " + got.join(", ") + "." : "No columns matched yet.";
+    sum.appendChild(el("b", null, "Change"));
+    if (FIELDS.some(function (f) { return f.need && colMap[f.k] == null; })) $("colMapBox").open = true;
   }
   // "Lake Superior Court 2", "St Joseph", "La Porte County", "Superior Court of Allen County" and
   // "Saint Joseph Probate Court" all find their county. Whole words only, so "Lakeville Town Court" is not Lake,
@@ -1168,7 +1190,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
   function previewReady(note) {
     var already = importKey() === addedText;
-    $("csvAdd").disabled = already; $("csvOnly").disabled = already;
+    $("csvOnly").disabled = already;
     $("csvStatus").className = "status";
     $("csvStatus").textContent = already ? "These rows are already on the dashboard." : (note || "") + "Preview ready below.";
   }
@@ -1208,7 +1230,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var left = pending.filter(function (p) { return p.reason && p.tags[0] === NEEDS_REVIEW; });
     if (!left.length) { previewReady(); return; }
     sorting = true;
-    $("csvAdd").disabled = true; $("csvOnly").disabled = true;
+    $("csvOnly").disabled = true;
     modelAvailable().then(function (ok) {
       if (run !== sortRun) return;
       if (!ok) { sorting = false; previewReady(); return; }
@@ -1255,25 +1277,11 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     myRecords = rows.slice(); myLabel = pendingName || "the pasted rows";
     useData("mine");
     addedText = importKey(); addedHow = "only";
-    $("csvSort").focus();
-    $("csvOnly").disabled = true; $("csvAdd").disabled = true;
+    $("csvOnly").disabled = true;
     $("csvStatus").className = "status";
-    $("csvStatus").textContent = "The dashboard now shows only these " + rows.length.toLocaleString() + " rows. Open it to see them.";
-  });
-  $("csvAdd").addEventListener("click", function () {
-    var rows = pending.concat(pendingAccepted);
-    var added = rows.filter(function (p) { return monthsAll.indexOf(p.date.slice(0, 7)) >= 0; });
-    var skipped = rows.length - added.length;
-    added.forEach(function (p) { sampleRecords.push(p); });
-    addedText = importKey(); addedHow = "sample";
-    useData("sample");
-    $("csvSort").focus();
-    $("csvAdd").disabled = true; $("csvOnly").disabled = true;
-    var skipNote = skipped ? " Skipped " + skipped + (skipped === 1 ? " row" : " rows") + " dated outside January to October 2026." : "";
-    $("csvStatus").className = added.length ? "status" : "status err";
-    $("csvStatus").textContent = added.length
-      ? "Added " + added.length + (added.length === 1 ? " row" : " rows") + " to the made-up sample." + skipNote + " Open the dashboard to see them."
-      : "No rows added. The made-up sample covers January to October 2026; use “Show only these rows” for other dates.";
+    $("csvStatus").textContent = "The dashboard shows only these " + rows.length.toLocaleString() + " rows.";
+    location.hash = "#dashboard";
+    setTimeout(function () { var t = $("dataText"); if (t) t.focus({ preventScroll: true }); }, 0);
   });
 
   // A made-up export with other column names, accepted filings and times, to try the column matching.
@@ -1350,8 +1358,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     $("fCase").value = curCases.indexOf(keep.fCase) >= 0 ? keep.fCase : "";
     $("fFrom").value = curMonths.indexOf(keep.fFrom) >= 0 ? keep.fFrom : curMonths[0];
     $("fTo").value = curMonths.indexOf(keep.fTo) >= 0 ? keep.fTo : curMonths[curMonths.length - 1];
-    $("mapByWrap").hidden = !curHasSubs;
-    if (!curHasSubs) $("mapBy").value = "n";
+    if (!curHasSubs) mapByRate = false;
   }
   function useData(mode) {
     dataMode = mode;
@@ -1362,13 +1369,11 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     refreshDims();
     if (currentView === "dashboard") renderDashboard(); else renderFlag();
   }
-  function importedInSample() { return sampleRecords.filter(function (r) { return r.source === "import"; }).length; }
   function renderFlag() {
-    $("sampleFlag").textContent = dataMode === "mine" ? "Prototype. Showing rows you loaded." : (importedInSample() ? "Prototype. Made-up sample plus rows you added." : "Prototype. All data is made up.");
+    $("sampleFlag").textContent = dataMode === "mine" ? "Prototype. Showing rows you loaded." : "Prototype. All data is made up.";
   }
   refreshDims();
   ["fCounty", "fCase", "fFrom", "fTo"].forEach(function (id) { $(id).addEventListener("change", renderDashboard); });
-  $("mapBy").addEventListener("change", function () { renderMap(); });
   fillSelect($("evSel"), EVENTS.map(function (e) { return { value: e.id, label: e.name }; }));
   fillSelect($("evTag"), TAGS);
   $("evSel").addEventListener("change", function () { $("evTag").value = currentEvent().tag; renderEvent(); });
@@ -1498,10 +1503,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var box = $("dataLine"); box.innerHTML = "";
     var p = el("p", { "class": "hint", id: "dataText", tabindex: "-1" });
     if (dataMode === "sample") {
-      var added = importedInSample();
-      p.appendChild(document.createTextNode(added
-        ? "Showing the made-up sample (8 pilot counties, January to October 2026) plus " + added.toLocaleString() + (added === 1 ? " row" : " rows") + " you added on "
-        : "Showing the made-up sample: 8 pilot counties, January to October 2026, accepted filings included. To try your own export, use "));
+      p.appendChild(document.createTextNode("Showing the made-up sample: 8 pilot counties, January to October 2026. To try your own export, use "));
       p.appendChild(el("a", { href: "#import" }, "Import"));
       p.appendChild(document.createTextNode("."));
       box.appendChild(p);
@@ -1511,9 +1513,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     p.textContent = "Showing only your rows: " + records.length.toLocaleString() + " filings from " + myLabel + ", " + monthLabel(curMonths[0]) + " to " + monthLabel(curMonths[curMonths.length - 1]) + ". "
       + (sentN ? "They stay in this browser, except " + sentN + (sentN === 1 ? " reason" : " reasons") + " the keyword rules could not sort, sent to OpenJev with names and numbers taken out." : "They stay in this browser and are not sent anywhere.");
     box.appendChild(p);
-    var b = el("button", { type: "button", "class": "btn secondary sm" }, "Show the made-up sample instead");
+    var b = el("button", { type: "button", "class": "linkish" }, "Show the made-up sample");
     b.addEventListener("click", function () { useData("sample"); var t = $("dataText"); if (t) t.focus(); });
-    box.appendChild(b);
+    p.appendChild(document.createTextNode(" "));
+    p.appendChild(b);
   }
 
   // ---------- When flagged filings were sent ----------
@@ -1560,7 +1563,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var untimed = rs.length - timed;
     $("timeHint").textContent = (!rs.length ? "No flagged filings match these filters. " : "")
       + (bands ? "Office hours are 8 am to 5 pm. " + (untimed ? untimed + " flagged filings have no time, so they count only under All. " : "") : "This data has no times, so only the day of the week is shown. ")
-      + (dataMode === "sample" ? (importedInSample() ? "Times in the made-up rows are made up." : "Times in the sample are made up.") : "");
+      + (dataMode === "sample" ? "Times in the sample are made up." : "");
   }
 
   // ---------- Where to act first ----------
@@ -1657,6 +1660,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       if (back) back.focus();
     }
   }
+  var mapByRate = false;
   function focusVisible(e) { try { return e.matches(":focus-visible"); } catch (x) { return true; } }
   function renderMap() {
     var all = filtered(true), sel = $("fCounty").value, counts = {};
@@ -1664,7 +1668,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var sent = curHasSubs ? sentCounts(filtered(true, true), function (r) { return r.county; }) : {};
     // Counties with data: the 8 pilot counties for the sample, or every county in the imported rows.
     var hasData = {}; curCounties.forEach(function (c) { hasData[c] = true; });
-    var byRate = curHasSubs && $("mapBy").value === "rate";
+    var byRate = curHasSubs && mapByRate;
     function value(c) { return byRate ? (sent[c] ? sent[c].f / sent[c].n : 0) : counts[c] || 0; }
     function shown(c) { return byRate ? share(sent[c]) : String(counts[c] || 0); }
     // The scale only counts counties drawn on the map, not "Not given" or names that are not Indiana counties.
@@ -1716,11 +1720,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       sp.appendChild(b); sp.appendChild(document.createTextNode("up to " + (byRate ? Math.round(upTo * 100) + "%" : (i === STEPS.length - 1 ? max : Math.round(upTo))))); lg.appendChild(sp);
     });
     var nd = el("span"); nd.appendChild(el("i", { "class": "box none" })); nd.appendChild(document.createTextNode(noData)); lg.appendChild(nd);
+    if (curHasSubs) {
+      var tg = el("button", { type: "button", "class": "linkish", id: "mapBy" }, byRate ? "Shade by number instead" : "Shade by share sent back");
+      tg.addEventListener("click", function () { mapByRate = !mapByRate; renderMap(); $("mapBy").focus(); });
+      lg.appendChild(tg);
+    }
     $("inMap").setAttribute("aria-label", "Map of Indiana's 92 counties, shaded by " + (byRate ? "share of filings sent that were flagged" : "flagged filings"));
     var unmatched = dataMode === "sample" ? 0 : curCounties.filter(function (c) { return !isCounty(c); }).length;
-    var addedCounties = dataMode === "sample" ? curCounties.filter(function (c) { return COUNTIES.indexOf(c) < 0 && isCounty(c); }).length : 0;
     $("mapHint").textContent = "County lines from the US Census Bureau (public domain). " + (dataMode === "sample"
-      ? "The made-up sample covers 8 pilot counties" + (addedCounties ? "; rows you added cover " + addedCounties + " more" : "") + ". The other " + (84 - addedCounties) + " have no data."
+      ? "The made-up sample covers 8 pilot counties; the other 84 have no data."
       : "Counties are found by name in your county or court column." + (unmatched ? " " + unmatched + (unmatched === 1 ? " value was" : " values were") + " not an Indiana county, so " + (unmatched === 1 ? "it shows" : "they show") + " in the tables but not on the map." : ""));
     renderCountyPanel(all, counts, sent);
   }
@@ -1731,7 +1739,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (mapNote) {
       box.appendChild(el("h3", null, mapNote + " County"));
       box.appendChild(el("p", { "class": "hint" }, sample ? "Not one of the 8 pilot counties, so the sample has no data for it." : "Your rows have no filings from this county."));
-      var back = el("button", { type: "button", "class": "btn secondary sm" }, sel ? "Back to " + sel : (sample ? "Back to all pilot counties" : "Back to all counties"));
+      var back = el("button", { type: "button", "class": "linkish" }, sel ? "Back to " + sel : (sample ? "Back to all pilot counties" : "Back to all counties"));
       back.addEventListener("click", function () { mapNote = ""; renderCountyPanel(all, counts, sent); });
       box.appendChild(back);
       return;
@@ -1772,12 +1780,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     });
     tr.appendChild(sv); box.appendChild(tr);
     if (sel) {
-      var act = el("div", { "class": "actions" });
-      var ex = el("button", { type: "button", "class": "btn secondary sm" }, "Export " + sel + " (CSV)");
-      ex.addEventListener("click", function () { exportRows(rs, sel); });
-      var all2 = el("button", { type: "button", "class": "btn secondary sm" }, "Show all counties");
+      var all2 = el("button", { type: "button", "class": "linkish" }, "Show all counties");
       all2.addEventListener("click", function () { pickCounty(sel); });
-      act.appendChild(ex); act.appendChild(all2); box.appendChild(act);
+      var line = el("p", { "class": "hint" }, "Export from the menu under the map gets only " + sel + ". ");
+      line.appendChild(all2); box.appendChild(line);
     }
   }
 
@@ -1814,7 +1820,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       return [c, rs.length].concat(curHasSubs ? [sent[c] || 0] : []).concat(TAGS.map(function (t) { return tc[t] || 0; })).concat(OUTCOMES.map(function (o) { return oc[o] || 0; }));
     })));
   });
-  $("exPrint").addEventListener("click", function () { window.print(); });
+  $("exPrint").addEventListener("click", function () { $("exMenu").open = false; window.print(); });
+  ["exRows", "exCounties", "exAll"].forEach(function (id) { $(id).addEventListener("click", function () { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); }); });
+  // The list opens to the right of the button, or to its left when there is no room.
+  $("exMenu").addEventListener("toggle", function () {
+    var m = $("exMenu"); m.classList.remove("end");
+    if (m.open && m.querySelector(".menu-list").getBoundingClientRect().right > document.documentElement.clientWidth - 8) m.classList.add("end");
+  });
+  document.addEventListener("click", function (e) { if ($("exMenu").open && !$("exMenu").contains(e.target)) $("exMenu").open = false; });
+  $("exMenu").addEventListener("keydown", function (e) { if (e.key === "Escape" && $("exMenu").open) { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); } });
 
   function renderEvent() {
     var ev = currentEvent(), tag = $("evTag").value;
