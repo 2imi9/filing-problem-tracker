@@ -143,6 +143,8 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .tag.none { color: var(--bad); font-weight: 700; }
 .by { font-size: 0.78rem; color: var(--muted); }
 /* Suggestion under the note: plain text and two quiet buttons, no box. The clerk makes the final call. */
+.ai-line { margin-top: -10px; }
+.hint a { color: var(--accent); }
 .suggest { display: grid; gap: 8px; margin-top: -10px; }
 .suggest .src { color: var(--accent); }
 .suggest ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -284,6 +286,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
           <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
+          <p class="hint ai-line" id="aiLine">AI on this tab: none on this copy. Suggestions here come from keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
           <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
@@ -309,7 +312,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <div class="panel">
         <h2 id="h-import">Import a rejection export</h2>
         <p class="hint">Columns: date, county, case_type, form, reason. The box holds a made-up example.</p>
-        <p class="hint" id="modelLine" hidden></p>
+        <p class="hint" id="modelLine">AI on this tab: none on this copy. Rows are sorted by keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
         <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
@@ -398,7 +401,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code.</span> Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, OpenJev Flash 9B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -774,7 +777,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function showModel(ready) {
     modelReady = ready; modelCheckedAt = Date.now();
     if (!MODEL_HOST) return;
-    $("modelLine").hidden = false;
+    $("aiLine").textContent = ready
+      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". Type a note and it thinks it through, then suggests a problem."
+      : "AI on this tab: OpenJev Flash 9B, not ready yet. Until it is, suggestions come from keyword rules.";
     $("modelLine").textContent = ready
       ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, thinking each through in its own words first."
       : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
@@ -833,7 +838,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       return;
     }
     if (sugg.items.length && sugg.state !== "set aside") {
-      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "AI suggests" : "Keyword rules suggest"));
+      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests" : "Keyword rules suggest"));
       var ul = el("ul");
       sugg.items.forEach(function (it) {
         var li = el("li");
@@ -866,7 +871,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var foot = [];
     if (sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
     else if (sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
-    else if (sugg.items.length) foot.push((MODEL_HOST ? "Keyword rules only right now." : "No AI on this copy.") + " You make the final call.");
+    else if (sugg.items.length) foot.push((MODEL_HOST ? "OpenJev is not ready, so these come from keyword rules. " : "") + "You make the final call.");
     if (removed && sugg.by !== "model") foot.push("When you save, the note loses " + removed + ".");
     if (foot.length) box.appendChild(el("p", { "class": "hint" }, foot.join(" ")));
   }
