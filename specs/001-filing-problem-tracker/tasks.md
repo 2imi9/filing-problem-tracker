@@ -69,6 +69,8 @@
 - [x] T019b [US4] Prototype: the same page and model on a Hugging Face Space in `space/`
 - [x] T019d [US3] Prototype: Indiana county map with a per-county breakdown, CSV exports and a print view in `docs/prototype/filing_tracker.html`
 - [x] T019c [US1] Prototype: live suggestion with Accept and Change while a note is typed, a reason under every AI or rule tag, and note cleaning before anything is sent
+- [x] T019e [US3] Prototype: own data on the dashboard (column matching, accepted filings, any county and dates), share of filings sent back, times sent and "Where to act first" in `docs/prototype/filing_tracker.html`
+- [x] T019f [US3] Prototype: fewer buttons (one Accept for a suggestion, column matching folded to one line, one Import button that opens the dashboard, one Export menu, links for secondary steps) in `docs/prototype/filing_tracker.html`
 
 ## Phase 7: User Story 5 - Ask for a view (Priority: P3)
 

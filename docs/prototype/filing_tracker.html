@@ -51,7 +51,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f
 .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 10; background: var(--surface); color: var(--accent); padding: 10px 14px; border-radius: 4px; font-weight: 700; }
 .skip:focus { top: 12px; }
-a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, label.btn:focus-within, .table-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible, label.btn:focus-within, .table-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 nav.tabs a:focus-visible { outline-offset: -3px; }
 ::placeholder { color: var(--muted); opacity: 1; }
 
@@ -126,7 +126,7 @@ textarea { font-family: var(--font-data); font-size: 0.82rem; line-height: 1.55;
 th.num { font-family: inherit; }
 #heat th { white-space: normal; vertical-align: bottom; }
 #heat th.num { text-align: center; }
-#heat th:last-child { text-align: right; }
+
 /* One gold action at a time: once the preview shows, sorting again is the quiet button. */
 #view-import:has(#previewPanel:not([hidden])) #csvSort { background: transparent; color: var(--accent); border-color: var(--line); }
 #previewBody td:nth-child(3) { white-space: nowrap; }
@@ -144,6 +144,8 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .by { font-size: 0.78rem; color: var(--muted); }
 /* Suggestion under the note: plain text and two quiet buttons, no box. The clerk makes the final call. */
 .ai-line { margin-top: -10px; }
+/* While a suggestion shows, its own label says where it came from. */
+.ai-line:has(+ .suggest:not([hidden])) { display: none; }
 .hint a { color: var(--accent); }
 .suggest { display: grid; gap: 8px; margin-top: -10px; }
 .suggest .src { color: var(--accent); }
@@ -151,7 +153,8 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .suggest li strong { font-weight: 700; }
 .suggest .conf { font-size: 0.85rem; color: var(--muted); margin-left: 6px; }
 .why { font-size: 0.875rem; color: var(--muted); }
-.suggest .actions { gap: 8px; }
+.suggest .actions { gap: 8px 16px; }
+.suggest .actions .reasoning[open] { flex-basis: 100%; }
 .reasoning summary { cursor: pointer; color: var(--accent); font-size: 0.875rem; font-weight: 700; width: max-content; }
 .reasoning p { margin: 6px 0 0; font-size: 0.875rem; color: var(--ink); }
 .reasoning p.by { margin-top: 2px; font-size: 0.78rem; color: var(--muted); }
@@ -218,6 +221,42 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 #inMap text { fill: var(--surface); font-size: 7.5px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 #inMap text.dark { fill: var(--ink); }
 .legend i.box.none { background: var(--quiet); }
+.linkish { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+/* Links that stand on their own still get a 44px target; links inside a sentence keep the line height. */
+.actions > .linkish, .legend > .linkish, .county-panel > .linkish, .data-line > .linkish { min-height: 44px; justify-self: start; }
+/* Where to act first: a plain numbered list, one finding and one possible fix per item. */
+.insights { margin: 0; padding-left: 1.4em; display: grid; gap: 18px; max-width: 76ch; }
+.insights li::marker { font-family: var(--font-data); color: var(--muted); }
+.insights strong { font-weight: 700; }
+.insights p { margin: 4px 0 0; }
+.insights .fix { color: var(--muted); font-size: 0.92rem; }
+.data-line { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: -24px; }
+.data-line p { min-width: 0; overflow-wrap: anywhere; }
+.data-line p:focus { outline: none; }
+.county-panel h3, .kpi .v.sm, #heat td:first-child { overflow-wrap: anywhere; }
+#heat th.right { text-align: right; }
+#times th.num, #times td.mid { text-align: center; }
+#times th:last-child { text-align: right; }
+td.mid { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+#colMapBox { display: grid; gap: 12px; }
+#colMapBox > summary { cursor: pointer; font-size: 0.875rem; color: var(--muted); width: fit-content; padding-block: 11px; }
+#colMapBox > summary b { color: var(--accent); font-weight: 700; }
+#colMapBox[open] > summary { margin-bottom: 4px; }
+#colMapBox .fields + .hint { margin-top: 12px; }
+/* Export: one quiet button that opens a short list. */
+.menu { position: relative; width: fit-content; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu > summary::after { content: ""; width: 7px; height: 7px; margin-left: 10px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
+.menu[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.menu-list { position: absolute; z-index: 4; top: calc(100% + 6px); left: 0; min-width: 280px; display: grid; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.menu-list button { font: inherit; text-align: left; color: var(--ink); background: none; border: 0; border-radius: 4px; min-height: 44px; padding: 8px 12px; cursor: pointer; }
+.menu-list button:hover { background: var(--quiet); }
+.menu.end .menu-list { left: auto; right: 0; }
+.menu-list .hint { padding: 8px 12px 4px; border-top: 1px solid var(--line); margin-top: 4px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }
+.filter-row .filters { flex: 1 1 560px; }
+.filter-row .menu > summary { min-height: 44px; padding-block: 0; }
 .county-panel { display: grid; gap: 18px; min-width: 0; }
 .county-panel h3 { font-family: var(--font-head); font-weight: 600; font-size: 1.6rem; line-height: 1.2; margin: 0; }
 .county-panel .big { font-family: var(--font-data); font-size: 2.6rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -226,7 +265,7 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .county-panel .trend rect { fill: var(--accent); }
 .county-panel .actions { gap: 8px; }
 @media print {
-  header.top, .tabbar, footer, .skip, button, #view-log, #view-import, .filters + .actions { display: none !important; }
+  header.top, .tabbar, footer, .skip, button, #view-log, #view-import, .menu { display: none !important; }
   body { background: #fff; } main .wrap { padding-block: 0; }
   .panel { break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -255,7 +294,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   <div class="hero">
     <img class="hero-img" src="../assets/courthouse-ascii-hero.jpg" alt="" width="1280" height="560" onerror="this.remove()">
     <div class="wrap hero-in">
-      <span class="sample-flag">Prototype. All data is made up.</span>
+      <span class="sample-flag" id="sampleFlag">Prototype. All data is made up.</span>
       <h1><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 2.5 30 11H2z"/><circle fill="#fcd34d" cx="16" cy="7.9" r="1.7"/><path fill="currentColor" d="M4 12.5h24v2H4zM5.5 16h3v8.5h-3zM11.5 16h3v8.5h-3zM17.5 16h3v8.5h-3zM23.5 16h3v8.5h-3zM4 25.5h24v2H4zM2 28.5h28v2H2z"/></svg>Filing Problem Tracker</h1>
       <p>See why court filings from people without lawyers get rejected, and whether fixes work.</p>
     </div>
@@ -276,7 +315,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
     <!-- View 1: clerk tagging -->
     <section class="view" id="view-log" aria-labelledby="h-log">
-      <p class="intro">A filing is sent back. The clerk tags what was wrong in a few clicks, with no names or case numbers. Type a short note and a suggestion appears; the clerk accepts or changes it.</p>
+      <p class="intro">Tag what was wrong with a filing that was sent back. No names or case numbers.</p>
       <div class="grid-2">
         <form class="panel" id="logForm" novalidate>
           <h2 id="h-log">Tag a filing problem</h2>
@@ -287,7 +326,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
           <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
-          <p class="hint ai-line" id="aiLine">AI on this tab: none on this copy. Suggestions here come from keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
+          <p class="hint ai-line" id="aiLine">Keyword rules suggest here. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> uses OpenJev (AI).</p>
           <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
@@ -295,7 +334,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           <div class="outcomes" id="logOutcome" role="group" aria-labelledby="outLabel"></div>
           <div class="actions">
             <button class="btn" type="submit" id="logSave" disabled>Save tags</button>
-            <button class="btn secondary" type="button" id="logClear">Clear</button>
+            <button class="linkish" type="button" id="logClear">Clear</button>
             <span class="status" id="logStatus" role="status"></span>
           </div>
         </form>
@@ -309,17 +348,21 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
     <!-- View 2: CSV import -->
     <section class="view" id="view-import" aria-labelledby="h-import" hidden>
-      <p class="intro">Paste a spreadsheet export of past rejections. Each typed reason is sorted into the same problem list.</p>
+      <p class="intro">Paste or upload a CSV export. Each reason is sorted into the same problem list.</p>
       <div class="panel">
-        <h2 id="h-import">Import a rejection export</h2>
-        <p class="hint">Columns: date, county, case_type, form, reason. The box holds a made-up example.</p>
-        <p class="hint" id="modelLine">AI on this tab: none on this copy. Rows are sorted by keyword rules. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> runs the OpenJev Flash 9B model.</p>
+        <h2 id="h-import">Import a filing export</h2>
+        <p class="hint">Any column names work. A date and a reason are needed; a status column lets accepted filings count. <span id="modelLine">Keyword rules sort the rows here; the <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> adds OpenJev (AI).</span> <button type="button" class="linkish" id="csvDemo">Try a bigger made-up export</button></p>
         <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
           <label class="btn secondary" for="csvFile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Upload a CSV file<input type="file" id="csvFile" class="sr" accept=".csv,text/csv"></label>
           <span class="status" id="csvStatus" role="status"></span>
         </div>
+        <details id="colMapBox" hidden>
+          <summary id="colMapSum">Columns</summary>
+          <div class="fields" id="colMap"></div>
+          <p class="hint">Guessed from the header row. Columns not picked here, such as names or case numbers, are not read.</p>
+        </details>
       </div>
       <div class="panel plain" id="previewPanel" hidden>
         <h2>Preview <small id="previewSummary"></small></h2>
@@ -329,18 +372,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
             <tbody id="previewBody"></tbody>
           </table>
         </div>
+        <p class="hint" id="previewCap" hidden></p>
         <div class="actions">
-          <button class="btn" type="button" id="csvAdd">Add sorted rows to dashboard</button>
-          <span class="hint">Rows marked "Needs review" keep that label until a clerk tags them.</span>
+          <button class="btn" type="button" id="csvOnly">Show these rows on the dashboard</button>
         </div>
+        <p class="hint">Rows marked "Needs review" keep that label until a clerk tags them.</p>
       </div>
     </section>
 
     <!-- View 3: dashboard -->
     <section class="view" id="view-dashboard" aria-labelledby="h-dash" hidden>
-      <p class="intro">Which mistakes are most common, where, on which forms, and whether a change helped.</p>
+      <p class="intro">Where filings get sent back, on which forms, when, and what to fix first.</p>
+      <div class="data-line" id="dataLine"></div>
       <div class="panel plain">
-        <h2>By county <small>click a county to see its breakdown and filter the dashboard</small></h2>
+        <h2>By county <small>click a county to filter</small></h2>
         <div class="map-grid">
           <figure class="map">
             <svg id="inMap" viewBox="-6 -6 312 485" role="group" aria-label="Map of Indiana's 92 counties, shaded by flagged filings"></svg>
@@ -348,25 +393,35 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </figure>
           <div class="county-panel" id="countyPanel" aria-live="polite"></div>
         </div>
-        <p class="hint">County lines from the US Census Bureau (public domain). The made-up sample covers 8 pilot counties; the other 84 have no data.</p>
+        <p class="hint" id="mapHint">County lines from the US Census Bureau (public domain). The made-up sample covers 8 pilot counties; the other 84 have no data.</p>
       </div>
       <div class="panel plain">
         <h2 id="h-dash" class="sr">Filters</h2>
-        <div class="filters">
-          <label class="f">County<select id="fCounty"></select></label>
-          <label class="f">Case type<select id="fCase"></select></label>
-          <label class="f">From<select id="fFrom"></select></label>
-          <label class="f">To<select id="fTo"></select></label>
-        </div>
-        <div class="actions">
-          <button class="btn secondary" type="button" id="exRows">Export filings (CSV)</button>
-          <button class="btn secondary" type="button" id="exCounties">Export county counts (CSV)</button>
-          <button class="btn secondary" type="button" id="exAll">Export all (CSV)</button>
-          <button class="btn secondary" type="button" id="exPrint">Print or save as PDF</button>
-          <span class="hint">Exports follow the filters, except "Export all", which holds every filing. None hold notes or names.</span>
+        <div class="filter-row">
+          <div class="filters">
+            <label class="f">County<select id="fCounty"></select></label>
+            <label class="f">Case type<select id="fCase"></select></label>
+            <label class="f">From<select id="fFrom"></select></label>
+            <label class="f">To<select id="fTo"></select></label>
+          </div>
+          <details class="menu" id="exMenu">
+            <summary class="btn secondary">Export</summary>
+            <div class="menu-list">
+              <button type="button" id="exRows">Filings shown (CSV)</button>
+              <button type="button" id="exCounties">County counts (CSV)</button>
+              <button type="button" id="exAll">All filings, no filters (CSV)</button>
+              <button type="button" id="exPrint">Print or save as PDF</button>
+              <p class="hint">No notes or names in any export.</p>
+            </div>
+          </details>
         </div>
       </div>
       <div class="kpis" id="kpis"></div>
+      <div class="panel plain">
+        <h2>Where to act first <small>from the filings shown</small></h2>
+        <ol class="insights" id="insights"></ol>
+        <p class="hint">Fixed rules, no AI. Check with clerks before changing anything.</p>
+      </div>
       <div class="grid-2">
         <div class="panel plain">
           <h2>Most common problems <small id="barsNote"></small></h2>
@@ -386,7 +441,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         <h2>Problems by form</h2>
         <div class="table-wrap" tabindex="0" role="region" aria-label="Problems by form"><table id="forms"></table></div>
       </div>
-      <div class="panel">
+      <div class="panel plain">
+        <h2>When flagged filings were sent <small id="timeNote"></small></h2>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Flagged filings by day and time sent"><table id="times"></table></div>
+        <p class="hint" id="timeHint"></p>
+      </div>
+      <div class="panel" id="evPanel">
         <h2>Before and after a change</h2>
         <div class="filters">
           <label class="f">Change to check<select id="evSel"></select></label>
@@ -402,7 +462,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, OpenJev Flash 9B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up, unless you load your own export on Import. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, OpenJev Flash 9B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -422,6 +482,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   var TAGS = ["Missing signature", "Wrong form", "Wrong county or court", "Missing required details", "Missing fee or fee waiver", "Citation not found or wrong", "Missing addresses for service", "Not verified or notarized", "Pages missing or unreadable", "Missing repeated-conduct facts"];
   var REPEATED = "Missing repeated-conduct facts";
   var OUTCOMES = ["Rejected", "Returned to fix", "Fixed at counter"];
+  var ACCEPTED = "Accepted";  // imported or sample filings that were not sent back; they have no problems
   var NEEDS_REVIEW = "Needs review";
 
   // How likely each problem is for each case type (sample weights). Repeated-conduct facts are drawn
@@ -447,7 +508,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // ---------- Seeded sample data ----------
   function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   var rnd = mulberry32(4535);
-  function pickW(items, w) { var s = 0, i; for (i = 0; i < w.length; i++) s += w[i]; var r = rnd() * s; for (i = 0; i < items.length; i++) { r -= w[i]; if (r <= 0) return items[i]; } return items[items.length - 1]; }
+  function pickW(items, w, rng) { var s = 0, i; for (i = 0; i < w.length; i++) s += w[i]; var r = (rng || rnd)() * s; for (i = 0; i < items.length; i++) { r -= w[i]; if (r <= 0) return items[i]; } return items[items.length - 1]; }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function iso(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
 
@@ -479,6 +540,33 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var i = r.tags.indexOf("Missing required details");
     if (r.caseType === "Protective order" && i >= 0 && poDetails++ % 5 < 3) r.tags[i] = REPEATED;
   });
+
+  // Times sent and accepted filings come from a second random sequence, so the flagged filings above
+  // stay exactly as they were. Made up: sent-back filings come in more often in the evening, when the
+  // clerk's office is closed, and some counties send back a larger share than others.
+  var rnd2 = mulberry32(1016);
+  var HOUR_W_FLAGGED = [1, 0.6, 0.4, 0.3, 0.3, 0.5, 1, 2, 4, 5, 5, 5, 5, 5, 5, 5, 4, 4, 5, 6, 6, 5, 4, 2];
+  var HOUR_W_ACCEPTED = [0.4, 0.2, 0.1, 0.1, 0.1, 0.3, 1, 3, 7, 9, 9, 8, 7, 8, 9, 8, 6, 4, 3, 3, 2.5, 2, 1.5, 0.8];
+  var HOURS = []; for (var hh = 0; hh < 24; hh++) HOURS.push(hh);
+  function sampleTime(w) { return pad(pickW(HOURS, w, rnd2)) + ":" + pad(Math.floor(rnd2() * 60)); }
+  records.forEach(function (r) { r.time = sampleTime(HOUR_W_FLAGGED); });
+  var SHARE_C = { "Marion": 0.17, "Lake": 0.27, "Allen": 0.14, "Hamilton": 0.09, "St. Joseph": 0.2, "Vanderburgh": 0.22, "Monroe": 0.12, "Tippecanoe": 0.15 };
+  var SHARE_CT = { "Small claims": 0.9, "Protective order": 1.45, "Family": 1.1, "Eviction": 1, "Name change": 0.75 };
+  var flaggedBy = {};
+  records.forEach(function (r) { var key = r.county + "|" + r.caseType; flaggedBy[key] = (flaggedBy[key] || 0) + 1; });
+  var monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 28], dayTotal = monthDays.reduce(function (a, b) { return a + b; }, 0);
+  Object.keys(flaggedBy).sort().forEach(function (key) {
+    var p = key.split("|"), share = Math.min(0.6, SHARE_C[p[0]] * SHARE_CT[p[1]]);
+    var accepted = Math.round(flaggedBy[key] * (1 - share) / share);
+    for (var a = 0; a < accepted; a++) {
+      var dayN = Math.floor(rnd2() * dayTotal), mo = 0;
+      while (dayN >= monthDays[mo]) { dayN -= monthDays[mo]; mo++; }
+      var forms = CASES[p[1]];
+      records.push({ date: "2026-" + pad(mo + 1) + "-" + pad(dayN + 1), time: sampleTime(HOUR_W_ACCEPTED), county: p[0], caseType: p[1], form: forms[Math.floor(rnd2() * forms.length)], tags: [], outcome: ACCEPTED, source: "sample" });
+    }
+  });
+  // The dashboard shows either the made-up sample or only the rows someone imported.
+  var sampleRecords = records, myRecords = null, myLabel = "", dataMode = "sample";
 
   // ---------- Helpers ----------
   function $(id) { return document.getElementById(id); }
@@ -576,7 +664,11 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var note = scrub($("logNote").value.trim());
     var ai = selTags.filter(function (t) { return accepted[t]; }).map(function (t) { return { tag: t, by: accepted[t].by, why: accepted[t].why, words: accepted[t].words }; });
     var rec = { date: iso(new Date(2026, 9, 30)), county: $("logCounty").value, caseType: $("logCase").value, form: $("logForm1").value, tags: selTags.slice(), outcome: selOutcome, note: note.text, ai: ai, source: "clerk" };
-    records.push(rec);
+    // Clerk entries belong to the sample desk, whichever data the dashboard shows. Only sent-back filings are
+    // logged here, so they stay out of shares of filings sent.
+    rec.known = false;
+    sampleRecords.push(rec);
+    if (dataMode === "sample") refreshDims();
     recent.unshift(rec);
     renderRecent();
     $("logStatus").textContent = "Saved. " + rec.tags.length + (rec.tags.length === 1 ? " problem" : " problems") + " logged" + (secs ? " in " + secs + (secs === 1 ? " second." : " seconds.") : ".") + (note.removed ? " Taken out of the note: " + note.removed + "." : "");
@@ -608,8 +700,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       r.tags.forEach(function (t) { tg.appendChild(el("span", { "class": "tag" }, t)); });
       li.appendChild(tg);
       (r.ai || []).forEach(function (a) {
-        li.appendChild(el("div", { "class": "by" }, (a.by === "model" ? MODEL_NAME : "Keyword rules") + " suggested " + a.tag + " because " + a.why + ". The clerk accepted."));
-        if (a.words) li.appendChild(reasoningBox(a.words));
+        li.appendChild(el("div", { "class": "by" }, a.tag + ": suggested by " + (a.by === "model" ? MODEL_NAME : "keyword rules") + ", accepted by the clerk."));
       });
       if (r.note) li.appendChild(el("div", { "class": "meta" }, "Note: " + r.note));
       ul.appendChild(li);
@@ -778,12 +869,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function showModel(ready) {
     modelReady = ready; modelCheckedAt = Date.now();
     if (!MODEL_HOST) return;
-    $("aiLine").textContent = ready
-      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". Type a note and it thinks it through, then suggests a problem."
-      : "AI on this tab: OpenJev Flash 9B, not ready yet. Until it is, suggestions come from keyword rules.";
-    $("modelLine").textContent = ready
-      ? "AI on this tab: OpenJev Flash 9B, ready, running " + MODEL_PLACE + ". It sorts only the rows the keyword rules cannot, thinking each through in its own words first."
-      : "AI on this tab: OpenJev Flash 9B, not ready yet. Rows are sorted by keyword rules only.";
+    $("aiLine").textContent = ready ? "OpenJev (AI) suggests here, running " + MODEL_PLACE + "." : "OpenJev (AI) is not ready yet, so keyword rules suggest.";
+    $("modelLine").textContent = ready ? "OpenJev (AI) sorts the rows the keyword rules cannot, running " + MODEL_PLACE + "." : "OpenJev (AI) is not ready yet, so keyword rules sort every row.";
   }
   function modelAvailable() {
     if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
@@ -833,13 +920,14 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     box.hidden = false;
     var removed = scrub($("logNote").value).removed;
     if (thinking) {
-      box.appendChild(el("div", { "class": "label-sm src" }, thinking.deciding ? "OpenJev is choosing a problem..." : "OpenJev is thinking..."));
+      box.appendChild(el("div", { "class": "label-sm src" }, thinking.deciding ? MODEL_NAME + " is choosing a problem..." : MODEL_NAME + " is thinking..."));
       box.appendChild(el("p", { "class": "why thought", "data-think": "1" }, thinking.text ? thinking.text + (thinking.deciding ? "" : " ▍") : "Reading the note..."));
-      box.appendChild(el("p", { "class": "hint" }, "OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + "."));
+      if (removed) box.appendChild(el("p", { "class": "hint" }, "Sent without " + removed + "."));
       return;
     }
-    if (sugg.items.length && sugg.state !== "set aside") {
-      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests" : "Keyword rules suggest"));
+    if (sugg.items.length) {
+      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests"
+        : "Keyword rules suggest" + (sugg.modelUnsure ? " (OpenJev was not sure)" : MODEL_HOST && !modelReady ? " (OpenJev not ready)" : "")));
       var ul = el("ul");
       sugg.items.forEach(function (it) {
         var li = el("li");
@@ -858,23 +946,18 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           sugg.state = "accepted"; renderSuggest();
           $("logTags").querySelector('[data-t="' + sugg.items[0].tag + '"]').focus({ preventScroll: true });
         });
-        var change = el("button", { type: "button", "class": "btn secondary sm", id: "suggestChange" }, "Change");
-        change.addEventListener("click", function () {
-          sugg.state = "set aside"; renderSuggest();
-          $("logTags").querySelector(".chip").focus({ preventScroll: true });
-        });
-        act.appendChild(ok); act.appendChild(change);
+        act.appendChild(ok);
+        if (sugg.thought) act.appendChild(reasoningBox(sugg.thought));
         box.appendChild(act);
-      } else box.appendChild(el("p", { "class": "hint" }, "Accepted and ticked below. You can still change the problems."));
-    } else if (sugg.state === "set aside") box.appendChild(el("p", { "class": "hint" }, "Suggestion set aside. Pick the problems below."));
-    else if (sugg.unsure) box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
-    if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
-    var foot = [];
-    if (sugg.by === "model") foot.push("From OpenJev Flash 9B, running " + MODEL_PLACE + (removed ? ". Sent without " + removed : "") + ". You make the final call.");
-    else if (sugg.modelUnsure) foot.push(MODEL_NAME + " was not sure, so these come from keyword rules. You make the final call.");
-    else if (sugg.items.length) foot.push((MODEL_HOST ? "OpenJev is not ready, so these come from keyword rules. " : "") + "You make the final call.");
-    if (removed && sugg.by !== "model") foot.push("When you save, the note loses " + removed + ".");
-    if (foot.length) box.appendChild(el("p", { "class": "hint" }, foot.join(" ")));
+      } else {
+        box.appendChild(el("p", { "class": "hint" }, "Ticked below."));
+        if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
+      }
+    } else if (sugg.unsure) {
+      box.appendChild(el("p", { "class": "hint" }, MODEL_NAME + " is not sure what this note describes. Pick the problems below."));
+      if (sugg.thought) box.appendChild(reasoningBox(sugg.thought));
+    }
+    if (removed) box.appendChild(el("p", { "class": "hint" }, sugg.by === "model" ? "Sent without " + removed + "." : "When you save, the note loses " + removed + "."));
   }
   function keepState(next) { if (next && sugg && sameTags(sugg, next) && sugg.by === next.by) next.state = sugg.state; return next; }
   function suggestNow() {
@@ -934,71 +1017,229 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (cur || row.length) { row.push(cur); rows.push(row); }
     return rows.filter(function (r) { return r.some(function (x) { return x.trim(); }); });
   }
-  var pending = [];
-  var addedText = null;
-  var sortRun = 0;
+  var pending = [], pendingAccepted = [], pendingSkipped = 0, pendingUndecided = 0, pendingName = "";
+  // What was last added: the text plus the column matching, so a corrected matching can be added again.
+  var addedText = null, addedHow = "", sorting = false;
+  function importKey() { return $("csvText").value + "\u0000" + colHead + "\u0000" + JSON.stringify(colMap || {}); }
+  var sortRun = 0, PREVIEW_MAX = 200;
+
+  // ----- Column matching -----
+  // The fields the tracker reads, with header names it recognises. Matching ignores case, spaces and punctuation.
+  var FIELDS = [
+    // Names are in order of preference: a "Rejection Reason" column wins over a "Comments" column wherever they sit.
+    { k: "date", label: "Date sent", need: true, names: ["submitteddate", "datesubmitted", "submissiondate", "submitteddatetime", "datetimesubmitted", "submissiondatetime", "fileddate", "datefiled", "filingdate", "filingdatetime", "submittedat", "receiveddate", "envelopedate", "date", "submitted", "timestamp", "datetime"], part: /date|submitted|submission|filed|timestamp|received/ },
+    { k: "time", label: "Time sent", names: ["submittedtime", "timesubmitted", "submissiontime", "filedtime", "timefiled", "time"], part: /time(?!stamp)/ },
+    { k: "county", label: "County or court", names: ["county", "countyname", "courtlocation", "courtlocationname", "location", "courtname", "court", "venue"], part: /county|location|court/ },
+    { k: "caseType", label: "Case type", names: ["casetype", "casecategory", "casetypename", "category"], part: /casetype|category/ },
+    { k: "form", label: "Form", names: ["form", "formname", "filingcode", "filingtype", "documenttype"], part: /form|filingcode|filingtype|documenttype/ },
+    { k: "reason", label: "Reason sent back", need: true, names: ["rejectionreason", "rejectreason", "returnreason", "statusreason", "reason", "reviewercomment", "reviewercomments", "clerknote", "clerkcomment", "comment", "comments", "note", "notes"], part: /reason|comment|note/ },
+    { k: "status", label: "Status", names: ["filingstatus", "envelopestatus", "reviewstatus", "status", "outcome", "result", "disposition"], part: /status|outcome|result/ }
+  ];
+  // Never guessed: columns that hold numbers, titles or people. They can still be picked by hand.
+  var NOT_GUESSED = /number|num$|no$|id$|caption|title|description|party|filer|attorney|lawyer|judge|email|phone|address/;
+  var colMap = null, colHead = "";
+  function normHead(h) { return String(h).toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  function guessColumns(head) {
+    var n = head.map(normHead), used = {}, map = {};
+    function find(test) { for (var j = 0; j < n.length; j++) if (!used[j] && n[j] && test(n[j])) return j; return -1; }
+    FIELDS.forEach(function (f) {
+      for (var a = 0; a < f.names.length && map[f.k] == null; a++) {
+        var i = find(function (h) { return h === f.names[a]; });
+        if (i >= 0) { map[f.k] = i; used[i] = true; }
+      }
+    });
+    // A column holding both date and time, such as "Date/Time Submitted", is the date: the time is read from it too.
+    if (map.date == null) { var dt = find(function (h) { return /date/.test(h) && /time/.test(h) && !NOT_GUESSED.test(h); }); if (dt >= 0) { map.date = dt; used[dt] = true; } }
+    // Then looser matches, most specific first, so "Submitted Time" goes to time and not to date.
+    ["reason", "status", "time", "caseType", "form", "county", "date"].forEach(function (k) {
+      if (map[k] != null) return;
+      var f = FIELDS.filter(function (x) { return x.k === k; })[0];
+      var i = find(function (h) { return f.part.test(h) && !NOT_GUESSED.test(h) && !(k === "time" && /date/.test(h)); });
+      if (i >= 0) { map[k] = i; used[i] = true; }
+    });
+    return map;
+  }
+  var colMapSig = "";
+  function renderColMap(head, sig) {
+    var box = $("colMap");
+    if (sig === colMapSig && !$("colMapBox").hidden) {  // same header: only sync the values, so focus stays put
+      box.querySelectorAll("select").forEach(function (sel) { var k = sel.getAttribute("data-k"); sel.value = colMap[k] != null ? String(colMap[k]) : ""; });
+      colMapSummary();
+      return;
+    }
+    colMapSig = sig; box.innerHTML = ""; $("colMapBox").open = false;
+    FIELDS.forEach(function (f) {
+      var lab = el("label", { "class": "f" }, f.label + (f.need ? "" : " (optional)"));
+      var sel = el("select", { "data-k": f.k });
+      sel.appendChild(el("option", { value: "" }, f.need ? "Select..." : "Not in this file"));
+      head.forEach(function (h, i) { sel.appendChild(el("option", { value: String(i) }, String(h).trim() || "Column " + (i + 1))); });
+      sel.value = colMap[f.k] != null ? String(colMap[f.k]) : "";
+      sel.addEventListener("change", function () { if (sel.value === "") delete colMap[f.k]; else colMap[f.k] = +sel.value; sortCSV(true); });
+      lab.appendChild(sel); box.appendChild(lab);
+    });
+    $("colMapBox").hidden = false;
+    colMapSummary();
+  }
+  // Folded to one line: which columns are read. It opens by itself when a needed column is missing.
+  function colMapSummary() {
+    var got = FIELDS.filter(function (f) { return colMap[f.k] != null; }).map(function (f) { return f.label.toLowerCase(); });
+    var sum = $("colMapSum"); sum.textContent = got.length ? "Columns read: " + got.join(", ") + "." : "No columns matched yet.";
+    sum.appendChild(document.createTextNode(" "));
+    sum.appendChild(el("b", null, "Change"));
+    if (FIELDS.some(function (f) { return f.need && colMap[f.k] == null; })) $("colMapBox").open = true;
+  }
+  // "Lake Superior Court 2", "St Joseph", "La Porte County", "Superior Court of Allen County" and
+  // "Saint Joseph Probate Court" all find their county. Whole words only, so "Lakeville Town Court" is not Lake,
+  // and a name followed by township, city or town is a place inside some county, not the county itself.
+  function countyWords(v) {
+    return " " + String(v).toLowerCase().replace(/\bsaint\b/g, "st").replace(/[^a-z]+/g, " ").replace(/\bla (porte|grange)\b/g, "la$1").replace(/\bde kalb\b/g, "dekalb").trim() + " ";
+  }
+  var COUNTY_WORDS = null;
+  var MARION_TOWNSHIP_COURT = / (center|decatur|franklin|lawrence|perry|pike|warren|washington|wayne) (township|twp) .*small claims /;
+  function matchCounty(v) {
+    v = (v || "").trim(); if (!v) return "";
+    if (!COUNTY_WORDS) COUNTY_WORDS = IN_COUNTIES.map(function (c) { return [c[0], countyWords(c[0])]; }).sort(function (a, b) { return b[1].length - a[1].length; });
+    var w = countyWords(v), i;
+    for (i = 0; i < COUNTY_WORDS.length; i++) if (w.indexOf(COUNTY_WORDS[i][1] + "county ") >= 0) return COUNTY_WORDS[i][0];
+    if (MARION_TOWNSHIP_COURT.test(w)) return "Marion";  // Marion County's township small claims courts
+    for (i = 0; i < COUNTY_WORDS.length; i++) {
+      var cw = COUNTY_WORDS[i][1];
+      if (w.indexOf(cw) === 0 && !/^(township|twp|city|town) /.test(w.slice(cw.length))) return COUNTY_WORDS[i][0];
+    }
+    // Not a county: keep the text so it still shows in the tables, unless it holds digits (it may be a case number).
+    return /\d/.test(v) ? "Not a county name" : v.replace(/\s+county$/i, "");
+  }
+  function isCounty(name) { return IN_COUNTIES.some(function (c) { return c[0] === name; }); }
+  // Dates like 2026-09-14, 2026-09-14T16:45:00, 9/14/2026 or 09/14/26 4:45 PM.
+  function parseTime(v) {
+    v = (v || "").trim();
+    if (/^\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4}/.test(v)) { var w = parseWhen(v); return w ? w.time : null; }  // a date and time in one cell
+    var m = /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?\s*(?:([ap])\.?\s*m?\.?)?/i.exec(v); if (!m) return null;
+    var h = +m[1], mi = +m[2];
+    if (m[3]) { if (h < 1 || h > 12) return null; var pm = m[3].toLowerCase() === "p"; h = h === 12 ? (pm ? 12 : 0) : (pm ? h + 12 : h); }
+    return h > 23 || mi > 59 ? null : pad(h) + ":" + pad(mi);
+  }
+  // Times with a zone ("Z" or "-05:00") are turned into Indiana time (Indianapolis; a few western counties use Central time).
+  var IN_TIME = null;
+  try { IN_TIME = new Intl.DateTimeFormat("en-US", { timeZone: "America/Indiana/Indianapolis", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" }); } catch (x) { IN_TIME = null; }
+  function parseWhen(v) {
+    v = (v || "").trim();
+    var m, y, mo, d, rest = "";
+    if (IN_TIME && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}.*(Z|[+-]\d{2}:?\d{2})$/i.test(v)) {
+      var at = new Date(v);
+      if (!isNaN(at.getTime())) {
+        var part = {}; IN_TIME.formatToParts(at).forEach(function (x) { part[x.type] = x.value; });
+        var hh = +part.hour % 24;
+        return { date: part.year + "-" + pad(+part.month) + "-" + pad(+part.day), time: pad(hh) + ":" + pad(+part.minute) };
+      }
+    }
+    if ((m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s]+(.*))?$/.exec(v))) { y = +m[1]; mo = +m[2]; d = +m[3]; rest = m[4] || ""; }
+    else if ((m = /^(\d{1,2})\/(\d{1,2})\/(\d{4}|\d{2})(?:,?\s+(.*))?$/.exec(v))) { mo = +m[1]; d = +m[2]; y = +m[3]; if (y < 100) y += 2000; rest = m[4] || ""; }
+    else return null;
+    var dt = new Date(y, mo - 1, d);
+    if (y < 2000 || y > 2100 || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+    // "2026-09-14 00:00:00" or "9/14/2026 12:00 AM" is how many exports write a date with no time: treat it as no time.
+    var noTime = /^(0?0:00(:00(\.0+)?)?|12:00(:00)?\s*a\.?m\.?)$/i.test(rest.trim());
+    return { date: y + "-" + pad(mo) + "-" + pad(d), time: noTime ? null : parseTime(rest) };
+  }
+  // Status to outcome. Null means not decided yet (pending, cancelled, unknown): such rows are left out.
+  function toOutcome(v, reason) {
+    var s = (v || "").toLowerCase().trim();
+    if (/\b(not|un|dis|non)[\s-]*(accept|approv)/.test(s) || /reject|denied|declin|refus/.test(s)) return "Rejected";
+    if (/counter/.test(s)) return "Fixed at counter";
+    if (/return|correct|deficien|resubmi|amend|fix/.test(s)) return "Returned to fix";
+    if (/accept|approv|docketed|^filed$|^complete/.test(s)) return ACCEPTED;
+    if (/pending|review|submitted|queue|process|cancel|withdr|draft|fail|error/.test(s)) return null;
+    return reason ? "Rejected" : null;
+  }
+
   function renderPreview() {
     var body = $("previewBody"); body.innerHTML = "";
     var review = 0, byModel = 0;
-    pending.forEach(function (p) {
+    pending.forEach(function (p) { if (p.tags[0] === NEEDS_REVIEW) review++; if (p.sortedBy === "model") byModel++; });
+    pending.slice(0, PREVIEW_MAX).forEach(function (p) {
       var tr = el("tr");
-      tr.appendChild(el("td", { "class": "num" }, p.date));
+      tr.appendChild(el("td", { "class": "num" }, p.date + (p.time ? " " + p.time : "")));
       tr.appendChild(el("td", null, p.county));
       tr.appendChild(el("td", null, p.caseType));
       tr.appendChild(el("td", { "class": "raw" }, p.reason));
       var td = el("td"); var box = el("div", { "class": "tags" });
-      p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); if (t === NEEDS_REVIEW) review++; });
+      p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); });
       td.appendChild(box);
-      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, "OpenJev is thinking... " + p.thinking + " \u258d"));
-      if (p.sortedBy === "model") { byModel++; td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + ".")); }
+      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " is thinking... " + p.thinking + " ▍"));
+      if (p.sortedBy === "model") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + "."));
       else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
       else if (p.why && p.why.length) {
         // A quote of the whole reason only repeats the row, so it is left out.
-        var whys = p.why.filter(function (w) { return w !== "the note says \u201c" + p.reason + "\u201d"; });
+        var whys = p.why.filter(function (w) { return w !== "the note says “" + p.reason + "”"; });
         td.appendChild(el("div", { "class": "by" }, "Keyword rules" + (whys.length ? ": because " + whys.join("; ") + "." : "")));
       }
       if (p.thought && p.thinking == null) td.appendChild(reasoningBox(p.thought));
       tr.appendChild(td);
       body.appendChild(tr);
     });
-    var sorted = pending.length - review;
-    $("previewSummary").textContent = pending.length + (pending.length === 1 ? " row read, " : " rows read, ")
-      + (sorted - byModel) + " sorted by keyword rules, " + (byModel ? byModel + " by " + MODEL_NAME + ", " : "")
-      + review + " need review";
+    var total = pending.length + pendingAccepted.length, sorted = pending.length - review;
+    var parts = [total.toLocaleString() + (total === 1 ? " row read" : " rows read")];
+    if (pendingAccepted.length) parts.push(pendingAccepted.length.toLocaleString() + " accepted");
+    parts.push((sorted - byModel) + " sorted by keyword rules");
+    if (byModel) parts.push(byModel + " by " + MODEL_NAME);
+    parts.push(review + " need review");
+    if (pendingSkipped) parts.push(pendingSkipped + " skipped for no readable date");
+    if (pendingUndecided) parts.push(pendingUndecided + " left out because the status says not decided yet");
+    $("previewSummary").textContent = parts.join(", ");
+    $("previewCap").hidden = pending.length <= PREVIEW_MAX;
+    $("previewCap").textContent = "The table shows the first " + PREVIEW_MAX + " of " + pending.length.toLocaleString() + " rows that were sent back. Accepted rows are counted but not listed.";
     $("previewPanel").hidden = false;
   }
   function previewReady(note) {
-    var already = $("csvText").value === addedText;
-    $("csvAdd").disabled = already;
+    var already = importKey() === addedText;
+    $("csvOnly").disabled = already;
     $("csvStatus").className = "status";
     $("csvStatus").textContent = already ? "These rows are already on the dashboard." : (note || "") + "Preview ready below.";
   }
-  function sortCSV() {
+  function sortCSV(keepMap) {
     var run = ++sortRun;
+    sorting = false;
     var rows = parseCSV($("csvText").value);
     $("csvStatus").className = "status";
-    if (rows.length < 2) { $("csvStatus").className = "status err"; $("csvStatus").textContent = "No rows found. Paste a CSV with a header row and at least one record."; $("previewPanel").hidden = true; return; }
-    var head = rows[0].map(function (h) { return h.trim().toLowerCase(); });
-    var idx = { date: head.indexOf("date"), county: head.indexOf("county"), caseType: head.indexOf("case_type"), form: head.indexOf("form"), reason: head.indexOf("reason") };
-    if (idx.reason < 0) { $("csvStatus").className = "status err"; $("csvStatus").textContent = "The header needs a column named reason."; $("previewPanel").hidden = true; return; }
-    pending = rows.slice(1).map(function (r) {
-      var reason = (r[idx.reason] || "").trim();
+    function fail(msg) { $("csvStatus").className = "status err"; $("csvStatus").textContent = msg; $("previewPanel").hidden = true; pending = []; pendingAccepted = []; }
+    if (rows.length < 2) { $("colMapBox").hidden = true; fail("No rows found. Paste a CSV with a header row and at least one record."); return; }
+    var head = rows[0], sig = head.map(normHead).join("|");
+    if (keepMap !== true || !colMap || sig !== colHead) { colMap = guessColumns(head); colHead = sig; }
+    renderColMap(head, sig);
+    if (colMap.date == null) { fail("Pick the column that holds the date each filing was sent."); return; }
+    if (colMap.reason == null) { fail("Pick the column that holds the reason a filing was sent back."); return; }
+    function cell(r, k) { return colMap[k] == null ? "" : String(r[colMap[k]] || "").trim(); }
+    pending = []; pendingAccepted = []; pendingSkipped = 0; pendingUndecided = 0;
+    var hasStatus = colMap.status != null;
+    rows.slice(1).forEach(function (r) {
+      var when = parseWhen(cell(r, "date"));
+      if (!when) { pendingSkipped++; return; }
+      var reason = cell(r, "reason");
+      var outcome = hasStatus ? toOutcome(cell(r, "status"), reason) : "Rejected";
+      if (!outcome) { pendingUndecided++; return; }
+      // known: the status is known, so the row counts in shares of filings sent. Without a status column only
+      // sent-back filings are in the file, and counting them alone would make every share 100%.
+      var rec = { date: when.date, time: (colMap.time != null && parseTime(cell(r, "time"))) || when.time, county: matchCounty(cell(r, "county")) || "Not given", caseType: cell(r, "caseType") || "Not given", form: cell(r, "form"), reason: reason, outcome: outcome, source: "import", known: hasStatus };
+      if (outcome === ACCEPTED) { rec.tags = []; pendingAccepted.push(rec); return; }
       var found = classifyWhy(reason), tags = found.map(function (o) { return o.tag; });
-      var county = (r[idx.county] || "").trim().replace(/\s+county$/i, "");
-      COUNTIES.forEach(function (c) { if (c.toLowerCase() === county.toLowerCase()) county = c; });
-      return { date: (r[idx.date] || "").trim(), county: county || "Not given", caseType: (r[idx.caseType] || "").trim(), form: (r[idx.form] || "").trim(), reason: reason, tags: tags.length ? tags : [NEEDS_REVIEW], why: found.map(function (o) { return o.why; }), outcome: "Rejected", source: "import" };
+      rec.tags = tags.length ? tags : [NEEDS_REVIEW];
+      rec.why = found.map(function (o) { return o.why; });
+      pending.push(rec);
     });
+    if (!pending.length && !pendingAccepted.length) { fail(pendingUndecided ? "Every row's status says it is not decided yet, so there is nothing to count." : "No rows with a readable date. Dates can look like 2026-09-14 or 9/14/2026."); return; }
     renderPreview();
     // Rules first. Rows the rules could not sort go to the model, one at a time, if it is running.
     var left = pending.filter(function (p) { return p.reason && p.tags[0] === NEEDS_REVIEW; });
     if (!left.length) { previewReady(); return; }
-    $("csvAdd").disabled = true;
+    sorting = true;
+    $("csvOnly").disabled = true;
     modelAvailable().then(function (ok) {
       if (run !== sortRun) return;
-      if (!ok) { previewReady(); return; }
+      if (!ok) { sorting = false; previewReady(); return; }
       $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with " + MODEL_NAME + "...";
       var i = 0, sorted = 0;
-      function done(note) { if (run !== sortRun) return; renderPreview(); previewReady(note); }
+      function done(note) { if (run !== sortRun) return; sorting = false; renderPreview(); previewReady(note); }
       (function next() {
         if (run !== sortRun) return;
         if (i >= left.length) {
@@ -1007,10 +1248,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         }
         var p = left[i++];
         p.thinking = ""; renderPreview();
-        thinkModel(p.caseType, p.form, p.reason, function () { return run !== sortRun; }, function (t) { p.thinking = t; renderPreview(); }).then(function (thought) {
+        // Only the cleaned reason and a case type or form from our own lists go to the model, never other free text.
+        var ct = caseNames.indexOf(p.caseType) >= 0 ? p.caseType : "", fm = caseNames.some(function (c) { return CASES[c].indexOf(p.form) >= 0; }) ? p.form : "";
+        p.sentToModel = true;
+        thinkModel(ct, fm, p.reason, function () { return run !== sortRun; }, function (t) { p.thinking = t; renderPreview(); }).then(function (thought) {
           if (run !== sortRun) return null;
           p.thinking = null; p.thought = thought;
-          return askModel(p.caseType, p.form, p.reason, thought);
+          return askModel(ct, fm, p.reason, thought);
         }).then(function (ans) {
           if (run !== sortRun || !ans) return;
           if (ans.tag) { p.tags = [ans.tag]; p.why = ans.why; p.confidence = ans.confidence; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
@@ -1020,40 +1264,118 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       })();
     });
   }
-  $("csvSort").addEventListener("click", sortCSV);
+  $("csvSort").addEventListener("click", function () { sortCSV(true); });
+  $("csvText").addEventListener("input", function () { pendingName = ""; });
   $("csvFile").addEventListener("change", function (e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
     var r = new FileReader();
-    r.onload = function () { $("csvText").value = String(r.result); sortCSV(); };
+    r.onload = function () { $("csvText").value = String(r.result).replace(/^﻿/, ""); pendingName = f.name; sortCSV(); };
     r.readAsText(f);
     e.target.value = "";
   });
-  $("csvAdd").addEventListener("click", function () {
-    var added = pending.filter(function (p) { return /^\d{4}-\d{2}-\d{2}$/.test(p.date) && monthsAll.indexOf(p.date.slice(0, 7)) >= 0; });
-    var skipped = pending.length - added.length;
-    added.forEach(function (p) { records.push(p); });
-    addedText = $("csvText").value;
-    $("csvSort").focus();
-    $("csvAdd").disabled = true;
-    var skipNote = skipped ? " Skipped " + skipped + (skipped === 1 ? " row" : " rows") + " with a date outside January to October 2026." : "";
-    $("csvStatus").className = added.length ? "status" : "status err";
-    $("csvStatus").textContent = added.length
-      ? "Added " + added.length + (added.length === 1 ? " row." : " rows.") + skipNote + " Open the dashboard to see them."
-      : "No rows added. Dates must be written like 2026-09-14 and fall between January and October 2026.";
+  $("csvDemo").addEventListener("click", function () { $("csvText").value = demoExport(); pendingName = "the made-up court export"; sortCSV(); });
+  $("csvOnly").addEventListener("click", function () {
+    var rows = pending.concat(pendingAccepted);
+    if (!rows.length) return;
+    myRecords = rows.slice(); myLabel = pendingName || "the pasted rows";
+    useData("mine");
+    addedText = importKey(); addedHow = "only";
+    $("csvOnly").disabled = true;
+    $("csvStatus").className = "status";
+    $("csvStatus").textContent = "The dashboard shows only these " + rows.length.toLocaleString() + " rows.";
+    location.hash = "#dashboard";
+    setTimeout(function () { var t = $("dataText"); if (t) t.focus({ preventScroll: true }); }, 0);
   });
+
+  // A made-up export with other column names, accepted filings and times, to try the column matching.
+  // The column names are a guess, not the real format of any court system.
+  function demoExport() {
+    var rg = mulberry32(2027);
+    function pick(a) { return a[Math.floor(rg() * a.length)]; }
+    var PLACES = [["Marion Superior Court, Civil Division 1", 9, 0.17], ["Marion County Small Claims Court, Center Township", 3, 0.15], ["Lake Superior Court, Civil Division 2", 5, 0.29], ["Lake Circuit Court", 1.5, 0.24], ["Allen Superior Court", 4, 0.14],
+      ["Hamilton Superior Court 3", 3.5, 0.09], ["St. Joseph Probate Court", 1.5, 0.2], ["Saint Joseph Superior Court", 2, 0.21], ["Elkhart Superior Court 2", 2.2, 0.19], ["Porter Superior Court", 1.8, 0.16],
+      ["Vanderburgh Superior Court", 2.2, 0.22], ["Tippecanoe Superior Court 2", 1.8, 0.15], ["Monroe Circuit Court 5", 1.6, 0.12], ["Delaware Circuit Court 4", 1.4, 0.18], ["Madison Circuit Court 6", 1.3, 0.2], ["LaPorte Superior Court 1", 1.1, 0.17]];
+    var KINDS = [["Civil - Small Claims", ["Notice of Claim (Small Claims)", "Counterclaim"], 6, 0.9], ["Protective Order", ["Petition for Order of Protection", "Petition to Extend Order of Protection"], 3, 1.5],
+      ["Domestic Relations", ["Petition for Dissolution of Marriage", "Petition to Modify Child Support"], 4, 1.1], ["Civil - Eviction", ["Answer and Request for Hearing"], 2.5, 1], ["Miscellaneous - Name Change", ["Petition for Change of Name"], 1, 0.75]];
+    var WHY = ["Document not signed", "Signature missing on page 2", "Wrong form used, please use the current state form", "Filed in the wrong court location", "Wrong county, respondent lives in another county",
+      "Missing required information on page 1", "Filing fee not paid", "Fee waiver form missing", "Cited case number does not exist", "No address for the respondent", "Address for service missing",
+      "Not notarized", "Missing verification statement", "Page 3 missing", "Scan unreadable", "Duplicate submission", "Please call the clerk's office"];
+    var WHY_PO = ["Only one incident described; stalking requires repeated acts", "Petition describes a single incident only", "Needs dates and a description of each incident", "Unsigned petition", "No address for the respondent"];
+    var STATUS_BACK = ["Rejected", "Rejected", "Rejected", "Returned for Correction"];
+    var hourW = function (back) { return back ? HOUR_W_FLAGGED : HOUR_W_ACCEPTED; };
+    var lines = ["Envelope ID,Submitted Date,Submitted Time,Court Location,Case Category,Filing Code,Filing Status,Rejection Reason,Case Number"];
+    var startD = new Date(2025, 10, 1).getTime(), span = new Date(2026, 9, 31).getTime() - startD;
+    for (var i = 0; i < 1400; i++) {
+      var place = pickW(PLACES, PLACES.map(function (x) { return x[1]; }), rg), kind = pickW(KINDS, KINDS.map(function (x) { return x[2]; }), rg);
+      var d = new Date(startD + rg() * span), back = rg() < Math.min(0.6, place[2] * kind[3]);
+      var h = pickW(HOURS, hourW(back), rg), mi = Math.floor(rg() * 60);
+      var time = (h % 12 || 12) + ":" + pad(mi) + (h < 12 ? " AM" : " PM");
+      var reason = back ? (kind[0] === "Protective Order" && rg() < 0.6 ? pick(WHY_PO) : pick(WHY)) : "";
+      var caseNo = "CN-" + (100000 + Math.floor(rg() * 900000));
+      lines.push(["ENV" + (5000000 + i), (d.getMonth() + 1) + "/" + d.getDate() + "/" + d.getFullYear(), time, place[0], kind[0], pick(kind[1]), back ? pick(STATUS_BACK) : "Accepted", reason, caseNo].map(csvCell).join(","));
+    }
+    return lines.join("\n");
+  }
 
   // Indiana's 92 counties, drawn from US Census Bureau county boundaries (public domain), simplified.
   // [name, SVG path, label x, label y] in a 300 by 473 box.
   var IN_COUNTIES = [["Adams","M298.2 99.5L298.2 99.5L298.2 118.1L298.3 120.9L298.3 122.6L298.3 122.6L298.3 123.7L298.3 125.6L298.3 126.9L298.3 127.2L298.3 128.9L298.3 130.6L298.3 132.4L298.3 141.1L298.3 141.1L274.0 141.5L273.5 100.0Z",286.0,120.5],["Allen","M298.1 58.1L298.1 58.1L298.1 58.1L298.2 60.3L298.2 60.3L298.2 69.6L298.1 69.7L298.2 70.7L298.2 78.8L298.2 79.7L298.2 91.5L298.2 91.6L298.2 99.5L273.5 100.0L265.0 100.2L249.6 100.1L249.6 90.0L249.6 89.7L249.3 69.0L252.1 58.9L262.7 58.9L297.9 58.1Z",274.0,79.4],["Bartholomew","M193.4 286.5L202.0 286.2L202.3 286.2L217.8 286.1L217.5 305.1L217.5 305.2L217.5 305.7L217.6 312.2L207.3 312.4L207.3 319.5L201.7 322.8L181.7 321.7L181.7 309.6L181.2 286.8L181.6 286.8Z",198.5,303.0],["Benton","M88.8 121.6L88.9 121.6L89.1 142.2L89.2 152.5L49.7 152.4L49.7 152.3L49.7 150.7L49.7 150.6L49.7 145.5L49.7 145.4L49.8 121.5L73.4 121.6Z",69.4,137.0],["Blackford","M260.2 164.0L239.7 164.0L239.4 141.7L261.9 141.7L261.4 164.0Z",250.6,152.8],["Boone","M166.9 187.5L167.1 217.8L167.0 217.8L165.0 217.9L159.2 218.0L125.6 218.2L125.5 187.8L152.6 188.0Z",146.3,202.9],["Brown","M181.2 286.8L181.7 309.6L181.7 321.7L160.0 321.9L155.2 321.9L154.2 287.4L166.0 287.1Z",168.1,304.4],["Carroll","M118.6 142.3L120.8 121.4L125.4 121.5L127.1 121.5L127.1 121.5L135.9 121.6L141.1 126.8L154.9 126.8L154.8 142.3L154.7 157.7L125.6 157.7L125.6 142.3Z",137.7,140.0],["Cass","M173.9 142.2L172.2 142.2L154.8 142.3L154.9 126.8L141.1 126.8L135.9 121.6L135.9 100.9L146.2 101.0L173.6 101.0Z",157.2,118.6],["Clark","M222.0 401.2L221.9 403.5L220.6 407.6L218.6 410.6L217.9 411.3L212.3 414.7L211.7 414.6L210.8 414.0L210.3 413.4L210.3 413.1L209.7 412.4L209.0 412.1L208.0 412.1L208.0 412.1L210.8 404.8L206.5 398.4L189.5 396.7L189.6 388.4L199.5 386.6L202.9 379.8L207.8 374.6L228.2 374.4L241.2 376.7L242.3 379.5L242.3 381.5L242.2 382.2L241.6 383.3L240.7 384.2L240.7 384.2L238.0 385.5L224.8 394.2L223.6 396.2L222.5 399.4L222.0 401.2Z",215.7,389.4],["Clay","M75.8 307.3L75.8 296.9L76.0 265.9L79.6 255.6L96.6 255.9L96.4 271.5L103.2 271.5L103.0 287.1L92.9 287.0L92.8 307.7L91.5 307.7Z",87.1,280.7],["Clinton","M166.8 183.4L166.9 187.5L152.6 188.0L125.5 187.8L125.5 183.5L125.6 157.7L154.7 157.7L166.8 164.6Z",145.6,173.2],["Crawford","M159.5 429.9L159.2 430.4L158.7 430.9L152.6 433.8L150.1 436.7L147.0 421.8L136.8 421.7L137.0 414.8L127.0 415.2L126.8 399.5L160.8 399.6L160.8 396.2L165.7 396.2L160.3 429.5Z",147.8,412.3],["Daviess","M75.7 381.7L72.3 364.1L75.7 349.3L80.2 349.7L88.7 339.1L94.9 339.3L106.5 339.1L104.8 349.4L104.7 386.4L91.2 385.3Z",90.6,363.2],["DeKalb","M298.1 39.7L298.1 41.4L298.1 41.8L298.1 41.8L298.1 46.6L298.1 58.1L297.9 58.1L262.7 58.9L262.5 27.8L298.0 27.4L298.0 27.4L298.1 30.9L298.1 32.3L298.1 38.6L298.1 39.7Z",280.3,43.0],["Dearborn","M296.7 309.1L296.7 310.0L296.6 315.2L295.6 315.6L290.4 319.8L289.6 320.9L289.6 321.5L290.3 322.8L291.3 324.1L268.1 333.8L274.2 291.2L286.7 291.4L296.7 291.5L296.7 291.5L296.7 295.4L296.7 296.6L296.7 297.9L296.7 298.3L296.7 298.7L296.7 309.0Z",282.8,309.9],["Decatur","M217.6 312.2L217.5 305.7L217.5 305.2L217.5 305.1L217.8 286.1L222.7 286.1L222.8 273.9L253.1 273.9L253.2 295.8L240.3 304.3L240.1 304.5L228.6 311.9Z",234.5,291.2],["Delaware","M239.7 164.0L260.2 164.0L260.2 164.5L260.3 172.6L260.7 199.9L260.5 199.9L227.7 199.8L227.4 163.9L229.8 164.0Z",244.0,181.9],["Dubois","M127.0 415.2L116.7 416.8L116.8 422.0L96.2 422.2L91.1 422.2L91.1 418.8L91.2 385.3L104.7 386.4L126.7 383.9L126.8 399.5Z",108.5,403.0],["Elkhart","M208.0 0.2L209.5 0.2L211.8 0.2L211.8 0.2L214.1 0.2L220.0 0.2L220.5 28.2L220.5 29.1L220.6 38.4L183.6 38.6L183.6 37.7L183.6 37.4L183.6 33.4L183.5 18.1L183.5 18.0L183.3 0.0L188.7 0.1L189.8 0.1L191.3 0.1L191.3 0.1L199.1 0.1L200.4 0.1L200.7 0.1L208.0 0.2Z",201.9,19.3],["Fayette","M276.9 265.2L253.0 265.3L252.7 234.2L260.1 234.1L263.3 242.8L277.1 242.8Z",264.0,252.1],["Floyd","M205.8 412.8L205.1 413.1L204.6 413.5L198.3 424.5L198.2 425.0L186.0 407.1L186.0 396.8L187.7 396.7L187.7 396.6L189.5 396.7L206.5 398.4L210.8 404.8L208.0 412.1Z",197.6,407.5],["Fountain","M89.4 188.7L89.5 214.5L89.5 214.6L86.3 214.5L86.3 214.6L81.5 214.5L81.4 214.6L80.4 214.6L80.4 214.5L79.1 214.5L59.4 214.6L60.7 193.8L57.7 189.3L66.8 182.5L69.3 179.3L70.9 178.4L75.4 172.3L89.4 165.5L89.3 183.5Z",76.1,194.3],["Franklin","M297.1 267.0L297.1 267.0L297.0 271.0L297.0 271.0L296.9 281.2L296.7 291.0L296.7 291.5L286.7 291.4L274.2 291.2L260.3 291.1L253.2 295.8L253.1 273.9L253.0 265.9L253.0 265.3L276.9 265.2L297.1 265.7Z",274.7,278.5],["Fulton","M194.0 85.2L194.0 90.3L193.9 90.4L173.6 90.7L173.6 101.0L146.2 101.0L146.4 69.9L181.9 69.8L182.1 80.2Z",165.0,84.7],["Gibson","M55.5 383.1L60.6 401.8L68.9 401.8L68.8 417.2L68.8 422.4L55.2 422.5L55.1 426.7L35.0 426.4L24.8 419.3L10.6 419.1L10.9 417.9L13.5 415.7L19.0 413.1L29.3 398.5L30.2 397.0L43.1 392.9Z",45.1,409.5],["Grant","M201.4 141.9L201.3 131.6L202.0 131.7L222.0 131.5L239.3 131.4L239.3 131.7L239.4 141.7L239.7 164.0L229.8 164.0L227.4 163.9L226.6 163.9L201.6 164.1L201.6 160.7Z",220.5,147.8],["Greene","M75.8 338.6L75.8 307.3L91.5 307.7L92.8 307.7L126.7 308.0L126.7 328.6L126.7 339.0L106.5 339.1L94.9 339.3L88.7 339.1Z",101.2,323.4],["Hamilton","M173.3 217.7L167.1 217.8L166.9 187.5L166.8 183.4L201.6 183.0L201.5 215.7L201.5 217.4L194.7 217.6Z",184.3,200.4],["Hancock","M194.6 222.4L194.6 218.1L194.7 217.6L201.5 217.4L201.5 215.7L227.7 215.4L225.8 234.3L222.4 234.4L222.5 244.8L193.4 244.9L193.4 241.5Z",209.9,230.0],["Harrison","M198.2 425.0L197.3 427.3L197.3 429.8L197.6 433.2L197.7 434.5L197.6 436.2L197.1 438.4L196.1 443.0L195.4 444.2L194.3 445.2L193.7 445.5L193.4 445.7L189.1 446.6L186.3 447.3L173.3 445.2L172.7 445.0L168.9 443.1L164.6 439.6L164.0 438.4L163.6 435.8L163.6 434.2L164.2 430.9L163.1 429.4L160.7 429.2L160.3 429.5L165.7 396.2L186.0 396.8L186.0 407.1Z",178.7,423.1],["Hendricks","M159.2 246.6L159.2 252.6L146.5 256.4L129.1 256.3L126.3 252.9L125.6 225.0L125.6 218.2L159.2 218.0Z",142.4,236.7],["Henry","M227.7 215.4L227.7 199.8L260.5 199.9L260.7 199.9L260.8 208.5L261.8 208.4L260.1 234.1L252.7 234.2L225.8 234.3Z",244.0,217.1],["Howard","M172.2 142.2L173.9 142.2L177.4 142.1L201.4 141.9L201.6 160.7L166.8 161.2L166.8 164.6L154.7 157.7L154.8 142.3Z",178.2,151.6],["Huntington","M221.5 90.0L249.6 89.7L249.6 90.0L249.6 100.1L249.7 131.3L239.3 131.4L222.0 131.5Z",235.7,110.6],["Jackson","M199.2 359.2L180.6 353.4L163.9 355.7L163.4 328.7L160.0 328.8L160.0 327.7L160.0 327.4L160.0 321.9L181.7 321.7L201.7 322.8L207.3 319.5L207.7 350.5Z",185.3,338.5],["Jasper","M77.8 61.6L85.7 56.3L100.7 64.2L104.1 62.2L104.2 63.0L104.1 69.8L104.1 70.0L104.1 100.7L99.0 109.5L88.7 109.6L88.8 121.6L73.4 121.6L72.6 64.3L77.1 62.3Z",87.4,88.0],["Jay","M298.1 167.1L298.1 172.2L298.1 172.2L260.3 172.6L260.2 164.5L260.2 164.0L261.4 164.0L261.9 141.7L274.0 141.5L298.3 141.1L298.2 146.3L298.2 153.7L298.1 167.1Z",279.7,157.0],["Jefferson","M240.1 373.9L241.2 376.7L228.2 374.4L228.1 365.8L217.9 358.9L217.8 349.6L239.6 338.0L261.7 337.9L261.8 364.3L260.8 363.8L259.6 362.6L257.7 359.5L256.6 358.8L255.1 358.4L253.8 358.3L249.8 358.5L242.7 358.9L241.7 359.2L240.6 359.8L239.0 362.2L238.5 364.6Z",240.3,353.3],["Jennings","M217.8 349.6L207.7 350.5L207.3 319.5L207.3 312.4L217.6 312.2L228.6 311.9L240.1 304.5L239.6 338.0Z",223.1,328.4],["Johnson","M193.3 255.4L193.5 268.9L193.4 275.9L193.3 275.9L193.3 282.2L193.4 286.5L181.6 286.8L181.2 286.8L166.0 287.1L166.1 276.6L166.2 252.5L166.8 252.5L184.9 252.0L193.4 251.9Z",179.7,269.5],["Knox","M49.6 345.3L49.2 345.2L48.7 345.1L47.5 344.4L47.3 343.9L48.4 340.0L49.6 338.6L75.8 338.6L88.7 339.1L80.2 349.7L75.7 349.3L72.3 364.1L75.7 381.7L55.5 383.1L43.1 392.9L30.2 397.0L37.9 384.5L36.7 382.1L36.6 381.7L38.3 378.9L40.5 374.3L41.2 370.5L43.0 367.7L43.6 367.2L44.9 366.6L48.5 365.8L49.3 365.2L50.4 363.6L52.3 356.3L52.6 353.4L49.8 345.6Z",59.3,363.9],["Kosciusko","M220.7 55.3L217.6 69.1L217.8 84.7L195.6 85.2L194.0 85.2L182.1 80.2L181.9 69.8L184.1 69.7L183.6 38.6L220.6 38.4Z",201.5,61.2],["LaGrange","M220.0 0.2L220.9 0.2L221.1 0.2L222.5 0.2L223.2 0.2L223.4 0.2L224.7 0.2L224.8 0.2L232.9 0.1L233.2 0.1L240.8 0.1L241.2 0.1L245.6 0.1L248.3 0.1L250.1 0.1L251.2 0.1L252.1 0.1L253.0 0.1L253.6 0.1L253.6 0.1L255.3 0.1L255.3 0.1L255.4 0.1L259.0 0.1L262.3 0.1L262.5 27.8L220.5 28.2Z",241.3,14.0],["LaPorte","M113.7 0.0L113.8 0.0L115.6 0.0L115.9 0.0L115.9 0.0L115.9 0.0L120.7 0.1L120.9 0.1L130.5 0.1L130.6 0.1L141.2 0.1L140.9 13.1L144.6 22.6L141.1 38.9L125.1 42.6L117.5 56.4L104.1 62.2L104.1 36.9L104.2 35.3L103.9 5.9L106.0 4.0L109.1 2.7Z",121.5,25.7],["Lake","M49.7 54.9L49.8 36.4L49.8 34.5L49.8 34.5L49.9 23.4L49.9 16.4L49.9 15.2L49.9 14.9L49.9 8.2L49.9 6.9L49.9 6.2L50.3 6.0L50.8 6.7L51.1 7.6L51.7 8.2L54.8 10.4L55.5 10.1L56.4 10.4L57.1 10.8L57.4 10.5L57.7 10.7L57.9 10.9L58.1 11.1L58.3 11.3L58.3 11.9L57.7 12.6L58.5 13.6L59.1 14.0L61.8 14.6L64.4 15.6L68.2 16.3L71.5 16.4L72.4 16.7L73.9 16.6L77.4 16.2L77.8 61.6L77.1 62.3L72.6 64.3L59.9 71.0L49.7 70.6L49.7 54.9Z",62.9,41.0],["Lawrence","M136.7 328.6L160.0 328.8L163.4 328.7L163.9 355.7L160.8 364.7L126.7 364.9L126.7 339.0L126.7 328.6Z",145.0,346.6],["Madison","M227.7 215.4L201.5 215.7L201.6 183.0L201.7 182.2L201.6 164.1L226.6 163.9L227.4 163.9L227.7 199.8Z",214.6,189.8],["Marion","M194.7 217.6L194.6 218.1L194.6 222.4L193.4 241.5L193.4 244.9L193.4 251.9L184.9 252.0L166.8 252.5L166.2 252.5L164.5 252.5L164.4 252.5L159.2 252.6L159.2 246.6L159.2 218.0L165.0 217.9L167.0 217.8L167.1 217.8L173.3 217.7Z",176.5,234.9],["Marshall","M183.6 38.6L184.1 69.7L181.9 69.8L146.4 69.9L146.4 38.9L146.4 33.7L183.6 33.4L183.6 37.4L183.6 37.7Z",165.1,51.7],["Martin","M126.7 383.9L104.7 386.4L104.8 349.4L106.5 339.1L126.7 339.0L126.7 364.9Z",115.7,362.3],["Miami","M201.3 131.6L201.4 141.9L177.4 142.1L173.9 142.2L173.6 101.0L173.6 90.7L193.9 90.4L194.5 131.7Z",184.9,117.7],["Monroe","M136.7 328.6L126.7 328.6L126.7 308.0L126.4 287.8L131.4 286.5L131.4 287.2L136.6 287.4L154.2 287.4L155.2 321.9L160.0 321.9L160.0 327.4L160.0 327.7L160.0 328.8Z",141.2,308.6],["Montgomery","M89.5 214.6L89.5 214.5L89.4 188.7L89.3 183.5L125.5 183.5L125.5 187.8L125.6 218.2L125.6 225.0L96.9 224.8L89.4 224.7Z",107.5,204.2],["Morgan","M166.2 252.5L166.1 276.6L166.0 287.1L154.2 287.4L136.6 287.4L131.4 287.2L131.4 286.5L131.3 271.9L126.4 271.9L129.1 256.3L146.5 256.4L159.2 252.6L164.4 252.5L164.5 252.5Z",148.2,270.8],["Newton","M72.6 64.3L73.4 121.6L49.8 121.5L49.8 121.5L49.8 107.6L49.8 104.6L49.8 104.5L49.7 102.8L49.8 100.7L49.7 89.1L49.7 89.1L49.7 89.0L49.7 87.3L49.7 75.9L49.7 73.7L49.7 72.6L49.7 72.0L49.7 71.4L49.7 71.3L49.7 70.8L49.7 70.6L59.9 71.0Z",61.6,95.4],["Noble","M220.6 38.4L220.5 29.1L220.5 28.2L262.5 27.8L262.7 58.9L252.1 58.9L231.2 58.7L220.7 55.3Z",242.0,43.2],["Ohio","M294.0 327.6L297.3 335.9L292.0 339.4L267.4 339.2L267.8 336.0L268.1 333.8L291.3 324.1Z",283.6,333.6],["Orange","M160.8 396.2L160.8 399.6L126.8 399.5L126.7 383.9L126.7 364.9L160.8 364.7L160.9 366.5Z",143.8,382.2],["Owen","M126.7 308.0L92.8 307.7L92.9 287.0L103.0 287.1L103.2 271.5L126.4 271.9L131.3 271.9L131.4 286.5L126.4 287.8Z",112.6,290.6],["Parke","M59.4 214.6L79.1 214.5L80.4 214.5L80.4 214.6L81.4 214.6L81.5 214.5L86.3 214.6L86.3 214.5L89.5 214.6L89.4 224.7L96.9 224.8L96.6 255.9L79.6 255.6L62.9 255.5L61.7 250.2L65.5 225.4Z",79.2,236.0],["Perry","M129.2 465.1L128.8 462.4L124.3 458.5L123.4 459.1L123.0 459.1L122.3 458.9L121.4 457.9L120.5 456.7L118.7 453.5L117.1 449.8L116.5 447.7L114.7 446.5L118.5 446.6L116.8 422.0L116.7 416.8L127.0 415.2L137.0 414.8L136.8 421.7L147.0 421.8L150.1 436.7L149.8 437.0L149.5 438.4L149.0 439.2L147.7 440.4L146.4 440.9L144.2 440.9L144.2 440.9L142.3 441.1L141.8 441.3L141.4 441.8L141.1 443.1L141.1 450.2L133.8 463.2L131.1 464.9L129.9 465.2L129.2 465.1Z",131.1,437.0],["Pike","M68.8 417.2L68.9 401.8L60.6 401.8L55.5 383.1L75.7 381.7L91.2 385.3L91.1 418.8Z",76.4,398.6],["Porter","M103.9 5.9L104.2 35.3L104.1 36.9L104.1 62.2L100.7 64.2L85.7 56.3L77.8 61.6L77.4 16.2L77.6 16.2L80.6 15.5L83.1 14.6L83.1 13.7L86.3 13.1L86.8 13.6L91.7 11.7L95.2 10.2L96.9 9.4L103.7 6.0Z",91.6,35.9],["Posey","M33.9 458.2L28.2 459.3L26.3 460.9L25.6 461.1L22.0 461.0L21.0 460.4L19.5 458.2L18.8 456.5L18.2 455.8L17.2 455.1L15.8 455.0L15.2 455.3L13.1 458.0L12.3 459.1L12.0 459.7L11.9 460.2L12.0 461.2L12.3 462.1L13.2 463.2L14.3 464.2L14.7 465.0L14.9 465.7L15.3 468.0L15.0 469.2L11.7 472.9L9.2 472.1L8.7 471.5L6.1 470.1L4.9 469.9L4.0 470.2L4.0 466.8L2.0 464.8L0.0 458.8L1.5 459.3L4.6 459.7L5.0 459.5L5.3 459.0L5.4 449.1L2.7 442.0L2.7 440.9L5.3 434.1L8.9 431.9L11.8 430.7L13.1 429.6L14.6 427.1L14.7 426.5L14.2 425.8L13.0 425.4L11.9 424.9L11.0 423.5L10.3 422.2L10.1 420.9L10.6 419.1L24.8 419.3L35.0 426.4Z",18.8,443.4],["Pulaski","M118.2 100.7L104.1 100.7L104.1 70.0L104.1 69.8L146.4 69.9L146.2 101.0L135.9 100.9Z",125.2,85.3],["Putnam","M96.6 255.9L96.9 224.8L125.6 225.0L126.3 252.9L129.1 256.3L126.4 271.9L103.2 271.5L96.4 271.5Z",111.7,248.7],["Randolph","M298.1 172.2L298.1 173.1L298.0 182.4L297.9 185.5L297.9 186.2L297.9 186.2L297.9 187.6L297.7 193.7L297.7 193.9L297.7 196.3L297.6 203.2L297.6 204.9L297.5 208.4L261.8 208.4L260.8 208.5L260.7 199.9L260.3 172.6Z",279.2,190.3],["Ripley","M253.2 295.8L260.3 291.1L274.2 291.2L268.1 333.8L267.8 336.0L261.7 336.2L261.7 337.9L239.6 338.0L240.1 304.5L240.3 304.3Z",256.3,315.4],["Rush","M253.0 265.3L253.0 265.9L253.1 273.9L222.8 273.9L222.5 244.9L222.5 244.8L222.4 234.4L225.8 234.3L252.7 234.2Z",237.8,254.1],["Scott","M228.2 374.4L207.8 374.6L202.9 379.8L199.4 378.1L199.2 359.2L207.7 350.5L217.8 349.6L217.9 358.9L228.1 365.8Z",211.8,365.0],["Shelby","M217.8 286.1L202.3 286.2L202.0 286.2L193.4 286.5L193.3 282.2L193.3 275.9L193.4 275.9L193.5 268.9L193.3 255.4L193.4 251.9L193.4 244.9L222.5 244.8L222.5 244.9L222.8 273.9L222.7 286.1Z",208.0,265.6],["Spencer","M114.7 446.5L114.6 446.5L113.9 446.5L110.9 447.9L108.3 450.6L106.7 452.8L105.1 453.9L99.7 454.7L99.7 454.7L96.8 455.9L94.7 457.5L93.9 458.5L93.5 459.5L93.8 460.6L93.8 461.7L92.5 466.9L91.6 469.4L90.7 470.6L89.5 471.6L87.6 472.2L86.9 472.2L86.0 471.8L85.7 471.2L79.3 464.9L73.8 461.5L73.2 461.0L73.3 455.3L91.2 432.3L96.2 432.3L96.2 422.2L116.8 422.0L118.5 446.6Z",96.9,444.7],["St. Joseph","M141.2 0.1L141.6 0.1L143.2 0.1L164.8 0.0L168.4 0.1L168.4 0.1L169.1 0.1L177.3 0.0L177.5 0.0L177.6 0.0L183.3 0.0L183.5 18.0L183.5 18.1L183.6 33.4L146.4 33.7L146.4 38.9L144.4 38.9L144.2 38.9L141.6 38.9L141.6 38.9L141.1 38.9L144.6 22.6L140.9 13.1Z",162.5,17.0],["Starke","M104.1 69.8L104.2 63.0L104.1 62.2L117.5 56.4L125.1 42.6L141.1 38.9L141.6 38.9L141.6 38.9L144.2 38.9L144.4 38.9L146.4 38.9L146.4 69.9Z",129.9,57.2],["Steuben","M296.2 0.1L296.8 0.1L297.9 2.1L297.9 2.7L297.9 3.3L297.9 4.8L297.9 6.3L297.9 7.7L297.9 10.2L298.0 15.2L298.0 15.3L297.9 17.5L298.0 27.3L298.0 27.4L262.5 27.8L262.3 0.1L262.3 0.1L264.5 0.1L269.0 0.1L269.5 0.1L276.6 0.1L276.8 0.1L282.7 0.1L282.8 0.1L283.7 0.1L283.8 0.1L286.4 0.1L296.2 0.1Z",280.1,13.8],["Sullivan","M49.6 338.6L50.4 336.8L51.0 333.1L45.5 320.9L41.7 315.5L37.7 311.5L38.3 309.8L39.2 309.0L40.4 309.0L42.5 305.6L44.2 298.1L43.6 298.3L42.6 296.9L75.8 296.9L75.8 307.3L75.8 338.6L49.6 338.6Z",60.1,316.5],["Switzerland","M297.3 335.9L299.4 341.4L299.8 341.9L299.8 343.2L299.3 344.8L297.3 351.6L294.4 353.0L285.3 354.4L282.7 353.9L281.6 353.9L280.6 354.2L278.0 355.8L271.0 360.1L270.5 360.8L267.6 363.4L266.0 364.2L264.5 364.7L263.0 364.8L261.8 364.3L261.7 337.9L261.7 336.2L267.8 336.0L267.4 339.2L292.0 339.4Z",277.7,348.1],["Tippecanoe","M89.2 152.5L89.1 142.2L118.6 142.3L125.6 142.3L125.6 157.7L125.5 183.5L89.3 183.5L89.4 165.5L89.3 152.6Z",107.4,162.8],["Tipton","M201.6 160.7L201.6 164.1L201.7 182.2L201.6 183.0L166.8 183.4L166.8 164.6L166.8 161.2Z",184.2,172.1],["Union","M297.2 241.4L297.2 241.4L297.1 246.9L297.1 248.3L297.1 253.0L297.1 260.2L297.1 260.3L297.1 260.4L297.1 260.5L297.1 262.6L297.1 265.7L297.1 265.7L276.9 265.2L277.1 242.8Z",287.2,253.8],["Vanderburgh","M56.6 453.4L51.1 457.5L47.5 455.3L46.7 454.6L45.6 452.6L45.4 451.7L45.4 450.8L45.3 450.2L44.7 449.5L44.3 449.3L43.7 449.3L42.9 449.6L40.4 455.1L40.6 456.3L41.2 457.4L43.3 459.2L43.8 459.8L44.1 462.0L44.0 462.9L43.8 463.4L42.4 465.5L41.6 466.3L38.8 467.0L36.5 466.7L35.8 465.8L35.5 464.6L35.6 463.5L37.3 460.0L37.0 458.8L36.1 458.0L35.4 457.8L33.9 458.2L35.0 426.4L55.1 426.7Z",44.5,443.2],["Vermillion","M62.9 255.5L49.2 255.6L49.2 251.0L49.2 251.0L49.2 248.8L49.1 234.9L49.1 233.2L49.1 232.3L49.1 231.4L49.1 222.9L49.1 222.9L49.2 212.4L49.1 211.9L49.2 211.6L49.2 210.5L49.2 209.2L49.2 209.0L49.2 207.6L49.2 207.6L49.3 193.2L49.2 191.9L49.3 191.4L49.3 191.4L60.7 193.8L59.4 214.6L65.5 225.4L61.7 250.2Z",55.7,225.6],["Vigo","M75.8 296.9L42.6 296.9L42.5 296.7L42.1 294.2L42.6 290.5L44.0 288.1L44.4 287.6L48.1 285.8L48.7 285.9L49.3 286.4L49.3 275.9L49.3 275.7L49.3 274.3L49.3 272.3L49.3 272.0L49.3 271.1L49.3 271.0L49.3 269.3L49.2 268.9L49.2 265.1L49.2 262.9L49.2 260.7L49.2 255.6L62.9 255.5L79.6 255.6L76.0 265.9Z",61.9,276.8],["Wabash","M194.0 85.2L195.6 85.2L217.8 84.7L217.9 90.1L221.5 90.0L222.0 131.5L202.0 131.7L201.3 131.6L194.5 131.7L193.9 90.4L194.0 90.3Z",207.8,108.6],["Warren","M70.9 178.4L69.3 179.3L66.8 182.5L57.7 189.3L60.7 193.8L49.3 191.4L49.3 188.8L49.3 186.2L49.4 179.3L49.4 179.2L49.7 154.1L49.7 152.5L49.7 152.4L89.2 152.5L89.3 152.6L89.4 165.5L75.4 172.3Z",65.4,167.8],["Warrick","M73.2 461.0L70.2 458.4L63.1 454.0L61.0 453.2L59.6 452.9L57.9 453.0L56.7 453.3L56.6 453.4L55.1 426.7L55.2 422.5L68.8 422.4L68.8 417.2L91.1 418.8L91.1 422.2L96.2 422.2L96.2 432.3L91.2 432.3L73.3 455.3Z",72.9,435.1],["Washington","M189.5 396.7L187.7 396.6L187.7 396.7L186.0 396.8L165.7 396.2L160.8 396.2L160.9 366.5L160.8 364.7L163.9 355.7L180.6 353.4L199.2 359.2L199.4 378.1L202.9 379.8L199.5 386.6L189.6 388.4Z",179.4,375.2],["Wayne","M297.2 234.4L297.2 241.4L277.1 242.8L263.3 242.8L260.1 234.1L261.8 208.4L297.5 208.4L297.4 217.6L297.3 218.3L297.3 218.8L297.3 218.8L297.3 221.9L297.3 221.9L297.3 224.1L297.2 226.4L297.2 226.7L297.2 227.6L297.2 227.6L297.2 229.5L297.2 229.8L297.2 231.0L297.2 231.4L297.2 232.8L297.2 234.3Z",279.1,225.4],["Wells","M249.6 100.1L265.0 100.2L273.5 100.0L274.0 141.5L261.9 141.7L239.4 141.7L239.3 131.7L239.3 131.4L249.7 131.3Z",260.0,122.4],["White","M125.4 121.5L120.8 121.4L118.6 142.3L89.1 142.2L88.9 121.6L88.8 121.6L88.7 109.6L99.0 109.5L104.1 100.7L118.2 100.7L135.9 100.9L135.9 121.6L127.1 121.5L127.1 121.5Z",110.2,120.3],["Whitley","M220.7 55.3L231.2 58.7L252.1 58.9L249.3 69.0L249.6 89.7L221.5 90.0L217.9 90.1L217.8 84.7L217.6 69.1Z",233.7,74.0]];
 
   // ---------- View 3: dashboard ----------
-  var monthsAll = [];
+  var monthsAll = [];  // the made-up sample's months
   for (var m = 1; m <= 10; m++) monthsAll.push("2026-" + pad(m));
-  fillSelect($("fCounty"), COUNTIES, "All counties");
-  fillSelect($("fCase"), caseNames, "All case types");
-  fillSelect($("fFrom"), monthsAll.map(function (x) { return { value: x, label: monthLabel(x) }; }));
-  fillSelect($("fTo"), monthsAll.map(function (x) { return { value: x, label: monthLabel(x) }; }));
-  $("fTo").value = monthsAll[monthsAll.length - 1];
+  // Lists for the filters and the map, from whichever data is showing.
+  var curMonths = monthsAll, curCounties = COUNTIES, curCases = caseNames, curHasSubs = false;
+  // Every month from the first to the last; past five years only the months that have rows, so one stray old
+  // date cannot hide the rest behind a long list.
+  function monthRange(a, b, have) {
+    var out = [], y = +a.slice(0, 4), mo = +a.slice(5, 7);
+    for (;;) { var ym = y + "-" + pad(mo); out.push(ym); if (ym >= b) break; if (++mo > 12) { mo = 1; y++; } }
+    return out.length > 60 ? Object.keys(have).sort() : out;
+  }
+  function refreshDims() {
+    var flaggedBy = {}, cases = {}, months = {}, lo = "9999-99", hi = "0000-00";
+    curHasSubs = false;
+    records.forEach(function (r) {
+      if (r.outcome === ACCEPTED) { curHasSubs = true; if (!(r.county in flaggedBy)) flaggedBy[r.county] = 0; }
+      else flaggedBy[r.county] = (flaggedBy[r.county] || 0) + 1;
+      cases[r.caseType] = true;
+      var ym = r.date.slice(0, 7); months[ym] = true; if (ym < lo) lo = ym; if (ym > hi) hi = ym;
+    });
+    function extra(list, have) { return Object.keys(have).filter(function (x) { return list.indexOf(x) < 0; }).sort(); }
+    if (dataMode === "sample") {
+      curMonths = monthsAll;
+      curCounties = COUNTIES.concat(extra(COUNTIES, flaggedBy));
+      curCases = caseNames.concat(extra(caseNames, cases));
+    } else {
+      curMonths = records.length ? monthRange(lo, hi, months) : monthsAll;
+      curCounties = Object.keys(flaggedBy).sort(function (a, b) { return flaggedBy[b] - flaggedBy[a] || (a < b ? -1 : 1); });
+      curCases = Object.keys(cases).sort();
+    }
+    var keep = { fCounty: $("fCounty").value, fCase: $("fCase").value, fFrom: $("fFrom").value, fTo: $("fTo").value };
+    fillSelect($("fCounty"), curCounties, "All counties");
+    fillSelect($("fCase"), curCases, "All case types");
+    var mo = curMonths.map(function (x) { return { value: x, label: monthLabel(x) }; });
+    fillSelect($("fFrom"), mo); fillSelect($("fTo"), mo);
+    $("fCounty").value = curCounties.indexOf(keep.fCounty) >= 0 ? keep.fCounty : "";
+    $("fCase").value = curCases.indexOf(keep.fCase) >= 0 ? keep.fCase : "";
+    $("fFrom").value = curMonths.indexOf(keep.fFrom) >= 0 ? keep.fFrom : curMonths[0];
+    $("fTo").value = curMonths.indexOf(keep.fTo) >= 0 ? keep.fTo : curMonths[curMonths.length - 1];
+    if (!curHasSubs) mapByRate = false;
+  }
+  function useData(mode) {
+    dataMode = mode;
+    records = mode === "mine" ? myRecords : sampleRecords;
+    if (mode === "sample" && addedHow === "only") { addedText = null; addedHow = ""; if (!$("previewPanel").hidden && !sorting) previewReady(); }
+    mapNote = "";
+    $("fCounty").value = ""; $("fCase").value = ""; $("fFrom").value = ""; $("fTo").value = "";
+    refreshDims();
+    if (currentView === "dashboard") renderDashboard(); else renderFlag();
+  }
+  function renderFlag() {
+    $("sampleFlag").textContent = dataMode === "mine" ? "Prototype. Showing rows you loaded." : "Prototype. All data is made up.";
+  }
+  refreshDims();
   ["fCounty", "fCase", "fFrom", "fTo"].forEach(function (id) { $(id).addEventListener("change", renderDashboard); });
   fillSelect($("evSel"), EVENTS.map(function (e) { return { value: e.id, label: e.name }; }));
   fillSelect($("evTag"), TAGS);
@@ -1062,10 +1384,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function currentEvent() { var id = $("evSel").value; return EVENTS.filter(function (e) { return e.id === id; })[0]; }
   $("evTag").value = EVENTS[0].tag;
 
-  function filtered(anyCounty) {
+  // Flagged filings that match the filters. withAccepted gives instead every filing with a known status, accepted
+  // or not, for shares of filings sent; rows whose status is unknown are left out of those shares.
+  function filtered(anyCounty, withAccepted) {
     var c = anyCounty ? "" : $("fCounty").value, ct = $("fCase").value, from = $("fFrom").value, to = $("fTo").value;
     if (from > to) { var x = from; from = to; to = x; }
     return records.filter(function (r) {
+      if (withAccepted ? r.known === false : r.outcome === ACCEPTED) return false;
       var ym = r.date.slice(0, 7);
       return (!c || r.county === c) && (!ct || r.caseType === ct) && ym >= from && ym <= to;
     });
@@ -1089,9 +1414,19 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (!entries.length) container.appendChild(el("p", { "class": "hint" }, "No flagged filings match these filters."));
   }
 
+  function pct(a, b) { return b ? Math.round(a / b * 100) + "%" : "0%"; }
+  function isFlagged(r) { return r.outcome !== ACCEPTED; }
+  // Filings sent and how many of them were flagged, per key, over rows with a known status.
+  function sentCounts(list, key) {
+    var out = {}; list.forEach(function (r) { var k = key(r), c = out[k] || (out[k] = { n: 0, f: 0 }); c.n++; if (isFlagged(r)) c.f++; });
+    return out;
+  }
+  function share(c) { return c && c.n ? pct(c.f, c.n) : "n/a"; }  // n/a: no filings with a known status
   function renderDashboard() {
-    var rs = filtered();
+    var rs = filtered(), every = curHasSubs ? filtered(false, true) : rs;
     var tc = countTags(rs), te = topEntries(tc);
+    renderDataLine();
+    renderFlag();
     // KPIs
     var k = $("kpis"); k.innerHTML = "";
     var byCounty = {}; rs.forEach(function (r) { byCounty[r.county] = (byCounty[r.county] || 0) + 1; });
@@ -1099,7 +1434,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var fixed = rs.filter(function (r) { return r.outcome === "Fixed at counter"; }).length;
     var multi = rs.filter(function (r) { return r.tags.length > 1; }).length;
     function kpi(label, v, s, small) { var d = el("div", { "class": "kpi" }); d.appendChild(el("div", { "class": "label-sm" }, label)); d.appendChild(el("div", { "class": "v" + (small ? " sm" : "") }, v)); d.appendChild(el("div", { "class": "s" }, s)); k.appendChild(d); }
-    kpi("Flagged filings", rs.length.toLocaleString(), "in the selected months");
+    var everyF = every.filter(isFlagged).length;
+    kpi("Flagged filings", rs.length.toLocaleString(), curHasSubs ? pct(everyF, every.length) + " of " + every.length.toLocaleString() + " filings sent were flagged" : "in the selected months");
     kpi("Most common problem", te.length ? te[0][0] : "None", te.length ? "on " + Math.round(te[0][1] / rs.length * 100) + "% of flagged filings" : "", true);
     kpi("County with most", topC ? topC[0] : "None", topC ? topC[1] + " flagged filings" : "", true);
     kpi("More than one problem", rs.length ? Math.round(multi / rs.length * 100) + "%" : "0%", "of flagged filings");
@@ -1115,10 +1451,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var thead = el("thead"), hr = el("tr");
     hr.appendChild(el("th", null, "County"));
     cols.forEach(function (c) { hr.appendChild(el("th", { "class": "num" }, c)); });
-    hr.appendChild(el("th", { "class": "num" }, "All flagged"));
+    hr.appendChild(el("th", { "class": "num right" }, "All flagged"));
+    if (curHasSubs) hr.appendChild(el("th", { "class": "num right" }, "Share of filings sent"));
     thead.appendChild(hr); heat.appendChild(thead);
+    var sentBy = curHasSubs ? sentCounts(every, function (r) { return r.county; }) : {};
     var tb = el("tbody"), maxCell = 1, grid = {};
-    var countiesShown = $("fCounty").value ? [$("fCounty").value] : COUNTIES.concat(Object.keys(byCounty).filter(function (c) { return COUNTIES.indexOf(c) < 0; }).sort());
+    var countiesShown = $("fCounty").value ? [$("fCounty").value] : curCounties.filter(function (c) { return dataMode === "sample" ? COUNTIES.indexOf(c) >= 0 || byCounty[c] : byCounty[c] || sentBy[c]; });
     countiesShown.forEach(function (c) { grid[c] = countTags(rs.filter(function (r) { return r.county === c; })); cols.forEach(function (t) { maxCell = Math.max(maxCell, grid[c][t] || 0); }); });
     countiesShown.forEach(function (c) {
       var tr = el("tr"); tr.appendChild(el("td", null, c));
@@ -1130,6 +1468,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         tr.appendChild(td);
       });
       tr.appendChild(el("td", { "class": "num" }, String(byCounty[c] || 0)));
+      if (curHasSubs) tr.appendChild(el("td", { "class": "num" }, share(sentBy[c])));
       tb.appendChild(tr);
     });
     heat.appendChild(tb);
@@ -1137,7 +1476,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     // Forms table
     var ft = $("forms"); ft.innerHTML = "";
     var fh = el("thead"), fr = el("tr");
-    ["Form", "Case type", "Flagged", "Top problem", "Share with top problem"].forEach(function (h, i) { fr.appendChild(el("th", i === 2 || i === 4 ? { "class": "num" } : null, h)); });
+    var formSent = curHasSubs ? sentCounts(every, function (r) { return r.form || "(not given)"; }) : {};
+    (curHasSubs ? ["Form", "Case type", "Flagged", "Share of filings sent", "Top problem", "Share with top problem"] : ["Form", "Case type", "Flagged", "Top problem", "Share with top problem"]).forEach(function (h) { fr.appendChild(el("th", h === "Flagged" || /^Share/.test(h) ? { "class": "num" } : null, h)); });
     fh.appendChild(fr); ft.appendChild(fh);
     var fb = el("tbody"), byForm = {};
     rs.forEach(function (r) { var key = r.form || "(not given)"; (byForm[key] = byForm[key] || { ct: r.caseType, rs: [] }).rs.push(r); });
@@ -1147,6 +1487,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       tr.appendChild(el("td", null, f));
       tr.appendChild(el("td", null, g.ct));
       tr.appendChild(el("td", { "class": "num" }, String(g.rs.length)));
+      if (curHasSubs) tr.appendChild(el("td", { "class": "num" }, share(formSent[f])));
       tr.appendChild(el("td", null, top ? top[0] : ""));
       tr.appendChild(el("td", { "class": "num" }, top ? Math.round(top[1] / g.rs.length * 100) + "%" : ""));
       fb.appendChild(tr);
@@ -1154,7 +1495,159 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     ft.appendChild(fb);
 
     renderMap();
-    renderEvent();
+    renderInsights(rs, every);
+    renderTimes(rs, every);
+    $("evPanel").hidden = dataMode !== "sample";
+    if (dataMode === "sample") renderEvent();
+  }
+
+  // ---------- Data line: which data is showing ----------
+  function renderDataLine() {
+    var box = $("dataLine"); box.innerHTML = "";
+    var p = el("p", { "class": "hint", id: "dataText", tabindex: "-1" });
+    if (dataMode === "sample") {
+      p.appendChild(document.createTextNode("Showing the made-up sample: 8 pilot counties, January to October 2026. To try your own export, use "));
+      p.appendChild(el("a", { href: "#import" }, "Import"));
+      p.appendChild(document.createTextNode("."));
+      box.appendChild(p);
+      return;
+    }
+    var sentN = records.filter(function (r) { return r.sentToModel; }).length;
+    p.textContent = "Showing only your rows: " + records.length.toLocaleString() + " filings from " + myLabel + ", " + monthLabel(curMonths[0]) + " to " + monthLabel(curMonths[curMonths.length - 1]) + ". "
+      + (sentN ? "They stay in this browser, except " + sentN + (sentN === 1 ? " reason" : " reasons") + " the keyword rules could not sort, sent to OpenJev with names and numbers taken out." : "They stay in this browser and are not sent anywhere.");
+    box.appendChild(p);
+    var b = el("button", { type: "button", "class": "linkish" }, "Show the made-up sample");
+    b.addEventListener("click", function () { useData("sample"); var t = $("dataText"); if (t) t.focus(); });
+    box.appendChild(b);
+  }
+
+  // ---------- When flagged filings were sent ----------
+  var DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  var BANDS = [["Before 8 am", 0, 8], ["8 am to noon", 8, 12], ["Noon to 5 pm", 12, 17], ["After 5 pm", 17, 24]];
+  function dayIndex(date) { return (new Date(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10)).getDay() + 6) % 7; }
+  function bandIndex(time) { var h = +time.slice(0, 2); for (var i = 0; i < BANDS.length; i++) if (h >= BANDS[i][1] && h < BANDS[i][2]) return i; return -1; }
+  function offHours(r) { var h = +r.time.slice(0, 2); return dayIndex(r.date) >= 5 || h < 8 || h >= 17; }
+  function renderTimes(rs, every) {
+    var t = $("times"); t.innerHTML = "";
+    var timed = rs.filter(function (r) { return r.time; }).length, bands = (curHasSubs ? every : rs).some(function (r) { return r.time; }), nCols = bands ? BANDS.length : 1;
+    function grid(list) {
+      var g = DAYS.map(function () { var a = []; for (var i = 0; i <= nCols; i++) a.push(0); return a; });
+      list.forEach(function (r) { var d = dayIndex(r.date); g[d][nCols]++; if (!bands) g[d][0]++; else if (r.time) g[d][bandIndex(r.time)]++; });
+      return g;
+    }
+    var gf = grid(rs), ga = curHasSubs ? grid(every) : null, gk = curHasSubs ? grid(every.filter(isFlagged)) : null, maxCell = 1;
+    gf.forEach(function (row) { for (var i = 0; i < nCols; i++) maxCell = Math.max(maxCell, row[i]); });
+    var hr = el("tr"); hr.appendChild(el("th", null, "Day"));
+    (bands ? BANDS.map(function (b) { return b[0]; }) : ["Any time"]).forEach(function (h) { hr.appendChild(el("th", { "class": "num" }, h)); });
+    hr.appendChild(el("th", { "class": "num" }, "All"));
+    var th = el("thead"); th.appendChild(hr); t.appendChild(th);
+    var tb = el("tbody");
+    DAYS.forEach(function (d, di) {
+      var tr = el("tr"); tr.appendChild(el("td", null, d));
+      for (var i = 0; i < nCols; i++) {
+        var td = el("td", { "class": "heat" }, String(gf[di][i]));
+        td.style.background = "color-mix(in srgb, var(--accent) " + Math.round(gf[di][i] / maxCell * 45) + "%, var(--surface))";
+        tr.appendChild(td);
+      }
+      tr.appendChild(el("td", { "class": "num" }, String(gf[di][nCols])));
+      tb.appendChild(tr);
+    });
+    if (ga) {
+      var sr = el("tr"); sr.appendChild(el("td", null, "Share of filings sent"));
+      for (var i = 0; i <= nCols; i++) {
+        var f = 0, a = 0; DAYS.forEach(function (d, di) { f += gk[di][i]; a += ga[di][i]; });
+        sr.appendChild(el("td", { "class": i < nCols ? "mid" : "num" }, pct(f, a)));
+      }
+      tb.appendChild(sr);
+    }
+    t.appendChild(tb);
+    $("timeNote").textContent = bands ? "by day of the week and time sent" : "by day of the week";
+    var untimed = rs.length - timed;
+    $("timeHint").textContent = (!rs.length ? "No flagged filings match these filters. " : "")
+      + (bands ? "Office hours are 8 am to 5 pm. " + (untimed ? untimed + " flagged filings have no time, so they count only under All. " : "") : "This data has no times, so only the day of the week is shown. ")
+      + (dataMode === "sample" ? "Times in the sample are made up." : "");
+  }
+
+  // ---------- Where to act first ----------
+  // Fixed rules over the counts, no AI. Each item says what was counted, then one possible fix.
+  var FIXES = {
+    "Missing signature": "Make the signature line hard to miss, for example a short checklist at the end of the form.",
+    "Wrong form": "Make the right form easier to find, for example a form finder or plainer form names.",
+    "Wrong county or court": "Add a short note on which county and court to file in.",
+    "Missing required details": "Add prompts on the form for the details clerks most often find missing.",
+    "Missing fee or fee waiver": "Show the fee and the fee waiver option before people send the filing.",
+    "Citation not found or wrong": "Point filers to where they can check a case or statute number.",
+    "Missing addresses for service": "Make the address for service a required field.",
+    "Not verified or notarized": "Explain the verification statement, or where to find a notary, on the form itself.",
+    "Pages missing or unreadable": "Check page count and readability when the file is uploaded.",
+    "Missing repeated-conduct facts": "Give filers a short guide asking them to describe every incident, not only the latest one."
+  };
+  function renderInsights(rs, every) {
+    var list = $("insights"); list.innerHTML = "";
+    var items = [], oneCounty = $("fCounty").value;
+    var pairs = {}, formN = {};
+    rs.forEach(function (r) {
+      var f = r.form || "(form not given)";
+      formN[f] = (formN[f] || 0) + 1;
+      r.tags.forEach(function (t) {
+        if (t === NEEDS_REVIEW) return;
+        var key = f + "\u0000" + t, pr = pairs[key] || (pairs[key] = { form: f, tag: t, n: 0, counties: {} });
+        pr.n++; pr.counties[r.county] = (pr.counties[r.county] || 0) + 1;
+      });
+    });
+    var ranked = Object.keys(pairs).map(function (k) { return pairs[k]; }).filter(function (pr) { return pr.n >= 3; })
+      .sort(function (a, b) { return b.n - a.n || (a.form + a.tag < b.form + b.tag ? -1 : 1); });
+    function pairItem(pr) {
+      var tc = topEntries(pr.counties)[0], many = Object.keys(pr.counties).length > 1;
+      return {
+        head: pr.form + ": " + pr.n + " flagged for \u201c" + pr.tag.toLowerCase() + "\u201d.",
+        body: "That is " + pct(pr.n, formN[pr.form]) + " of the flagged filings on this form." + (!oneCounty && many ? " " + tc[0] + (isCounty(tc[0]) ? " County" : "") + " has the most, " + tc[1] + "." : ""),
+        fix: FIXES[pr.tag]
+      };
+    }
+    if (ranked[0]) items.push(pairItem(ranked[0]));
+    // The county with the most filings sent back beyond what the other counties' share would give.
+    // Ranking by that excess, not by the share alone, keeps a small county with a few bad weeks from coming first.
+    if (curHasSubs && !oneCounty) {
+      var byC = {}, allN = 0, allF = 0, best = null;
+      every.forEach(function (r) { var c = byC[r.county] || (byC[r.county] = { n: 0, f: 0 }); c.n++; allN++; if (r.outcome !== ACCEPTED) { c.f++; allF++; } });
+      Object.keys(byC).sort().forEach(function (name) {
+        var c = byC[name], oN = allN - c.n, oF = allF - c.f;
+        if (c.n < 30 || oN < 30) return;
+        var oR = oF / oN, extra = c.f - c.n * oR;
+        if (c.f / c.n - oR >= 0.05 && extra >= 5 && (!best || extra > best.extra)) best = { name: name, c: c, oN: oN, oF: oF, extra: extra };
+      });
+      if (best) {
+        var tp = topEntries(countTags(rs.filter(function (r) { return r.county === best.name; })))[0];
+        items.push({
+          head: best.name + (isCounty(best.name) ? " County" : "") + " sends back " + pct(best.c.f, best.c.n) + " of filings, against " + pct(best.oF, best.oN) + " in the other counties shown.",
+          body: "That is about " + Math.round(best.extra) + " more filings sent back than the other counties' share would give." + (tp ? " Its most common problem is \u201c" + tp[0].toLowerCase() + "\u201d, on " + tp[1] + " filings." : ""),
+          fix: tp ? FIXES[tp[0]] : ""
+        });
+      }
+    }
+    var second = ranked.filter(function (pr) { return pr.tag !== ranked[0].tag; })[0];
+    if (second) items.push(pairItem(second));
+    // Filings sent when the clerk's office is closed
+    var timedAll = every.filter(function (r) { return r.time; }), timedF = rs.filter(function (r) { return r.time; });
+    var afterFix = "People filing alone after hours may need the help built into the form, or a help line with evening hours.";
+    if (curHasSubs && timedAll.length >= 40) {
+      var offN = 0, offF = 0, onN = 0, onF = 0;
+      timedAll.forEach(function (r) { var flagged = r.outcome !== ACCEPTED; if (offHours(r)) { offN++; if (flagged) offF++; } else { onN++; if (flagged) onF++; } });
+      if (offN >= 20 && onN >= 20 && offF / offN - onF / onN >= 0.05)
+        items.push({ head: "Filings sent outside office hours are sent back more often: " + pct(offF, offN) + ", against " + pct(onF, onN) + " in office hours.", body: offN.toLocaleString() + " of " + timedAll.length.toLocaleString() + " filings were sent in the evening, at night or on a weekend.", fix: afterFix });
+    } else if (!curHasSubs && timedF.length >= 30) {
+      var off = timedF.filter(offHours).length;
+      if (off / timedF.length >= 0.3) items.push({ head: pct(off, timedF.length) + " of flagged filings were sent outside office hours.", body: "No one at the clerk's office could answer questions then.", fix: afterFix });
+    }
+    items.forEach(function (it) {
+      var li = el("li");
+      li.appendChild(el("strong", null, it.head));
+      if (it.body) li.appendChild(el("p", null, it.body));
+      if (it.fix) li.appendChild(el("p", { "class": "fix" }, "Possible fix: " + it.fix));
+      list.appendChild(li);
+    });
+    if (!items.length) list.appendChild(el("li", null, "Not enough flagged filings here to point anywhere yet."));
   }
 
   // ---------- County map and breakdown ----------
@@ -1169,13 +1662,22 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       if (back) back.focus();
     }
   }
+  var mapByRate = false;
   function focusVisible(e) { try { return e.matches(":focus-visible"); } catch (x) { return true; } }
   function renderMap() {
     var all = filtered(true), sel = $("fCounty").value, counts = {};
     all.forEach(function (r) { counts[r.county] = (counts[r.county] || 0) + 1; });
-    var max = COUNTIES.reduce(function (m, c) { return Math.max(m, counts[c] || 0); }, 0) || 1;
+    var sent = curHasSubs ? sentCounts(filtered(true, true), function (r) { return r.county; }) : {};
+    // Counties with data: the 8 pilot counties for the sample, or every county in the imported rows.
+    var hasData = {}; curCounties.forEach(function (c) { hasData[c] = true; });
+    var byRate = curHasSubs && mapByRate;
+    function value(c) { return byRate ? (sent[c] ? sent[c].f / sent[c].n : 0) : counts[c] || 0; }
+    function shown(c) { return byRate ? share(sent[c]) : String(counts[c] || 0); }
+    // The scale only counts counties drawn on the map, not "Not given" or names that are not Indiana counties.
+    var max = curCounties.filter(isCounty).reduce(function (m, c) { return Math.max(m, value(c)); }, 0) || (byRate ? 0.01 : 1);
     var STEPS = [20, 38, 56, 74, 92];
-    function step(v) { return Math.min(STEPS.length - 1, Math.floor(v / max * STEPS.length - 1e-9)); }
+    function step(v) { return Math.min(STEPS.length - 1, Math.max(0, Math.floor(v / max * STEPS.length - 1e-9))); }
+    var noData = dataMode === "sample" ? "not in the pilot" : "no data";
     var svg = $("inMap"); svg.innerHTML = "";
     var top = null, labels = [];
     // Hover and focus outlines go on one extra path drawn above every county.
@@ -1188,25 +1690,25 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       hover.setAttribute("d", p.getAttribute("d"));
     }
     IN_COUNTIES.forEach(function (c) {
-      var name = c[0], pilot = COUNTIES.indexOf(name) >= 0, v = counts[name] || 0;
+      var name = c[0], pilot = !!hasData[name], v = counts[name] || 0;
       var path = svgEl("path", { d: c[1], "class": pilot ? "pilot" + (name === sel ? " sel" : "") : "none" });
       if (pilot) {
-        var st = step(v);
+        var st = step(value(name));
         path.style.fill = "color-mix(in srgb, var(--accent) " + STEPS[st] + "%, var(--surface))";
         path.setAttribute("tabindex", "0"); path.setAttribute("role", "button"); path.setAttribute("data-county", name);
         path.setAttribute("aria-pressed", name === sel ? "true" : "false");
-        path.setAttribute("aria-label", name + " County, " + v + " flagged filings");
+        path.setAttribute("aria-label", name + " County, " + v + " flagged filings" + (curHasSubs ? ", " + share(sent[name]) + " of filings sent were flagged" : ""));
         path.addEventListener("click", function () { pickCounty(name); });
         path.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickCounty(name, true); } });
         path.addEventListener("mouseenter", function () { hoverP = path; paintHover(); });
         path.addEventListener("mouseleave", function () { hoverP = null; paintHover(); });
         path.addEventListener("focus", function () { focusP = focusVisible(path) ? path : null; paintHover(); });
         path.addEventListener("blur", function () { focusP = null; paintHover(); });
-        labels.push(svgEl("text", { x: c[2], y: c[3], "class": st < 2 ? "dark" : "" }, String(v)));
+        labels.push(svgEl("text", { x: c[2], y: c[3], "class": st < 2 ? "dark" : "" }, shown(name)));
       } else {
-        path.addEventListener("click", function () { mapNote = name; renderCountyPanel(all, counts); });
+        path.addEventListener("click", function () { mapNote = name; renderCountyPanel(all, counts, sent); });
       }
-      path.appendChild(svgEl("title", {}, name + " County" + (pilot ? ": " + v + " flagged filings" : ": not in the pilot")));
+      path.appendChild(svgEl("title", {}, name + " County" + (pilot ? ": " + v + " flagged filings" + (curHasSubs ? ", " + share(sent[name]) + " of filings sent were flagged" : "") : ": " + noData)));
       if (name === sel) top = path; else svg.appendChild(path);
     });
     if (top) svg.appendChild(top);  // drawn after the other counties so its outline is not covered
@@ -1216,30 +1718,45 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var per = max / STEPS.length;
     STEPS.forEach(function (pc, i) {
       var sp = el("span"), b = el("i", { "class": "box" }); b.style.background = "color-mix(in srgb, var(--accent) " + pc + "%, var(--surface))";
-      sp.appendChild(b); sp.appendChild(document.createTextNode(i === STEPS.length - 1 ? "up to " + max : "up to " + Math.round(per * (i + 1)))); lg.appendChild(sp);
+      var upTo = per * (i + 1);
+      sp.appendChild(b); sp.appendChild(document.createTextNode("up to " + (byRate ? Math.round(upTo * 100) + "%" : (i === STEPS.length - 1 ? max : Math.round(upTo))))); lg.appendChild(sp);
     });
-    var nd = el("span"); nd.appendChild(el("i", { "class": "box none" })); nd.appendChild(document.createTextNode("not in the pilot")); lg.appendChild(nd);
-    renderCountyPanel(all, counts);
+    var nd = el("span"); nd.appendChild(el("i", { "class": "box none" })); nd.appendChild(document.createTextNode(noData)); lg.appendChild(nd);
+    if (curHasSubs) {
+      var tg = el("button", { type: "button", "class": "linkish", id: "mapBy" }, byRate ? "Shade by number instead" : "Shade by share sent back");
+      tg.addEventListener("click", function () { mapByRate = !mapByRate; renderMap(); $("mapBy").focus(); });
+      lg.appendChild(tg);
+    }
+    $("inMap").setAttribute("aria-label", "Map of Indiana's 92 counties, shaded by " + (byRate ? "share of filings sent that were flagged" : "flagged filings"));
+    var unmatched = dataMode === "sample" ? 0 : curCounties.filter(function (c) { return !isCounty(c); }).length;
+    $("mapHint").textContent = "County lines from the US Census Bureau (public domain). " + (dataMode === "sample"
+      ? "The made-up sample covers 8 pilot counties; the other 84 have no data."
+      : "Counties are found by name in your county or court column." + (unmatched ? " " + unmatched + (unmatched === 1 ? " value was" : " values were") + " not an Indiana county, so " + (unmatched === 1 ? "it shows" : "they show") + " in the tables but not on the map." : ""));
+    renderCountyPanel(all, counts, sent);
   }
-  function renderCountyPanel(all, counts) {
+  function renderCountyPanel(all, counts, sent) {
+    sent = sent || {};
     var box = $("countyPanel"); box.innerHTML = "";
-    var sel = $("fCounty").value;
+    var sel = $("fCounty").value, sample = dataMode === "sample";
     if (mapNote) {
       box.appendChild(el("h3", null, mapNote + " County"));
-      box.appendChild(el("p", { "class": "hint" }, "Not one of the 8 pilot counties, so the sample has no data for it."));
-      var back = el("button", { type: "button", "class": "btn secondary sm" }, sel ? "Back to " + sel : "Back to all pilot counties");
-      back.addEventListener("click", function () { mapNote = ""; renderCountyPanel(all, counts); });
+      box.appendChild(el("p", { "class": "hint" }, sample ? "Not one of the 8 pilot counties, so the sample has no data for it." : "Your rows have no filings from this county."));
+      var back = el("button", { type: "button", "class": "linkish" }, sel ? "Back to " + sel : (sample ? "Back to all pilot counties" : "Back to all counties"));
+      back.addEventListener("click", function () { mapNote = ""; renderCountyPanel(all, counts, sent); });
       box.appendChild(back);
       return;
     }
     var rs = sel ? all.filter(function (r) { return r.county === sel; }) : all;
     var head = el("div");
-    head.appendChild(el("h3", null, sel ? sel + " County" : "All pilot counties"));
+    head.appendChild(el("h3", null, sel ? sel + (isCounty(sel) ? " County" : "") : (sample ? "All pilot counties" : "All counties in your rows")));
     head.appendChild(el("p", { "class": "hint" }, sel ? "Click it again, or another county, to change." : "Click a county to see its own breakdown."));
     box.appendChild(head);
     var n = el("div");
     n.appendChild(el("div", { "class": "big" }, rs.length.toLocaleString()));
-    n.appendChild(el("div", { "class": "hint" }, "flagged filings" + (sel && all.length ? ", " + Math.round(rs.length / all.length * 100) + "% of the pilot total" : " in the selected months")));
+    var sc = { n: 0, f: 0 };
+    if (curHasSubs) { if (sel) sc = sent[sel] || sc; else Object.keys(sent).forEach(function (c) { sc.n += sent[c].n; sc.f += sent[c].f; }); }
+    n.appendChild(el("div", { "class": "hint" }, "flagged filings" + (sel && all.length ? ", " + pct(rs.length, all.length) + " of the " + (sample ? "pilot " : "") + "total" : " in the selected months")
+      + (curHasSubs ? "; " + share(sc) + " of " + sc.n.toLocaleString() + " filings sent were flagged" : "")));
     box.appendChild(n);
     var tp = el("div"); tp.appendChild(el("div", { "class": "label-sm" }, "Top problems"));
     var bx = el("div", { "class": "bars" }); bars(bx, topEntries(countTags(rs)).slice(0, 3), rs.length); tp.appendChild(bx); box.appendChild(tp);
@@ -1249,24 +1766,26 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     box.appendChild(ot);
     // Monthly trend for the months in the filter
     var from = $("fFrom").value, to = $("fTo").value; if (from > to) { var x = from; from = to; to = x; }
-    var ms = monthsAll.filter(function (m) { return m >= from && m <= to; }), byM = {};
+    var ms = curMonths.filter(function (m) { return m >= from && m <= to; }), byM = {};
     rs.forEach(function (r) { var m = r.date.slice(0, 7); byM[m] = (byM[m] || 0) + 1; });
     var mx = ms.reduce(function (a, m) { return Math.max(a, byM[m] || 0); }, 0) || 1, w = 300, h = 70, bw = w / ms.length;
     var tr = el("div"); tr.appendChild(el("div", { "class": "label-sm" }, "By month"));
     var sv = svgEl("svg", { viewBox: "0 0 " + w + " " + (h + 16), "class": "trend", role: "img", "aria-label": "Flagged filings by month: " + ms.map(function (m) { return monthLabel(m) + " " + (byM[m] || 0); }).join(", ") });
+    var years = ms.length && ms[0].slice(0, 4) !== ms[ms.length - 1].slice(0, 4), labelEvery = Math.ceil(ms.length / (years ? 6 : 12));
     ms.forEach(function (m, i) {
       var v = byM[m] || 0, bh = v / mx * h;
       sv.appendChild(svgEl("rect", { x: (i * bw + 2).toFixed(1), y: (h - bh).toFixed(1), width: Math.max(1, bw - 4).toFixed(1), height: bh.toFixed(1), rx: 1 }));
-      sv.appendChild(svgEl("text", { x: (i * bw + bw / 2).toFixed(1), y: h + 12, "text-anchor": "middle" }, MONTHS[+m.slice(5, 7) - 1]));
+      if (i % labelEvery === 0) {
+        var withYear = years && labelEvery > 1, first = i === 0 && withYear;  // the first long label starts at the edge, not before it
+        sv.appendChild(svgEl("text", { x: first ? "0" : (i * bw + bw / 2).toFixed(1), y: h + 12, "text-anchor": first ? "start" : "middle" }, MONTHS[+m.slice(5, 7) - 1] + (withYear ? " " + m.slice(2, 4) : "")));
+      }
     });
     tr.appendChild(sv); box.appendChild(tr);
     if (sel) {
-      var act = el("div", { "class": "actions" });
-      var ex = el("button", { type: "button", "class": "btn secondary sm" }, "Export " + sel + " (CSV)");
-      ex.addEventListener("click", function () { exportRows(rs, sel); });
-      var all2 = el("button", { type: "button", "class": "btn secondary sm" }, "Show all counties");
+      var all2 = el("button", { type: "button", "class": "linkish" }, "Show all counties");
       all2.addEventListener("click", function () { pickCounty(sel); });
-      act.appendChild(ex); act.appendChild(all2); box.appendChild(act);
+      box.appendChild(el("p", { "class": "hint" }, "Export, under the map, now gets only " + sel + "."));
+      box.appendChild(all2);
     }
   }
 
@@ -1284,8 +1803,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
   // One row per flagged filing. Notes and raw import reasons stay out, so the file holds no names.
   function exportRows(rs, county, name) {
-    download(name || "filing-problems-" + fileTag(county) + ".csv", [["date", "county", "case_type", "form", "problems", "outcome", "source"]].concat(rs.map(function (r) {
-      return [r.date, r.county, r.caseType, r.form, r.tags.join("; "), r.outcome, r.source];
+    download(name || "filing-problems-" + fileTag(county) + ".csv", [["date", "time", "county", "case_type", "form", "problems", "outcome", "source"]].concat(rs.map(function (r) {
+      return [r.date, r.time || "", r.county, r.caseType, r.form, r.tags.join("; "), r.outcome, r.source];
     })));
   }
   $("exRows").addEventListener("click", function () { exportRows(filtered(), $("fCounty").value); });
@@ -1295,15 +1814,26 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   });
   $("exCounties").addEventListener("click", function () {
     var all = filtered(true), sel = $("fCounty").value;
-    var names = COUNTIES.concat(all.map(function (r) { return r.county; }).filter(function (c, i, a) { return COUNTIES.indexOf(c) < 0 && a.indexOf(c) === i; }).sort());
-    if (sel) names = [sel];
-    download("county-counts-" + fileTag(sel) + ".csv", [["county", "flagged_filings"].concat(TAGS).concat(OUTCOMES)].concat(names.map(function (c) {
+    var names = sel ? [sel] : curCounties.slice();
+    var sent = {}; if (curHasSubs) filtered(true, true).forEach(function (r) { sent[r.county] = (sent[r.county] || 0) + 1; });
+    download("county-counts-" + fileTag(sel) + ".csv", [["county", "flagged_filings"].concat(curHasSubs ? ["filings_sent"] : []).concat(TAGS).concat(OUTCOMES)].concat(names.map(function (c) {
       var rs = all.filter(function (r) { return r.county === c; }), tc = countTags(rs), oc = {};
       rs.forEach(function (r) { oc[r.outcome] = (oc[r.outcome] || 0) + 1; });
-      return [c, rs.length].concat(TAGS.map(function (t) { return tc[t] || 0; })).concat(OUTCOMES.map(function (o) { return oc[o] || 0; }));
+      return [c, rs.length].concat(curHasSubs ? [sent[c] || 0] : []).concat(TAGS.map(function (t) { return tc[t] || 0; })).concat(OUTCOMES.map(function (o) { return oc[o] || 0; }));
     })));
   });
-  $("exPrint").addEventListener("click", function () { window.print(); });
+  $("exPrint").addEventListener("click", function () { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); window.print(); });
+  ["exRows", "exCounties", "exAll"].forEach(function (id) { $(id).addEventListener("click", function () { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); }); });
+  // The list opens to the right of the button, or to its left when there is no room.
+  function placeExMenu() {
+    var m = $("exMenu"); m.classList.remove("end");
+    if (m.open && m.querySelector(".menu-list").getBoundingClientRect().right > document.documentElement.clientWidth - 8) m.classList.add("end");
+  }
+  $("exMenu").addEventListener("toggle", placeExMenu);
+  window.addEventListener("resize", placeExMenu);
+  $("exMenu").addEventListener("focusout", function (e) { if (e.relatedTarget && !$("exMenu").contains(e.relatedTarget)) $("exMenu").open = false; });
+  document.addEventListener("click", function (e) { if ($("exMenu").open && !$("exMenu").contains(e.target)) $("exMenu").open = false; });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("exMenu").open) { $("exMenu").open = false; $("exMenu").querySelector("summary").focus(); } });
 
   function renderEvent() {
     var ev = currentEvent(), tag = $("evTag").value;
