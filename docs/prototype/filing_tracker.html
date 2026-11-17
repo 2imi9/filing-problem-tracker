@@ -237,7 +237,7 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .synth { display: grid; gap: 8px; max-width: 76ch; }
 .synth-text { font-family: var(--font-head); font-size: clamp(1.15rem, 1rem + 0.4vw, 1.35rem); line-height: 1.45; color: var(--ink); margin: 0; }
 .synth .by { margin: 0; }
-.synth > .btn { justify-self: start; margin-top: 4px; }
+.synth > .btn { justify-self: start; }
 /* Chat panel that pops out at the bottom right of the dashboard (Hugging Face copy only). */
 .chat { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: min(400px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 120px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18); }
 .chat[hidden] { display: none; }
@@ -835,7 +835,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (MODEL_HOST) $("aiNote").textContent = "AI use: the " + MODEL_FULL + " model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. "
       + (MODEL_WRITES ? "It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list." : "It picks the problem and the reason from a fixed list and writes nothing of its own.")
       + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code."
-      + (PROPOSAL ? " The summary at the top of the dashboard and its chat panel are a preview of a proposed AI feature: on this copy, code writes them from the counts." : "");
+      + (PROPOSAL ? " The dashboard's chat panel, with its summary and answers, is a preview of a proposed AI feature: on this copy, code writes them from the counts." : "");
   }
   nameModel(ON_THIS_COMPUTER ? "kev-0.8b" : "openjev");
   function fetchWithin(ms, url, options) {
@@ -1702,7 +1702,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // ---------- Summary at the top of the dashboard (Hugging Face copy only) ----------
   // A preview of the proposed AI summary. Here code writes it from the same counts as the panels and types it
   // out the way a model would; the label says so. Nothing is sent anywhere.
-  var synthText = "", synthTimer = null, synthTyped = false;
+  var synthText = "";
   function q(t) { return "\u201c" + t.toLowerCase() + "\u201d"; }
   function summaryText(rs, every, te, topC, items) {
     if (!rs.length) return "There are no flagged filings for these filters, so there is nothing to summarize yet. Try a wider range of months or all counties.";
@@ -1725,21 +1725,13 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function renderSummary(rs, every, te, topC, items) {
     if (!PROPOSAL) return;
     lastRows = rs; lastEvery = every;
-    var text = summaryText(rs, every, te, topC, items), box = $("synth");
-    if (text === synthText && !box.hidden) return;
-    synthText = text; clearInterval(synthTimer);
-    box.hidden = false; box.innerHTML = "";
-    box.appendChild(el("div", { "class": "label-sm" }, "AI summary, preview"));
-    var shown = el("p", { "class": "synth-text", "aria-hidden": "true" });
-    box.appendChild(shown);
-    box.appendChild(el("p", { "class": "sr" }, text));
-    box.appendChild(el("p", { "class": "by" }, "Preview of a proposed AI feature. On this copy, code writes it from the counts below. Check it against the panels."));
-    var open = el("button", { type: "button", "class": "btn secondary sm", id: "askOpen", "aria-controls": "askPanel", "aria-expanded": String(!$("askPanel").hidden) }, "Ask about these filings");
+    synthText = summaryText(rs, every, te, topC, items);
+    var box = $("synth");
+    if (!box.hidden) return;
+    box.hidden = false;
+    var open = el("button", { type: "button", "class": "btn secondary sm", id: "askOpen", "aria-controls": "askPanel", "aria-expanded": "false" }, "Ask about these filings");
     open.addEventListener("click", function () { if ($("askPanel").hidden) openChat(); else closeChat(true); });
     box.appendChild(open);
-    if (synthTyped) { shown.textContent = text; return; }
-    synthTyped = true;
-    synthTimer = typeOut(shown, text, "Reading the dashboard...");
   }
   // Types text out two words at a time after a short pause, the way a model streams. Returns the timer.
   function typeOut(node, text, waiting, done) {
@@ -1809,9 +1801,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     return "There are " + rows.length.toLocaleString() + " flagged " + scope + " shown" + (te[0] ? ", most often for " + q(te[0][0]) + " (" + pct(te[0][1], rows.length) + ")" + (te[1] ? " and " + q(te[1][0]) + " (" + pct(te[1][1], rows.length) + ")" : "") : "") + ". You can ask which county to start with, about a problem such as missing signatures, about a form, or when filings are sent.";
   }
   function countBy(rows, key) { var o = {}; rows.forEach(function (r) { var k = r[key] || "form not given"; o[k] = (o[k] || 0) + 1; }); return o; }
-  var TRY = ["Which county should we start with?", "Tell me about missing signatures", "When are filings sent?"];
+  var TRY = ["Which county should we start with?", "Tell me about missing signatures", "Summarize the dashboard again"];
   function showTries() {
     var log = $("askLog"); if (log.childNodes.length) return;
+    answer("AI summary, preview", synthText, "Reading the dashboard...");
     var d = el("div", { "class": "try" });
     d.appendChild(el("p", { "class": "hint" }, "Ask about the filings on the dashboard, for example:"));
     TRY.forEach(function (t) { var b = el("button", { type: "button", "class": "linkish" }, t); b.addEventListener("click", function () { ask(t); $("askQ").focus(); }); d.appendChild(b); });
@@ -1829,16 +1822,19 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
   function ask(question) {
     var log = $("askLog"), tries = log.querySelector(".try"); if (tries) log.removeChild(tries);
-    var last = log.querySelector(".typing"); if (last) { clearInterval(askTimer); last.classList.remove("typing"); last.textContent = last.getAttribute("data-full"); }
-    var text = answerFor(question);
     log.appendChild(el("p", { "class": "you" }, question));
+    answer("AI answer, preview", /summar|overview|recap/i.test(question) ? synthText : answerFor(question), "Looking at the filings...");
+  }
+  function answer(label, text, waiting) {
+    var log = $("askLog");
+    var last = log.querySelector(".typing"); if (last) { clearInterval(askTimer); last.classList.remove("typing"); last.textContent = last.getAttribute("data-full"); }
     var a = el("div", { "class": "ans" });
-    a.appendChild(el("div", { "class": "label-sm" }, "AI answer, preview"));
+    a.appendChild(el("div", { "class": "label-sm" }, label));
     var shown = el("p", { "class": "synth-text typing", "aria-hidden": "true", "data-full": text }); a.appendChild(shown);
     a.appendChild(el("p", { "class": "sr" }, text));
     log.appendChild(a);
     log.scrollTop = log.scrollHeight;
-    askTimer = typeOut(shown, text, "Looking at the filings...", function () { shown.classList.remove("typing"); log.scrollTop = log.scrollHeight; });
+    askTimer = typeOut(shown, text, waiting, function () { shown.classList.remove("typing"); log.scrollTop = log.scrollHeight; });
   }
   $("askForm").addEventListener("submit", function (e) {
     e.preventDefault();
