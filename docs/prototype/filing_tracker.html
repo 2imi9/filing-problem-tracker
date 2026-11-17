@@ -208,8 +208,8 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .compare .down { color: var(--good); } .compare .up { color: var(--bad); }
 .compare .s { font-size: 0.85rem; color: var(--muted); }
 /* County map: one shade of navy per step, grey where the pilot has no data. */
-.map-grid { display: grid; grid-template-columns: minmax(300px, 540px) minmax(0, 1fr); gap: 48px; align-items: start; }
-@media (max-width: 860px) { .map-grid { grid-template-columns: minmax(0, 1fr); } .map { max-width: 540px; } }
+.map-grid { display: grid; grid-template-columns: minmax(280px, 440px) minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 860px) { .map-grid { grid-template-columns: minmax(0, 1fr); } .map { max-width: 440px; } }
 .map { margin: 0; display: grid; gap: 12px; }
 #inMap { width: 100%; height: auto; display: block; }
 #inMap path { stroke: var(--surface); stroke-width: 0.8; stroke-linejoin: round; }
@@ -233,6 +233,47 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .data-line { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: -24px; }
 .data-line p { min-width: 0; overflow-wrap: anywhere; }
 .data-line p:focus { outline: none; }
+/* Summary at the top of the dashboard (Hugging Face copy only): plain text under a small label, no box. */
+.synth { display: grid; gap: 8px; max-width: 76ch; }
+.synth-text { font-family: var(--font-head); font-size: clamp(1.15rem, 1rem + 0.4vw, 1.35rem); line-height: 1.45; color: var(--ink); margin: 0; }
+.synth .by { margin: 0; }
+.synth > .btn { justify-self: start; }
+/* Chat panel that pops out at the bottom right of the dashboard (Hugging Face copy only). */
+.chat { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: min(400px, calc(100vw - 32px)); height: min(580px, calc(100vh - 110px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 32px rgba(15, 23, 42, 0.18); overflow: hidden; }
+.chat[hidden] { display: none; }
+@media (max-width: 520px) { .chat { right: 16px; bottom: 16px; } }
+/* Round chat button that floats at the bottom right of the dashboard and opens the panel. */
+.chat-fab { position: fixed; right: 24px; bottom: 24px; z-index: 29; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--accent); color: var(--surface); display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25); transition: transform 0.15s ease; }
+.chat-fab:hover { transform: scale(1.06); }
+.chat-fab:focus-visible { outline: 3px solid var(--cta); outline-offset: 3px; }
+.chat-fab[hidden] { display: none; }
+.chat-fab svg { width: 26px; height: 26px; }
+@media (max-width: 520px) { .chat-fab { right: 16px; bottom: 16px; } }
+.chat-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 8px 6px 18px; border-bottom: 1px solid var(--line); }
+.chat-head h2 { font-family: var(--font-head); font-weight: 600; font-size: 1.2rem; margin: 0; }
+.chat-head .x { width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.chat-head .x:hover { background: var(--quiet); color: var(--ink); }
+.chat-log { overflow-y: auto; padding: 16px; display: grid; gap: 16px; align-content: start; }
+/* Questions sit on the right in a bubble; answers sit on the left next to a small round mark, without a bubble. */
+.chat-log .you { margin: 0; justify-self: end; max-width: 85%; padding: 9px 14px; border-radius: 18px 18px 6px 18px; background: var(--accent); color: var(--surface); overflow-wrap: anywhere; }
+.chat-log .ans { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 10px; align-items: start; }
+.chat-log .ans .av { grid-row: span 2; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; color: var(--accent); }
+.chat-log .ans .av svg { width: 16px; height: 16px; }
+.chat-log .ans .label-sm { font-size: 0.7rem; }
+.chat-log .ans .synth-text { font-family: var(--font-ui); font-size: 0.95rem; line-height: 1.55; }
+.chat-log .try { display: grid; gap: 8px; }
+.chat-log .try .hint { margin: 0; }
+.chat-log .try button { font: inherit; font-size: 0.9rem; text-align: left; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+.chat-log .try button:hover { background: var(--quiet); }
+.chat-log .try button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* The input sits in one rounded box with a round send button inside it. */
+.chat-form { margin: 0 12px 6px; display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 14px; border: 1px solid var(--field); border-radius: 16px; background: var(--surface); }
+.chat-form:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.chat-form input[type="text"] { flex: 1; min-width: 0; border: 0; padding: 8px 0; min-height: 40px; background: transparent; outline: none; }
+.chat-form .send { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--accent); color: var(--surface); display: grid; place-items: center; cursor: pointer; }
+.chat-form .send:disabled { background: var(--quiet); color: var(--muted); cursor: default; }
+.chat-form .send svg { width: 18px; height: 18px; }
+.chat > .by { margin: 0; padding: 2px 16px 12px; text-align: center; }
 .county-panel h3, .kpi .v.sm, #heat td:first-child { overflow-wrap: anywhere; }
 #heat th.right { text-align: right; }
 #times th.num, #times td.mid { text-align: center; }
@@ -265,7 +306,7 @@ td.mid { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 .county-panel .trend rect { fill: var(--accent); }
 .county-panel .actions { gap: 8px; }
 @media print {
-  header.top, .tabbar, footer, .skip, button, #view-log, #view-import, .menu { display: none !important; }
+  header.top, .tabbar, footer, .skip, button, #view-log, #view-import, .menu, .chat { display: none !important; }
   body { background: #fff; } main .wrap { padding-block: 0; }
   .panel { break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -295,7 +336,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     <img class="hero-img" src="../assets/courthouse-ascii-hero.jpg" alt="" width="1280" height="560" onerror="this.remove()">
     <div class="wrap hero-in">
       <span class="sample-flag" id="sampleFlag">Prototype. All data is made up.</span>
-      <h1><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 2.5 30 11H2z"/><circle fill="#fcd34d" cx="16" cy="7.9" r="1.7"/><path fill="currentColor" d="M4 12.5h24v2H4zM5.5 16h3v8.5h-3zM11.5 16h3v8.5h-3zM17.5 16h3v8.5h-3zM23.5 16h3v8.5h-3zM4 25.5h24v2H4zM2 28.5h28v2H2z"/></svg>Filing Problem Tracker</h1>
+      <h1><svg class="mark" id="h-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 2.5 30 11H2z"/><circle fill="#fcd34d" cx="16" cy="7.9" r="1.7"/><path fill="currentColor" d="M4 12.5h24v2H4zM5.5 16h3v8.5h-3zM11.5 16h3v8.5h-3zM17.5 16h3v8.5h-3zM23.5 16h3v8.5h-3zM4 25.5h24v2H4zM2 28.5h28v2H2z"/></svg>Filing Problem Tracker</h1>
       <p>See why court filings from people without lawyers get rejected, and whether fixes work.</p>
     </div>
   </div>
@@ -326,7 +367,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
           <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
-          <p class="hint ai-line" id="aiLine">Keyword rules suggest here. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> uses OpenJev (AI).</p>
+          <p class="hint ai-line" id="aiLine">Keyword rules suggest here. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> uses Kev (AI).</p>
           <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
@@ -351,7 +392,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <p class="intro">Paste or upload a CSV export. Each reason is sorted into the same problem list.</p>
       <div class="panel">
         <h2 id="h-import">Import a filing export</h2>
-        <p class="hint">Any column names work. A date and a reason are needed; a status column lets accepted filings count. <span id="modelLine">Keyword rules sort the rows here; the <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> adds OpenJev (AI).</span> <button type="button" class="linkish" id="csvDemo">Try a bigger made-up export</button></p>
+        <p class="hint">Any column names work. A date and a reason are needed; a status column lets accepted filings count. <span id="modelLine">Keyword rules sort the rows here; the <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> adds Kev (AI).</span> <button type="button" class="linkish" id="csvDemo">Try a bigger made-up export</button></p>
         <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
@@ -384,6 +425,14 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     <section class="view" id="view-dashboard" aria-labelledby="h-dash" hidden>
       <p class="intro">Where filings get sent back, on which forms, when, and what to fix first.</p>
       <div class="data-line" id="dataLine"></div>
+      <div class="synth" id="synth" hidden></div>
+      <button type="button" class="chat-fab" id="askFab" aria-label="Ask about these filings" aria-controls="askPanel" aria-expanded="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M8 9.5h8M8 12.5h5"/></svg></button>
+      <aside class="chat" id="askPanel" role="dialog" aria-labelledby="askTitle" aria-describedby="askBy" hidden>
+        <div class="chat-head"><h2 id="askTitle">Ask about these filings</h2><button type="button" class="x" id="askClose" aria-label="Close chat">&times;</button></div>
+        <div class="chat-log" id="askLog" aria-live="polite"></div>
+        <form class="chat-form" id="askForm"><label class="sr" for="askQ">Your question</label><input type="text" id="askQ" maxlength="160" autocomplete="off" placeholder="Ask about these filings..."><button type="submit" class="send" id="askSend" aria-label="Send" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button></form>
+        <p class="by" id="askBy">Preview: code answers from the counts on this page. Your questions stay in this browser.</p>
+      </aside>
       <div class="panel plain">
         <h2>By county <small>click a county to filter</small></h2>
         <div class="map-grid">
@@ -462,7 +511,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up, unless you load your own export on Import. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, OpenJev Flash 9B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up, unless you load your own export on Import. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, Kev-0.8B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -590,7 +639,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     currentView = v;
     VIEWS.forEach(function (name) { $("view-" + name).hidden = name !== v; });
     document.querySelectorAll("nav.tabs a").forEach(function (a) { if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
-    if (v === "dashboard") renderDashboard();
+    if (v === "dashboard") renderDashboard(); else if (PROPOSAL) closeChat(false);
     var barTop = document.querySelector("header.top").offsetHeight;
     if (changed && window.scrollY > barTop) window.scrollTo(0, barTop);
   }
@@ -787,32 +836,36 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
 
   // Sorting model. Used only where the page is served next to the model at the same address: Kev-0.8B on
-  // this computer by scripts/serve-local.py, or OpenJev Flash 9B on a Hugging Face Space by space/server.py.
-  // The static site never looks for it. Only the Space's model writes its reasoning; Kev only picks.
+  // this computer by scripts/serve-local.py or on the Hugging Face Space by space/server.py. The static site
+  // never looks for it. Kev only picks; OpenJev on a Space could also write its reasoning (/v1/explain).
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
   var MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space", MODEL_WRITES = !ON_THIS_COMPUTER;
-  var MODEL_SHORT, MODEL_NAME, MODEL_FULL, MODEL_ID, MIN_CONFIDENCE;
+  // The Hugging Face copy shows the original proposal, including a preview of the dashboard summary.
+  var PROPOSAL = /\.hf\.space$/.test(location.hostname);
+  var MODEL_SHORT, MODEL_NAME, MODEL_FULL, MODEL_ID, MIN_CONFIDENCE, HIGH_CONFIDENCE, MEDIUM_CONFIDENCE;
   // The server says which model it runs in GET /v1/version, e.g. { "model": "jaredpalmer/kev-0.8b@v1.0" }.
   function nameModel(id) {
     var kev = /kev/i.test(id), size = /kev-([\d.]+b)/i.exec(id);
-    MODEL_SHORT = kev ? "Kev" : "OpenJev"; MODEL_NAME = MODEL_SHORT + " (AI)";
+    MODEL_SHORT = kev ? "Kev" : "OpenJev"; MODEL_NAME = MODEL_SHORT + " (AI)"; MODEL_WRITES = !ON_THIS_COMPUTER && !kev;
     MODEL_FULL = kev ? "Kev" + (size ? "-" + size[1].toUpperCase() : "") : "OpenJev Flash 9B";
     MODEL_ID = kev ? "kev-latest" : "openjev-flash-9b";
-    // Kev-0.8B spreads its chances more thinly than OpenJev, so its top pick shows at a lower cut-off, marked low confidence.
-    MIN_CONFIDENCE = kev ? 0.1 : 0.6;
+    // Kev-0.8B spreads its chances more thinly than OpenJev, so its cut-offs are lower. They come from
+    // scripts/check-space.py on 54 made-up notes: at 0.15 Kev suggested 37 right and 2 wrong, and every pick at 0.5 or more was right.
+    MIN_CONFIDENCE = kev ? 0.15 : 0.6; HIGH_CONFIDENCE = kev ? 0.5 : 0.8; MEDIUM_CONFIDENCE = kev ? 0.3 : 0.6;
     if (MODEL_HOST) $("aiNote").textContent = "AI use: the " + MODEL_FULL + " model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. "
       + (MODEL_WRITES ? "It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list." : "It picks the problem and the reason from a fixed list and writes nothing of its own.")
-      + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
+      + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code."
+      + (PROPOSAL ? " The dashboard's chat panel, with its summary and answers, is a preview of a proposed AI feature: on this copy, code writes them from the counts." : "");
   }
-  nameModel(ON_THIS_COMPUTER ? "kev-0.8b" : "openjev");
+  nameModel("kev-0.8b");
   function fetchWithin(ms, url, options) {
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
     options = options || {}; if (ctl) options.signal = ctl.signal;
     return fetch(url, options).then(function (r) { clearTimeout(timer); return r; }, function (e) { clearTimeout(timer); throw e; });
   }
-  var HIGH_CONFIDENCE = 0.8, NONE_OF_THESE = "None of these";
+  var NONE_OF_THESE = "None of these";
   var TAG_HELP = {
     "Missing signature": "The filing or a page of it was not signed.",
     "Wrong form": "The wrong form, or an old version of the form, was used.",
@@ -825,12 +878,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     "Pages missing or unreadable": "Pages are missing, blank or cannot be read.",
     "Missing repeated-conduct facts": "A stalking or harassment petition describes only one incident, but the law asks for repeated or continuing conduct."
   };
-  // The reasons the model may give. It picks one problem-and-reason pair; it never writes its own text.
+  // The reason the model gives for each problem. It picks one problem; it never writes its own text.
   var REASONS = [
-    [REPEATED, "the note mentions only one incident"],
-    [REPEATED, "the note says no pattern of repeated contact is described"],
-    ["Missing required details", "the note says dates or a description of what happened are missing"],
-    ["Missing required details", "the note says an amount or another fact the form asks for is missing"],
+    [REPEATED, "the note says the petition describes only one incident, not repeated conduct"],
+    ["Missing required details", "the note says dates, an amount, a description or another required fact is missing"],
     ["Missing signature", "the note says the filing or a page is not signed"],
     ["Wrong form", "the note says the wrong form or an old version was used"],
     ["Wrong county or court", "the note says it belongs in another county or court"],
@@ -876,7 +927,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     d.appendChild(el("p", { "class": "by" }, MODEL_NAME + ", in its own words. It can be wrong."));
     return d;
   }
-  function confWord(c) { return c >= HIGH_CONFIDENCE ? "high confidence" : c >= 0.6 ? "medium confidence" : "low confidence"; }
+  function confWord(c) { return c >= HIGH_CONFIDENCE ? "high confidence" : c >= MEDIUM_CONFIDENCE ? "medium confidence" : "low confidence"; }
   // Says on the Import tab whether the model is there, so its work is not invisible.
   var modelReady = null, modelCheckedAt = 0;
   function showModel(ready) {
@@ -888,38 +939,37 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   function modelAvailable() {
     if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
     return fetchWithin(5000, "/v1/version").then(function (r) {
-      return r.json().then(function (j) { if (j && typeof j.model === "string") nameModel(j.model); }, function () {}).then(function () { return r.ok; });
+      return r.json().then(function (j) { var id = j && (j.model || j.model_dir); if (typeof id === "string") nameModel(id); }, function () {}).then(function () { return r.ok; });
     }, function () { return false; }).then(function (ok) { showModel(ok); return ok; });
   }
   modelAvailable();
   // One typed decision per note: { tag, why, confidence }. tag is null when the model is unsure or picks
   // "None of these". The note is cleaned of names and case numbers before it is sent.
   function askModel(caseType, form, note, thought) {
-    var criteria = {}, keys = [];
-    REASONS.forEach(function (r) { var k = r[0] + ", because " + r[1]; keys.push(k); criteria[k] = TAG_HELP[r[0]] || "No problem on the list fits the note."; });
+    // One option per problem, described by its reason ("The note says ..."). On 54 made-up notes this asked
+    // Kev-0.8B better than problem-and-reason pairs whose chances were added up (scripts/check-space.py).
+    var criteria = {};
+    REASONS.forEach(function (r) { criteria[r[0]] = r[1].charAt(0).toUpperCase() + r[1].slice(1) + "."; });
     return fetchWithin(120000, "/v1/systemone", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL_ID,
-        state: thought ? { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text, your_reasoning: thought }
-          : { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text },
+        state: thought ? { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text.slice(0, 1000), your_reasoning: thought }
+          : { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text.slice(0, 1000) },
         questions: { problem: { type: "choice", instructions: "A court clerk turned this filing away and typed the note. Which problem does the note describe, and why?", criteria: criteria } }
       })
-    }).then(function (r) { if (!r.ok) throw new Error("model " + r.status); return r.json(); }).then(function (j) {
-      var a = j && j.answers && j.answers.problem;
-      if (!a || keys.indexOf(a.choice) < 0) return { tag: null };
-      // Add up the chances of each problem over its reasons, then keep the likeliest reason for the winner.
-      var byTag = {}, tags = [];
-      REASONS.forEach(function (r, i) {
-        var pr = a.probabilities && typeof a.probabilities[keys[i]] === "number" ? a.probabilities[keys[i]] : (keys[i] === a.choice ? 1 : 0);
-        if (!byTag[r[0]]) { byTag[r[0]] = { p: 0, best: -1, why: "" }; tags.push(r[0]); }
-        byTag[r[0]].p += pr;
-        if (pr > byTag[r[0]].best) { byTag[r[0]].best = pr; byTag[r[0]].why = r[1]; }
-      });
-      var win = tags.reduce(function (m, t) { return byTag[t].p > byTag[m].p ? t : m; }, tags[0]);
-      var u = 1 / tags.length, conf = a.probabilities ? Math.max(0, (byTag[win].p - u) / (1 - u)) : a.confidence;
+    }).then(function (r) {
+      if (r.status === 422) return null;  // the server turned this one note down: unsure, not a stopped model
+      if (!r.ok) throw new Error("model " + r.status); return r.json();
+    }).then(function (j) {
+      var a = j && j.answers && j.answers.problem, p = a && a.probabilities;
+      if (!a || !criteria.hasOwnProperty(a.choice)) return { tag: null };
+      // The likeliest problem wins; confidence is 0 at an even spread and 1 when all the chance is on it.
+      var win = a.choice, n = REASONS.length;
+      if (p) REASONS.forEach(function (r) { if ((p[r[0]] || 0) > (p[win] || 0)) win = r[0]; });
+      var conf = p ? Math.max(0, ((p[win] || 0) - 1 / n) / (1 - 1 / n)) : a.confidence;
       if (TAGS.indexOf(win) < 0 || !(conf >= MIN_CONFIDENCE)) return { tag: null, confidence: conf };
-      return { tag: win, why: byTag[win].why, confidence: conf };
+      return { tag: win, why: REASONS.filter(function (r) { return r[0] === win; })[0][1], confidence: conf };
     });
   }
   // ---------- Live suggestion on the Tag tab ----------
@@ -1509,7 +1559,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     ft.appendChild(fb);
 
     renderMap();
-    renderInsights(rs, every);
+    var found = renderInsights(rs, every);
+    renderSummary(rs, every, te, topC, found);
     renderTimes(rs, every);
     $("evPanel").hidden = dataMode !== "sample";
     if (dataMode === "sample") renderEvent();
@@ -1614,6 +1665,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     function pairItem(pr) {
       var tc = topEntries(pr.counties)[0], many = Object.keys(pr.counties).length > 1;
       return {
+        pair: pr,
         head: pr.form + ": " + pr.n + " flagged for \u201c" + pr.tag.toLowerCase() + "\u201d.",
         body: "That is " + pct(pr.n, formN[pr.form]) + " of the flagged filings on this form." + (!oneCounty && many ? " " + tc[0] + (isCounty(tc[0]) ? " County" : "") + " has the most, " + tc[1] + "." : ""),
         fix: FIXES[pr.tag]
@@ -1662,7 +1714,180 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       list.appendChild(li);
     });
     if (!items.length) list.appendChild(el("li", null, "Not enough flagged filings here to point anywhere yet."));
+    return items;
   }
+
+  // ---------- Summary at the top of the dashboard (Hugging Face copy only) ----------
+  // A preview of the proposed AI summary. Here code writes it from the same counts as the panels and types it
+  // out the way a model would; the label says so. Nothing is sent anywhere.
+  var synthText = "";
+  function q(t) { return "\u201c" + t.toLowerCase() + "\u201d"; }
+  function summaryText(rs, every, te, topC, items) {
+    if (!rs.length) return "There are no flagged filings for these filters, so there is nothing to summarize yet. Try a wider range of months or all counties.";
+    var county = $("fCounty").value, ct = $("fCase").value;
+    var from = $("fFrom").value, to = $("fTo").value;
+    var span = from && to ? (from === to ? "in " + monthLabel(from) : "from " + monthLabel(from) + " to " + monthLabel(to)) : "";
+    var where = county ? " in " + county + (isCounty(county) ? " County" : "") : "";
+    var what = ct ? " " + ct.toLowerCase() : "";
+    var out = [];
+    var first = "Looking at " + rs.length.toLocaleString() + " flagged" + what + " filings" + where + (span ? " " + span : "");
+    if (curHasSubs) { var f = every.filter(isFlagged).length; first += ", " + pct(f, every.length) + " of the " + every.length.toLocaleString() + " filings sent came back flagged"; }
+    first += (te[0] ? ", the clearest pattern is " + q(te[0][0]) + ", on " + pct(te[0][1], rs.length) + " of them" + (te[1] ? ", followed by " + q(te[1][0]) + " at " + pct(te[1][1], rs.length) : "") : "") + ".";
+    out.push(first);
+    if (!county && topC) out.push(topC[0] + (isCounty(topC[0]) ? " County" : "") + " has the most flagged filings, " + topC[1].toLocaleString() + ", so a change there would reach the most people.");
+    var lead = items.filter(function (it) { return it.pair; })[0];
+    if (lead) out.push("The first place I would look is the " + lead.pair.form + ", where " + lead.pair.n + " filings were flagged for " + q(lead.pair.tag) + ". One fix to try: " + FIXES[lead.pair.tag].charAt(0).toLowerCase() + FIXES[lead.pair.tag].slice(1));
+    out.push("These counts show where filings are sent back, not why, so check a few of these filings with clerks before changing a form.");
+    return out.join(" ");
+  }
+  function renderSummary(rs, every, te, topC, items) {
+    if (!PROPOSAL) return;
+    lastRows = rs; lastEvery = every;
+    synthText = summaryText(rs, every, te, topC, items);
+    // When the filters or the data change, an open chat gets a fresh summary; a closed one starts over next time.
+    if (shownSynth && synthText !== shownSynth) {
+      if (!$("askPanel").hidden) { shownSynth = synthText; answer("AI summary, preview", synthText, "Reading the dashboard..."); }
+      else { clearInterval(askTimer); $("askLog").textContent = ""; shownSynth = ""; }
+    }
+    var box = $("synth");
+    if (!box.hidden) return;
+    box.hidden = false; $("askFab").hidden = !$("askPanel").hidden;
+    var open = el("button", { type: "button", "class": "btn secondary sm", id: "askOpen", "aria-controls": "askPanel", "aria-expanded": "false" }, "Ask about these filings");
+    open.addEventListener("click", function () { openedBy = open; if ($("askPanel").hidden) openChat(); else closeChat(true); });
+    box.appendChild(open);
+  }
+  // Types text out two words at a time after a short pause, the way a model streams. Returns the timer.
+  function typeOut(node, text, waiting, done) {
+    var words = text.split(" "), i = -14;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { node.textContent = text; if (done) done(); return null; }
+    node.textContent = waiting + " \u258d";
+    var timer = setInterval(function () {
+      i += 2;
+      if (i <= 0) return;
+      node.textContent = words.slice(0, i).join(" ") + (i < words.length ? " \u258d" : "");
+      if (i >= words.length) { clearInterval(timer); if (done) done(); }
+    }, 45);
+    return timer;
+  }
+
+  // Question box under the summary (Hugging Face copy only). Code answers from the filings on the dashboard;
+  // the question never leaves the browser.
+  var askTimer = null, lastRows = [], lastEvery = [], shownSynth = "";
+  var ASK_TAGS = [[/signat|\bsign(ed)?\b|unsigned/, "Missing signature"], [/wrong form|old form|outdated|form version/, "Wrong form"], [/county or court|wrong county|wrong court|venue|jurisdiction/, "Wrong county or court"],
+    [/required details?|missing details?|missing info|no description/, "Missing required details"], [/\bfees?\b|waiver|\bpa(y|id)\b/, "Missing fee or fee waiver"], [/\bcit(e|es|ed|ing|ation|ations)\b|statute|case law|fake case/, "Citation not found or wrong"],
+    [/address(es)? for service|missing address|no address|\baddresses\b|\bservice of/, "Missing addresses for service"], [/notar|not verified|unverified|verification|sworn|\boath\b|perjury/, "Not verified or notarized"], [/\bpages?\b|unreadable|\bscan|illegible/, "Pages missing or unreadable"],
+    [/repeated|stalk|harass|one incident|single incident/, REPEATED]];
+  function says(t, name) { return new RegExp("\\b" + name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b").test(t); }
+  function placeName(c) { return c + (isCounty(c) ? " County" : ""); }
+  function answerFor(question) {
+    var t = question.toLowerCase(), rows = lastRows.slice(), bits = [];
+    if (!rows.length) return "There are no flagged filings for these filters, so I have nothing to go on. Try all counties or a wider range of months.";
+    // A county or case type named in the question, else the one picked in the dashboard filters.
+    var county = curCounties.filter(function (c) { return says(t, c); })[0] || $("fCounty").value;
+    var ct = curCases.filter(function (c) { return says(t, c); })[0] || $("fCase").value;
+    var tag = (ASK_TAGS.filter(function (a) { return a[0].test(t); })[0] || [])[1];
+    if (county) rows = rows.filter(function (r) { return r.county === county; });
+    if (ct) rows = rows.filter(function (r) { return r.caseType === ct; });
+    var scope = (ct ? ct.toLowerCase() + " " : "") + "filings" + (county ? " in " + placeName(county) : "");
+    if (!rows.length) return "There are no flagged " + scope + " on the dashboard right now, so I cannot say anything about them yet.";
+    if (tag) {
+      var hit = rows.filter(function (r) { return r.tags.indexOf(tag) >= 0; });
+      if (!hit.length) return "None of the " + rows.length.toLocaleString() + " flagged " + scope + " shown were flagged for " + q(tag) + ".";
+      var hc = topEntries(countBy(hit, "county"))[0], hf = topEntries(countBy(hit, "form"))[0];
+      bits.push("\u201c" + tag + "\u201d is on " + hit.length.toLocaleString() + " of the " + rows.length.toLocaleString() + " flagged " + scope + " shown (" + pct(hit.length, rows.length) + ").");
+      if (!county && hc) bits.push(placeName(hc[0]) + " has the most, " + hc[1] + (hf ? ", and the form it shows up on most is the " + hf[0] + " (" + hf[1] + ")." : "."));
+      else if (hf) bits.push("The form it shows up on most is the " + hf[0] + ", with " + hf[1] + ".");
+      bits.push("One fix to try: " + FIXES[tag].charAt(0).toLowerCase() + FIXES[tag].slice(1));
+      return bits.join(" ");
+    }
+    var te = topEntries(countTags(rows));
+    if (/\bwhen\b|\btime|\bhours?\b|night|evening|weekend|\blate\b/.test(t)) {
+      var timed = rows.filter(function (r) { return r.time; });
+      if (timed.length < 10) return "Too few of these filings have a time sent to say when they come in.";
+      var off = timed.filter(offHours).length, said = pct(off, timed.length) + " of the flagged " + scope + " with a time were sent in the evening, at night or on a weekend, when no one at the clerk's office could answer questions.";
+      if (curHasSubs) {
+        var sent = lastEvery.filter(function (r) { return r.time && (!county || r.county === county) && (!ct || r.caseType === ct); });
+        var so = sent.filter(offHours), si = sent.filter(function (r) { return !offHours(r); });
+        if (so.length >= 10 && si.length >= 10) said += " Of all filings sent then, " + pct(so.filter(isFlagged).length, so.length) + " came back flagged, against " + pct(si.filter(isFlagged).length, si.length) + " in office hours.";
+      }
+      return said + " People filing alone then may need the help built into the form itself.";
+    }
+    if (/form/.test(t)) {
+      var tf = topEntries(countBy(rows, "form")).slice(0, 3);
+      return "The forms with the most flagged " + scope + " are " + tf.map(function (f) { return "the " + f[0] + " (" + f[1] + ")"; }).join(", ") + ". " + (te[0] ? "Across them, the most common problem is " + q(te[0][0]) + "." : "");
+    }
+    if (/fix|\bdo\b|change|improve|help|first|priorit|start|\bact\b/.test(t) && county) {
+      return te[0] ? "In " + placeName(county) + ", I would start with " + q(te[0][0]) + ", on " + te[0][1] + " of " + rows.length + " flagged filings (" + pct(te[0][1], rows.length) + "). One fix to try: " + FIXES[te[0][0]].charAt(0).toLowerCase() + FIXES[te[0][0]].slice(1) : "Nothing stands out in " + placeName(county) + " yet.";
+    }
+    if (/where|which county|counties|start|first|most|worst|priorit/.test(t)) {
+      if (county) return "Only " + placeName(county) + " is in view, with " + rows.length.toLocaleString() + " flagged " + scope.replace(" in " + placeName(county), "") + ". Pick All counties in the County filter to compare counties.";
+      var bc = topEntries(countBy(rows, "county"));
+      var top = rows.filter(function (r) { return r.county === bc[0][0]; }), tp = topEntries(countTags(top))[0];
+      return "I would start with " + placeName(bc[0][0]) + ": it has " + bc[0][1].toLocaleString() + " of the " + rows.length.toLocaleString() + " flagged " + scope + " shown (" + pct(bc[0][1], rows.length) + ")" + (tp ? ", most often for " + q(tp[0]) + " (" + tp[1] + ")" : "") + "." + (bc[1] ? " " + placeName(bc[1][0]) + " comes next with " + bc[1][1].toLocaleString() + "." : "");
+    }
+    if (/fix|\bdo\b|change|improve|help/.test(t) && te[0]) {
+      return "The biggest problem in the " + scope + " shown is " + q(te[0][0]) + ", on " + pct(te[0][1], rows.length) + " of them. One fix to try: " + FIXES[te[0][0]].charAt(0).toLowerCase() + FIXES[te[0][0]].slice(1) + (te[1] ? " Next would be " + q(te[1][0]) + ": " + FIXES[te[1][0]].charAt(0).toLowerCase() + FIXES[te[1][0]].slice(1) : "");
+    }
+    if (/why/.test(t)) return "The counts show where filings are sent back, not why. " + (te[0] ? "The most common reason clerks gave is " + q(te[0][0]) + ", on " + pct(te[0][1], rows.length) + " of the flagged " + scope + "; " : "") + "a few conversations with clerks would tell us what filers misunderstand.";
+    return "There are " + rows.length.toLocaleString() + " flagged " + scope + " shown" + (te[0] ? ", most often for " + q(te[0][0]) + " (" + pct(te[0][1], rows.length) + ")" + (te[1] ? " and " + q(te[1][0]) + " (" + pct(te[1][1], rows.length) + ")" : "") : "") + ". You can ask which county to start with, about a problem such as missing signatures, about a form, or when filings are sent.";
+  }
+  function countBy(rows, key) { var o = {}; rows.forEach(function (r) { var k = r[key] || "form not given"; o[k] = (o[k] || 0) + 1; }); return o; }
+  var TRY = ["Which county should we start with?", "Tell me about missing signatures", "Summarize the dashboard again"];
+  function showTries() {
+    var log = $("askLog"); if (log.childNodes.length) return;
+    shownSynth = synthText; answer("AI summary, preview", synthText, "Reading the dashboard...");
+    var d = el("div", { "class": "try" });
+    d.appendChild(el("p", { "class": "hint" }, "Try one of these:"));
+    TRY.forEach(function (t) { var b = el("button", { type: "button" }, t); b.addEventListener("click", function () { ask(t); $("askQ").focus(); }); d.appendChild(b); });
+    log.appendChild(d);
+  }
+  function openChat() {
+    $("askPanel").hidden = false; $("askFab").hidden = true; showTries();
+    var o = $("askOpen"); if (o) o.setAttribute("aria-expanded", "true");
+    $("askQ").focus();
+  }
+  function closeChat(refocus) {
+    if ($("askPanel").hidden) return;
+    $("askPanel").hidden = true; $("askFab").hidden = false;
+    var o = $("askOpen"); if (o) o.setAttribute("aria-expanded", "false");
+    if (refocus) (openedBy && openedBy.isConnected && !openedBy.hidden ? openedBy : $("askFab")).focus({ preventScroll: true });
+  }
+  function ask(question) {
+    var log = $("askLog"), tries = log.querySelector(".try"); if (tries) log.removeChild(tries);
+    log.appendChild(el("p", { "class": "you" }, question));
+    var again = /summar|overview|recap/i.test(question); if (again) shownSynth = synthText;
+    answer("AI answer, preview", again ? synthText : answerFor(question), "Looking at the filings...");
+  }
+  function answer(label, text, waiting) {
+    var log = $("askLog");
+    var last = log.querySelector(".typing"); if (last) { clearInterval(askTimer); last.classList.remove("typing"); last.textContent = last.getAttribute("data-full"); }
+    var a = el("div", { "class": "ans" });
+    var av = el("span", { "class": "av", "aria-hidden": "true" }); var mk = $("h-mark").cloneNode(true); mk.removeAttribute("id"); mk.removeAttribute("class"); av.appendChild(mk); a.appendChild(av);
+    var lab = el("div", { "class": "label-sm" }, label); lab.appendChild(el("span", { "class": "sr" }, ", written by code from the counts")); a.appendChild(lab);
+    var shown = el("p", { "class": "synth-text typing", "aria-hidden": "true", "data-full": text }); a.appendChild(shown);
+    a.appendChild(el("p", { "class": "sr" }, text));
+    log.appendChild(a);
+    log.scrollTop = log.scrollHeight;
+    askTimer = typeOut(shown, text, waiting, function () { shown.classList.remove("typing"); log.scrollTop = log.scrollHeight; });
+  }
+  $("askForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var question = $("askQ").value.trim(); if (!question) { $("askQ").focus(); return; }
+    $("askQ").value = ""; $("askSend").disabled = true; ask(question);
+  });
+  $("askQ").addEventListener("input", function () { $("askSend").disabled = !$("askQ").value.trim(); });
+  $("askClose").addEventListener("click", function () { closeChat(true); });
+  var openedBy = null;
+  $("askFab").addEventListener("click", function () { openedBy = $("askFab"); openChat(); });
+  // It stays open while the dashboard is used, like a chat window. Close or Escape shuts it and focus goes back
+  // to the button that opened it.
+  $("askPanel").addEventListener("keydown", function (e) { if (e.key === "Escape") closeChat(true); });
+  // If focus moves to something on the page that the panel covers, the panel gets out of the way.
+  document.addEventListener("focusin", function (e) {
+    var panel = $("askPanel"); if (panel.hidden || panel.contains(e.target) || !e.target.getBoundingClientRect) return;
+    var a = e.target.getBoundingClientRect(), b = panel.getBoundingClientRect();
+    if (a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom) closeChat(false);
+  });
 
   // ---------- County map and breakdown ----------
   var SVGNS = "http://www.w3.org/2000/svg", mapNote = "";

@@ -44,6 +44,8 @@ class Handler(SimpleHTTPRequestHandler):
                 if path == "/v1/models":
                     card = found["models"][0]
                     found = {"model": card.get("run") or card.get("name"), "backend": card.get("backend"), "server": "kev"}
+                else:
+                    found.setdefault("model", found.get("model_dir") or "openjev")  # OpenJev's helper names its folder only
                 return self.reply(200, json.dumps(found).encode())
             except urllib.error.HTTPError as error:
                 if error.code != 404: break

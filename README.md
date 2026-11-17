@@ -37,7 +37,7 @@ The [quickstart](specs/001-filing-problem-tracker/quickstart.md) has the setting
 
 ## Where AI is used
 
-When an [OpenJev](https://huggingface.co/openjev/OpenJev-Flash-9B) decision model is running, on a Mac or a Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)), it suggests a problem while a clerk types a note and sorts the import rows the keyword rules cannot. The model first thinks the note through in its own words, shown as it writes, then picks a problem from the fixed list; each AI tag is labelled, gives a short reason and keeps the model's words under "Show reasoning". The clerk accepts or changes every suggestion, and names and case numbers are taken out of a note before it is sent. The dashboard uses no AI, and every number is counted by code. The Render demo runs no AI: its suggestions come from keyword rules and say so.
+When a decision model is running, [Kev-0.8B](https://huggingface.co/jaredpalmer/kev-0.8b) on a Mac or the Hugging Face Space (see the [quickstart](specs/001-filing-problem-tracker/quickstart.md)), it suggests a problem while a clerk types a note and sorts the import rows the keyword rules cannot. It picks a problem and a reason from a fixed list and writes nothing of its own; each AI tag is labelled. The clerk accepts or changes every suggestion, and names and case numbers are taken out of a note before it is sent. The dashboard uses no AI, and every number is counted by code. On the Space, the dashboard's chat panel is a preview of a proposed AI feature: code writes its summary and answers from the counts, and it says so. The Render demo runs no AI: its suggestions come from keyword rules and say so.
 
 ## Docs
 
