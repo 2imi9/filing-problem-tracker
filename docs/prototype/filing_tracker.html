@@ -237,6 +237,24 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .synth { display: grid; gap: 8px; max-width: 76ch; }
 .synth-text { font-family: var(--font-head); font-size: clamp(1.15rem, 1rem + 0.4vw, 1.35rem); line-height: 1.45; color: var(--ink); margin: 0; }
 .synth .by { margin: 0; }
+.synth > .btn { justify-self: start; margin-top: 4px; }
+/* Chat panel that pops out at the bottom right of the dashboard (Hugging Face copy only). */
+.chat { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: min(400px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 120px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18); }
+.chat[hidden] { display: none; }
+@media (max-width: 520px) { .chat { right: 16px; bottom: 16px; } }
+.chat-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+.chat-head h2 { font-family: var(--font-head); font-weight: 600; font-size: 1.25rem; margin: 0; }
+.chat-head .linkish { min-height: 44px; }
+.chat-log { overflow-y: auto; padding: 14px 16px; display: grid; gap: 14px; align-content: start; }
+.chat-log .you { margin: 0; font-weight: 700; justify-self: end; max-width: 85%; text-align: right; overflow-wrap: anywhere; }
+.chat-log .ans { display: grid; gap: 4px; }
+.chat-log .ans .synth-text { font-size: 1.05rem; }
+.chat-log .try { display: grid; gap: 2px; justify-items: start; }
+.chat-log .try .hint { margin: 0 0 4px; }
+.chat-log .try .linkish { min-height: 36px; text-align: left; }
+.chat-form { display: flex; gap: 8px; padding: 12px 16px 6px; border-top: 1px solid var(--line); }
+.chat-form input { flex: 1; min-width: 0; }
+.chat > .by { margin: 0; padding: 0 16px 12px; }
 .county-panel h3, .kpi .v.sm, #heat td:first-child { overflow-wrap: anywhere; }
 #heat th.right { text-align: right; }
 #times th.num, #times td.mid { text-align: center; }
@@ -389,6 +407,12 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <p class="intro">Where filings get sent back, on which forms, when, and what to fix first.</p>
       <div class="data-line" id="dataLine"></div>
       <div class="synth" id="synth" hidden></div>
+      <aside class="chat" id="askPanel" role="dialog" aria-labelledby="askTitle" hidden>
+        <div class="chat-head"><h2 id="askTitle">Ask about these filings</h2><button type="button" class="linkish" id="askClose">Close</button></div>
+        <div class="chat-log" id="askLog" aria-live="polite"></div>
+        <form class="chat-form" id="askForm"><label class="sr" for="askQ">Your question</label><input type="text" id="askQ" maxlength="160" autocomplete="off" placeholder="Ask a question"><button type="submit" class="btn secondary">Ask</button></form>
+        <p class="by">Preview: code answers from the counts on this page. Your questions stay in this browser.</p>
+      </aside>
       <div class="panel plain">
         <h2>By county <small>click a county to filter</small></h2>
         <div class="map-grid">
@@ -595,7 +619,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     currentView = v;
     VIEWS.forEach(function (name) { $("view-" + name).hidden = name !== v; });
     document.querySelectorAll("nav.tabs a").forEach(function (a) { if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
-    if (v === "dashboard") renderDashboard();
+    if (v === "dashboard") renderDashboard(); else if (PROPOSAL) closeChat(false);
     var barTop = document.querySelector("header.top").offsetHeight;
     if (changed && window.scrollY > barTop) window.scrollTo(0, barTop);
   }
@@ -811,7 +835,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (MODEL_HOST) $("aiNote").textContent = "AI use: the " + MODEL_FULL + " model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. "
       + (MODEL_WRITES ? "It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list." : "It picks the problem and the reason from a fixed list and writes nothing of its own.")
       + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code."
-      + (PROPOSAL ? " The summary at the top of the dashboard is a preview of a proposed AI feature: on this copy, code writes it from the counts." : "");
+      + (PROPOSAL ? " The summary at the top of the dashboard and its chat panel are a preview of a proposed AI feature: on this copy, code writes them from the counts." : "");
   }
   nameModel(ON_THIS_COMPUTER ? "kev-0.8b" : "openjev");
   function fetchWithin(ms, url, options) {
@@ -1678,7 +1702,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // ---------- Summary at the top of the dashboard (Hugging Face copy only) ----------
   // A preview of the proposed AI summary. Here code writes it from the same counts as the panels and types it
   // out the way a model would; the label says so. Nothing is sent anywhere.
-  var synthText = "", synthTimer = null;
+  var synthText = "", synthTimer = null, synthTyped = false;
   function q(t) { return "\u201c" + t.toLowerCase() + "\u201d"; }
   function summaryText(rs, every, te, topC, items) {
     if (!rs.length) return "There are no flagged filings for these filters, so there is nothing to summarize yet. Try a wider range of months or all counties.";
@@ -1700,6 +1724,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
   function renderSummary(rs, every, te, topC, items) {
     if (!PROPOSAL) return;
+    lastRows = rs; lastEvery = every;
     var text = summaryText(rs, every, te, topC, items), box = $("synth");
     if (text === synthText && !box.hidden) return;
     synthText = text; clearInterval(synthTimer);
@@ -1709,16 +1734,121 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     box.appendChild(shown);
     box.appendChild(el("p", { "class": "sr" }, text));
     box.appendChild(el("p", { "class": "by" }, "Preview of a proposed AI feature. On this copy, code writes it from the counts below. Check it against the panels."));
-    var words = text.split(" "), i = -14;  // a short pause first, as if reading
-    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { shown.textContent = text; return; }
-    shown.textContent = "Reading the dashboard... \u258d";
-    synthTimer = setInterval(function () {
+    var open = el("button", { type: "button", "class": "btn secondary sm", id: "askOpen", "aria-controls": "askPanel", "aria-expanded": String(!$("askPanel").hidden) }, "Ask about these filings");
+    open.addEventListener("click", function () { if ($("askPanel").hidden) openChat(); else closeChat(true); });
+    box.appendChild(open);
+    if (synthTyped) { shown.textContent = text; return; }
+    synthTyped = true;
+    synthTimer = typeOut(shown, text, "Reading the dashboard...");
+  }
+  // Types text out two words at a time after a short pause, the way a model streams. Returns the timer.
+  function typeOut(node, text, waiting, done) {
+    var words = text.split(" "), i = -14;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { node.textContent = text; if (done) done(); return null; }
+    node.textContent = waiting + " \u258d";
+    var timer = setInterval(function () {
       i += 2;
       if (i <= 0) return;
-      shown.textContent = words.slice(0, i).join(" ") + (i < words.length ? " \u258d" : "");
-      if (i >= words.length) clearInterval(synthTimer);
+      node.textContent = words.slice(0, i).join(" ") + (i < words.length ? " \u258d" : "");
+      if (i >= words.length) { clearInterval(timer); if (done) done(); }
     }, 45);
+    return timer;
   }
+
+  // Question box under the summary (Hugging Face copy only). Code answers from the filings on the dashboard;
+  // the question never leaves the browser.
+  var askTimer = null, lastRows = [], lastEvery = [];
+  var ASK_TAGS = [[/signat|sign\b|signed/, "Missing signature"], [/wrong form|old form|outdated|form version/, "Wrong form"], [/county or court|wrong county|wrong court|venue|jurisdiction/, "Wrong county or court"],
+    [/detail|missing info|description/, "Missing required details"], [/\bfees?\b|waiver|pay/, "Missing fee or fee waiver"], [/citation|cite|statute|case law|fake case/, "Citation not found or wrong"],
+    [/address|service|serve/, "Missing addresses for service"], [/notar|verif|sworn|oath/, "Not verified or notarized"], [/pages?\b|unreadable|scan|illegible/, "Pages missing or unreadable"],
+    [/repeat|stalk|harass|incident|pattern/, REPEATED]];
+  function placeName(c) { return c + (isCounty(c) ? " County" : ""); }
+  function answerFor(question) {
+    var t = question.toLowerCase(), rows = lastRows.slice(), bits = [];
+    if (!rows.length) return "There are no flagged filings for these filters, so I have nothing to go on. Try all counties or a wider range of months.";
+    var county = curCounties.filter(function (c) { return t.indexOf(c.toLowerCase()) >= 0; })[0];
+    var ct = curCases.filter(function (c) { return t.indexOf(c.toLowerCase()) >= 0; })[0];
+    var tag = (ASK_TAGS.filter(function (a) { return a[0].test(t); })[0] || [])[1];
+    if (county) rows = rows.filter(function (r) { return r.county === county; });
+    if (ct) rows = rows.filter(function (r) { return r.caseType === ct; });
+    var scope = (ct ? ct.toLowerCase() + " " : "") + "filings" + (county ? " in " + placeName(county) : "");
+    if (!rows.length) return "There are no flagged " + scope + " on the dashboard right now, so I cannot say anything about them yet.";
+    if (tag) {
+      var hit = rows.filter(function (r) { return r.tags.indexOf(tag) >= 0; });
+      if (!hit.length) return "None of the " + rows.length.toLocaleString() + " flagged " + scope + " shown were flagged for " + q(tag) + ".";
+      var hc = topEntries(countBy(hit, "county"))[0], hf = topEntries(countBy(hit, "form"))[0];
+      bits.push(q(tag).charAt(0) + q(tag).slice(1) + " is on " + hit.length.toLocaleString() + " of the " + rows.length.toLocaleString() + " flagged " + scope + " shown (" + pct(hit.length, rows.length) + ").");
+      if (!county && hc) bits.push(placeName(hc[0]) + " has the most, " + hc[1] + (hf ? ", and the form it shows up on most is the " + hf[0] + " (" + hf[1] + ")." : "."));
+      else if (hf) bits.push("The form it shows up on most is the " + hf[0] + ", with " + hf[1] + ".");
+      bits.push("One fix to try: " + FIXES[tag].charAt(0).toLowerCase() + FIXES[tag].slice(1));
+      return bits.join(" ");
+    }
+    var te = topEntries(countTags(rows));
+    if (/when|time|hour|night|evening|weekend|late/.test(t)) {
+      var timed = rows.filter(function (r) { return r.time; });
+      if (timed.length < 10) return "Too few of these filings have a time sent to say when they come in.";
+      var off = timed.filter(offHours).length;
+      return pct(off, timed.length) + " of the " + scope + " with a time were sent in the evening, at night or on a weekend, when no one at the clerk's office could answer questions. People filing alone then may need the help built into the form itself.";
+    }
+    if (/form/.test(t)) {
+      var tf = topEntries(countBy(rows, "form")).slice(0, 3);
+      return "The forms with the most flagged " + scope + " are " + tf.map(function (f) { return "the " + f[0] + " (" + f[1] + ")"; }).join(", ") + ". " + (te[0] ? "Across them, the most common problem is " + q(te[0][0]) + "." : "");
+    }
+    if (/fix|do\b|change|improve|help|first|priorit|start|act/.test(t) && county) {
+      return te[0] ? "In " + placeName(county) + ", I would start with " + q(te[0][0]) + ", on " + te[0][1] + " of " + rows.length + " flagged filings (" + pct(te[0][1], rows.length) + "). One fix to try: " + FIXES[te[0][0]].charAt(0).toLowerCase() + FIXES[te[0][0]].slice(1) : "Nothing stands out in " + placeName(county) + " yet.";
+    }
+    if (/where|which county|counties|start|first|most|worst|priorit/.test(t)) {
+      var bc = topEntries(countBy(rows, "county"));
+      var top = rows.filter(function (r) { return r.county === bc[0][0]; }), tp = topEntries(countTags(top))[0];
+      return "I would start with " + placeName(bc[0][0]) + ": it has " + bc[0][1].toLocaleString() + " of the " + rows.length.toLocaleString() + " flagged " + scope + " shown (" + pct(bc[0][1], rows.length) + ")" + (tp ? ", most often for " + q(tp[0]) + " (" + tp[1] + ")" : "") + "." + (bc[1] ? " " + placeName(bc[1][0]) + " comes next with " + bc[1][1].toLocaleString() + "." : "");
+    }
+    if (/fix|do\b|change|improve|help/.test(t) && te[0]) {
+      return "The biggest problem in the " + scope + " shown is " + q(te[0][0]) + ", on " + pct(te[0][1], rows.length) + " of them. One fix to try: " + FIXES[te[0][0]].charAt(0).toLowerCase() + FIXES[te[0][0]].slice(1) + (te[1] ? " Next would be " + q(te[1][0]) + ": " + FIXES[te[1][0]].charAt(0).toLowerCase() + FIXES[te[1][0]].slice(1) : "");
+    }
+    if (/why/.test(t)) return "The counts show where filings are sent back, not why. " + (te[0] ? "The most common reason clerks gave is " + q(te[0][0]) + ", on " + pct(te[0][1], rows.length) + " of the flagged " + scope + "; " : "") + "a few conversations with clerks would tell us what filers misunderstand.";
+    return "There are " + rows.length.toLocaleString() + " flagged " + scope + " shown" + (te[0] ? ", most often for " + q(te[0][0]) + " (" + pct(te[0][1], rows.length) + ")" + (te[1] ? " and " + q(te[1][0]) + " (" + pct(te[1][1], rows.length) + ")" : "") : "") + ". You can ask which county to start with, about a problem such as missing signatures, about a form, or when filings are sent.";
+  }
+  function countBy(rows, key) { var o = {}; rows.forEach(function (r) { var k = r[key] || "form not given"; o[k] = (o[k] || 0) + 1; }); return o; }
+  var TRY = ["Which county should we start with?", "Tell me about missing signatures", "When are filings sent?"];
+  function showTries() {
+    var log = $("askLog"); if (log.childNodes.length) return;
+    var d = el("div", { "class": "try" });
+    d.appendChild(el("p", { "class": "hint" }, "Ask about the filings on the dashboard, for example:"));
+    TRY.forEach(function (t) { var b = el("button", { type: "button", "class": "linkish" }, t); b.addEventListener("click", function () { ask(t); $("askQ").focus(); }); d.appendChild(b); });
+    log.appendChild(d);
+  }
+  function openChat() {
+    $("askPanel").hidden = false; showTries();
+    var o = $("askOpen"); if (o) o.setAttribute("aria-expanded", "true");
+    $("askQ").focus();
+  }
+  function closeChat(refocus) {
+    if ($("askPanel").hidden) return;
+    $("askPanel").hidden = true;
+    var o = $("askOpen"); if (o) { o.setAttribute("aria-expanded", "false"); if (refocus) o.focus({ preventScroll: true }); }
+  }
+  function ask(question) {
+    var log = $("askLog"), tries = log.querySelector(".try"); if (tries) log.removeChild(tries);
+    var last = log.querySelector(".typing"); if (last) { clearInterval(askTimer); last.classList.remove("typing"); last.textContent = last.getAttribute("data-full"); }
+    var text = answerFor(question);
+    log.appendChild(el("p", { "class": "you" }, question));
+    var a = el("div", { "class": "ans" });
+    a.appendChild(el("div", { "class": "label-sm" }, "AI answer, preview"));
+    var shown = el("p", { "class": "synth-text typing", "aria-hidden": "true", "data-full": text }); a.appendChild(shown);
+    a.appendChild(el("p", { "class": "sr" }, text));
+    log.appendChild(a);
+    log.scrollTop = log.scrollHeight;
+    askTimer = typeOut(shown, text, "Looking at the filings...", function () { shown.classList.remove("typing"); log.scrollTop = log.scrollHeight; });
+  }
+  $("askForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var question = $("askQ").value.trim(); if (!question) { $("askQ").focus(); return; }
+    $("askQ").value = ""; ask(question);
+  });
+  $("askClose").addEventListener("click", function () { closeChat(true); });
+  // It stays open while the dashboard is used, like a chat window. Close or Escape shuts it and focus goes back
+  // to the button that opened it.
+  $("askPanel").addEventListener("keydown", function (e) { if (e.key === "Escape") closeChat(true); });
 
   // ---------- County map and breakdown ----------
   var SVGNS = "http://www.w3.org/2000/svg", mapNote = "";
