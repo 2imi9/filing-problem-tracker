@@ -239,7 +239,15 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .synth .by { margin: 0; }
 .synth > .btn { justify-self: start; }
 /* Chat panel that pops out at the bottom right of the dashboard (Hugging Face copy only). */
-.chat { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: min(400px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 120px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18); }
+.chat { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: min(400px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 120px)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 32px rgba(15, 23, 42, 0.18); overflow: hidden; }
+.chat-form input, .chat-form .btn { border-radius: 12px; }
+/* Round chat button that floats at the bottom right of the dashboard and opens the panel. */
+.chat-fab { position: fixed; right: 24px; bottom: 24px; z-index: 29; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--accent); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25); }
+.chat-fab:hover { background: var(--ink); }
+.chat-fab:focus-visible { outline: 3px solid var(--cta); outline-offset: 3px; }
+.chat-fab[hidden] { display: none; }
+.chat-fab svg { width: 26px; height: 26px; }
+@media (max-width: 520px) { .chat-fab { right: 16px; bottom: 16px; } }
 .chat[hidden] { display: none; }
 @media (max-width: 520px) { .chat { right: 16px; bottom: 16px; } }
 .chat-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
@@ -348,7 +356,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           </div>
           <p class="status err" id="logErr" role="alert" hidden></p>
           <label class="f">What was wrong, in your words (optional)<input type="text" id="logNote" maxlength="200" autocomplete="off" placeholder="e.g. only one incident described. No names or case numbers."></label>
-          <p class="hint ai-line" id="aiLine">Keyword rules suggest here. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> uses OpenJev (AI).</p>
+          <p class="hint ai-line" id="aiLine">Keyword rules suggest here. The <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> uses Kev (AI).</p>
           <div class="suggest" id="suggest" aria-live="polite" hidden></div>
           <div class="label-sm" id="tagsLabel">What was wrong? Click all that apply.</div>
           <div class="chips" id="logTags" role="group" aria-labelledby="tagsLabel"></div>
@@ -373,7 +381,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <p class="intro">Paste or upload a CSV export. Each reason is sorted into the same problem list.</p>
       <div class="panel">
         <h2 id="h-import">Import a filing export</h2>
-        <p class="hint">Any column names work. A date and a reason are needed; a status column lets accepted filings count. <span id="modelLine">Keyword rules sort the rows here; the <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> adds OpenJev (AI).</span> <button type="button" class="linkish" id="csvDemo">Try a bigger made-up export</button></p>
+        <p class="hint">Any column names work. A date and a reason are needed; a status column lets accepted filings count. <span id="modelLine">Keyword rules sort the rows here; the <a href="https://huggingface.co/spaces/2imi9/filing-problem-tracker">Hugging Face copy</a> adds Kev (AI).</span> <button type="button" class="linkish" id="csvDemo">Try a bigger made-up export</button></p>
         <label class="f">CSV text<textarea id="csvText" rows="12" spellcheck="false"></textarea></label>
         <div class="actions">
           <button class="btn" type="button" id="csvSort">Sort into categories</button>
@@ -407,6 +415,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       <p class="intro">Where filings get sent back, on which forms, when, and what to fix first.</p>
       <div class="data-line" id="dataLine"></div>
       <div class="synth" id="synth" hidden></div>
+      <button type="button" class="chat-fab" id="askFab" aria-label="Ask about these filings" aria-controls="askPanel" aria-expanded="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M8 9.5h8M8 12.5h5"/></svg></button>
       <aside class="chat" id="askPanel" role="dialog" aria-labelledby="askTitle" hidden>
         <div class="chat-head"><h2 id="askTitle">Ask about these filings</h2><button type="button" class="linkish" id="askClose">Close</button></div>
         <div class="chat-log" id="askLog" aria-live="polite"></div>
@@ -491,7 +500,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
 
   </div>
 </main>
-<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up, unless you load your own export on Import. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, OpenJev Flash 9B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
+<footer><div class="wrap">Student prototype for CS4535 AI for Impact, Team 1. Not affiliated with the Indiana courts. Counties are real; every number and entry is made up, unless you load your own export on Import. This tool does not give legal advice. <span id="aiNote">AI use: none on this copy. Suggestions on the Tag tab and sorting on Import come from keyword rules, and every number is counted by code. The AI model, Kev-0.8B, runs only on the Hugging Face copy.</span> Upload icon by Lucide.</div></footer>
 
 <script>
 (function () {
@@ -816,8 +825,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
 
   // Sorting model. Used only where the page is served next to the model at the same address: Kev-0.8B on
-  // this computer by scripts/serve-local.py, or OpenJev Flash 9B on a Hugging Face Space by space/server.py.
-  // The static site never looks for it. Only the Space's model writes its reasoning; Kev only picks.
+  // this computer by scripts/serve-local.py or on the Hugging Face Space by space/server.py. The static site
+  // never looks for it. Kev only picks; OpenJev on a Space could also write its reasoning (/v1/explain).
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
   var MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space", MODEL_WRITES = !ON_THIS_COMPUTER;
@@ -827,7 +836,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // The server says which model it runs in GET /v1/version, e.g. { "model": "jaredpalmer/kev-0.8b@v1.0" }.
   function nameModel(id) {
     var kev = /kev/i.test(id), size = /kev-([\d.]+b)/i.exec(id);
-    MODEL_SHORT = kev ? "Kev" : "OpenJev"; MODEL_NAME = MODEL_SHORT + " (AI)";
+    MODEL_SHORT = kev ? "Kev" : "OpenJev"; MODEL_NAME = MODEL_SHORT + " (AI)"; MODEL_WRITES = !ON_THIS_COMPUTER && !kev;
     MODEL_FULL = kev ? "Kev" + (size ? "-" + size[1].toUpperCase() : "") : "OpenJev Flash 9B";
     MODEL_ID = kev ? "kev-latest" : "openjev-flash-9b";
     // Kev-0.8B spreads its chances more thinly than OpenJev, so its top pick shows at a lower cut-off, marked low confidence.
@@ -837,7 +846,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code."
       + (PROPOSAL ? " The dashboard's chat panel, with its summary and answers, is a preview of a proposed AI feature: on this copy, code writes them from the counts." : "");
   }
-  nameModel(ON_THIS_COMPUTER ? "kev-0.8b" : "openjev");
+  nameModel("kev-0.8b");
   function fetchWithin(ms, url, options) {
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
@@ -1728,9 +1737,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     synthText = summaryText(rs, every, te, topC, items);
     var box = $("synth");
     if (!box.hidden) return;
-    box.hidden = false;
+    box.hidden = false; $("askFab").hidden = !$("askPanel").hidden;
     var open = el("button", { type: "button", "class": "btn secondary sm", id: "askOpen", "aria-controls": "askPanel", "aria-expanded": "false" }, "Ask about these filings");
-    open.addEventListener("click", function () { if ($("askPanel").hidden) openChat(); else closeChat(true); });
+    open.addEventListener("click", function () { openedBy = open; if ($("askPanel").hidden) openChat(); else closeChat(true); });
     box.appendChild(open);
   }
   // Types text out two words at a time after a short pause, the way a model streams. Returns the timer.
@@ -1811,14 +1820,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     log.appendChild(d);
   }
   function openChat() {
-    $("askPanel").hidden = false; showTries();
+    $("askPanel").hidden = false; $("askFab").hidden = true; showTries();
     var o = $("askOpen"); if (o) o.setAttribute("aria-expanded", "true");
     $("askQ").focus();
   }
   function closeChat(refocus) {
     if ($("askPanel").hidden) return;
-    $("askPanel").hidden = true;
-    var o = $("askOpen"); if (o) { o.setAttribute("aria-expanded", "false"); if (refocus) o.focus({ preventScroll: true }); }
+    $("askPanel").hidden = true; $("askFab").hidden = false;
+    var o = $("askOpen"); if (o) o.setAttribute("aria-expanded", "false");
+    if (refocus) (openedBy && openedBy.isConnected && !openedBy.hidden ? openedBy : $("askFab")).focus({ preventScroll: true });
   }
   function ask(question) {
     var log = $("askLog"), tries = log.querySelector(".try"); if (tries) log.removeChild(tries);
@@ -1842,6 +1852,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     $("askQ").value = ""; ask(question);
   });
   $("askClose").addEventListener("click", function () { closeChat(true); });
+  var openedBy = null;
+  $("askFab").addEventListener("click", function () { openedBy = $("askFab"); openChat(); });
   // It stays open while the dashboard is used, like a chat window. Close or Escape shuts it and focus goes back
   // to the button that opened it.
   $("askPanel").addEventListener("keydown", function (e) { if (e.key === "Escape") closeChat(true); });

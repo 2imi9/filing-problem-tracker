@@ -1,28 +1,21 @@
 #!/usr/bin/env python3
-"""One small server for a Hugging Face Space: the tracker page and the sorting model at one address.
+"""One small server for a Hugging Face Space: the tracker page and the Kev-0.8B sorting model at one address.
 
-It serves the static page, starts llama.cpp with OpenJev Flash 9B, and answers
-POST /v1/systemone for Choice questions the way the OpenJev helper does: state,
-question and lettered options go in, the scores of the option letters at the
-first output position come out as probabilities. POST /v1/explain streams the
-model thinking a clerk's note through in its own words, before the page asks
-it to pick a problem. Standard library only.
+It serves the static page, starts Kev (https://github.com/jaredpalmer/kev, Apache-2.0) on 127.0.0.1:8009,
+and passes POST /v1/systemone to it after checking the request is a small choice question. GET /v1/version
+names the model once Kev is up. Kev only picks from a list, so there is no /v1/explain here and the page
+skips its thinking step. Standard library only.
 """
-import json, math, os, shutil, subprocess, threading, urllib.error, urllib.request
+import json, os, subprocess, sys, urllib.error, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = int(os.environ.get("PORT", "7860"))
-MODEL = os.environ.get("MODEL_FILE", "/models/openjev-flash-9b-q4.gguf")
-LLAMA = os.environ.get("LLAMA_URL", "http://127.0.0.1:8080")
-TEMP = 1.07  # OpenJev Flash 9B's published calibration for Choice answers
-FLOOR = -30.0  # score for an option letter the model ranked too low to be reported
-LETTERS = [chr(65 + i) for i in range(26)]
+RUN = os.environ.get("KEV_RUN", "jaredpalmer/kev-0.8b@v1.0")
+KEV = os.environ.get("KEV_URL", "http://127.0.0.1:8009")
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/index.html": ("index.html", "text/html; charset=utf-8"),
           "/courthouse-ascii-hero.jpg": ("courthouse-ascii-hero.jpg", "image/jpeg"), "/mark.svg": ("mark.svg", "image/svg+xml")}
 MAX_BODY, MAX_STATE, MAX_OPTIONS, MAX_QUESTIONS = 20_000, 4_000, 26, 4
-MAX_NOTE, MAX_PROBLEM, EXPLAIN_TOKENS = 400, 80, 110
-one_at_a_time = threading.Lock()  # a free Space has two CPU cores; answer one question at a time
 
 
 class BadRequest(ValueError):
@@ -30,72 +23,34 @@ class BadRequest(ValueError):
 
 
 def start_model():
-    if os.environ.get("LLAMA_URL"):
+    if os.environ.get("KEV_URL"):
         return  # a model server is already running somewhere else (tests)
-    binary = shutil.which("llama-server") or "/app/llama-server"
-    subprocess.Popen([binary, "-m", MODEL, "--host", "127.0.0.1", "--port", "8080", "-c", "4096", "-np", "1",
-                      "--threads", str(os.cpu_count() or 2), "--jinja", "--reasoning-budget", "0", "--no-webui"])
+    subprocess.Popen([sys.executable, "-m", "kev.serve", "--run", RUN, "--host", "127.0.0.1", "--port", "8009"])
 
 
-def model_ready():
+def model_card():
+    """Kev's /v1/models card once the model has loaded, else None."""
     try:
-        with urllib.request.urlopen(LLAMA + "/health", timeout=3) as r:
-            return r.status == 200
-    except OSError:
-        return False
+        with urllib.request.urlopen(KEV + "/v1/models", timeout=3) as r:
+            return json.load(r)["models"][0]
+    except (OSError, ValueError, KeyError, IndexError, TypeError):
+        return None
 
 
-def answer_choice(state_text, question):
-    criteria = question.get("criteria")
-    instructions = question.get("instructions")
-    if not isinstance(criteria, dict) or not 2 <= len(criteria) <= MAX_OPTIONS or not isinstance(instructions, str):
-        raise BadRequest("a choice needs instructions and 2 to 26 options")
-    options = [(str(k), "" if v is None else str(v)) for k, v in criteria.items()]
-    lines = "\n".join(f"[{LETTERS[i]}] {k}: {d}" for i, (k, d) in enumerate(options))
-    prompt = (f"State:\n{state_text}\n\nQuestion: {instructions}\nOptions:\n{lines}\n\n"
-              "Answer with the letter of the best option only.")
-    body = {"messages": [{"role": "user", "content": prompt}], "max_tokens": 1, "temperature": 0,
-            "logprobs": True, "top_logprobs": 64, "chat_template_kwargs": {"enable_thinking": False}}
-    request = urllib.request.Request(LLAMA + "/v1/chat/completions", data=json.dumps(body).encode(),
-                                     headers={"Content-Type": "application/json"})
-    with one_at_a_time, urllib.request.urlopen(request, timeout=110) as r:
-        reply = json.load(r)
-    top = reply["choices"][0]["logprobs"]["content"][0]["top_logprobs"]
-    scores = {}
-    for item in top:  # an exact letter wins over a look-alike such as " A"
-        token = item["token"]
-        key = token if token in LETTERS else token.strip()
-        if key not in scores or token in LETTERS:
-            scores[key] = item["logprob"]
-    z = [scores.get(LETTERS[i], FLOOR) / TEMP for i in range(len(options))]
-    peak = max(z)
-    weights = [math.exp(v - peak) for v in z]
-    total = sum(weights)
-    probs = [w / total for w in weights]
-    best = max(range(len(probs)), key=probs.__getitem__)
-    uniform = 1.0 / len(probs)
-    found = any(LETTERS[i] in scores for i in range(len(options)))
-    confidence = max(0.0, (probs[best] - uniform) / (1.0 - uniform)) if found else 0.0
-    return {"type": "choice", "choice": options[best][0],
-            "probabilities": {k: round(p, 4) for (k, _), p in zip(options, probs)}, "confidence": round(confidence, 4)}
-
-
-def explain_prompt(body):
-    note, problems = body.get("clerk_note"), body.get("problems")
-    if not isinstance(note, str) or not note.strip():
-        raise BadRequest("clerk_note is required")
-    if not isinstance(problems, list) or not 1 <= len(problems) <= MAX_OPTIONS:
-        raise BadRequest("problems must be a list of 1 to 26 names")
-    if len(note) > MAX_NOTE or any(not isinstance(p, str) or len(p) > MAX_PROBLEM for p in problems):
-        raise BadRequest("clerk_note or a problem name is too long")
-    case_type = str(body.get("case_type") or "not given")[:60]
-    form = str(body.get("form") or "not given")[:80]
-    names = "\n".join("- " + p for p in problems)
-    return (f"A court clerk turned a filing away and typed this note.\n\nCase type: {case_type}\nForm: {form}\n"
-            f"Clerk's note: <note>{note.replace('<', '&lt;')}</note>\n\nProblems it could be:\n{names}\n\n"
-            "Think it through out loud in two or three short sentences: what does the note say is wrong, and which "
-            "problem on the list fits best, or does none fit? Use only what the note says and add no new facts. "
-            "Do not name anyone and do not give legal advice. Write plain sentences only.")
+def check(body):
+    """Only small choice questions go to the model, the kind the page asks."""
+    state, questions = body.get("state"), body.get("questions")
+    if state is None or not isinstance(questions, dict) or not 1 <= len(questions) <= MAX_QUESTIONS:
+        raise BadRequest("state and one to four questions are required")
+    state_text = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
+    if len(state_text) > MAX_STATE:
+        raise BadRequest("state is too long")
+    for q in questions.values():
+        if not isinstance(q, dict) or q.get("type") != "choice":
+            raise BadRequest("this server answers choice questions only")
+        if not isinstance(q.get("criteria"), dict) or not 2 <= len(q["criteria"]) <= MAX_OPTIONS:
+            raise BadRequest("a choice needs 2 to 26 options")
+    return {"model": "kev-latest", "state": state, "questions": questions}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -118,80 +73,38 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path.split("?")[0]
         if path.rstrip("/") == "/v1/version":
-            if model_ready():
-                return self.reply(200, {"model": os.path.basename(MODEL), "T": TEMP, "server": "space/server.py"})
-            return self.reply(503, {"error": "the model is still loading"})
+            card = model_card()
+            if card:
+                return self.reply(200, {"model": card.get("run") or RUN, "backend": card.get("backend"), "server": "space/server.py"})
+            return self.reply(503, {"error": "the model is still loading", "model": RUN})
         if path in STATIC:
             name, kind = STATIC[path]
             with open(os.path.join(HERE, name), "rb") as f:
                 return self.reply(200, f.read(), kind)
         self.reply(404, {"error": "not found"})
 
-    def explain(self, body):
-        """Streams the model's words to the page as plain text chunks while llama.cpp writes them."""
-        prompt = explain_prompt(body)
-        req = {"messages": [{"role": "user", "content": prompt}], "max_tokens": EXPLAIN_TOKENS, "temperature": 0.2,
-               "stream": True, "chat_template_kwargs": {"enable_thinking": False}}
-        request = urllib.request.Request(LLAMA + "/v1/chat/completions", data=json.dumps(req).encode(),
-                                         headers={"Content-Type": "application/json"})
-        with one_at_a_time, urllib.request.urlopen(request, timeout=110) as r:
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain; charset=utf-8")
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("X-Accel-Buffering", "no")
-            self.send_header("Transfer-Encoding", "chunked")
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.end_headers()
-            try:
-                for raw in r:
-                    line = raw.decode("utf-8", "replace").strip()
-                    if not line.startswith("data:") or line == "data: [DONE]":
-                        continue
-                    try:
-                        piece = json.loads(line[5:])["choices"][0]["delta"].get("content") or ""
-                    except (ValueError, KeyError, IndexError, TypeError):
-                        continue
-                    if piece:
-                        data = piece.encode()
-                        self.wfile.write(b"%x\r\n%s\r\n" % (len(data), data))
-                        self.wfile.flush()
-                self.wfile.write(b"0\r\n\r\n")
-            except OSError:
-                pass  # the page moved on or the model stopped; closing the model's stream stops it writing
-
     def do_POST(self):
         length = int(self.headers.get("Content-Length") or 0)
-        path = self.path.split("?")[0].rstrip("/")
-        if path not in ("/v1/systemone", "/v1/explain"):
+        if self.path.split("?")[0].rstrip("/") != "/v1/systemone":
             return self.reply(404, {"error": "not found"})
         if length > MAX_BODY:
             return self.reply(413, {"error": "request too large"})
-        if path == "/v1/explain":
-            try:
-                return self.explain(json.loads(self.rfile.read(length) or b"{}"))
-            except (BadRequest, json.JSONDecodeError, AttributeError) as error:
-                return self.reply(422, {"error": str(error)})
-            except OSError:
-                return self.reply(502, {"error": "the model did not answer"})
         try:
-            body = json.loads(self.rfile.read(length) or b"{}")
-            state, questions = body.get("state"), body.get("questions")
-            if state is None or not isinstance(questions, dict) or not 1 <= len(questions) <= MAX_QUESTIONS:
-                raise BadRequest("state and one to four questions are required")
-            state_text = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
-            if len(state_text) > MAX_STATE:
-                raise BadRequest("state is too long")
-            if any(not isinstance(q, dict) or q.get("type") != "choice" for q in questions.values()):
-                raise BadRequest("this server answers choice questions only")
-            answers = {name: answer_choice(state_text, q) for name, q in questions.items()}
+            body = check(json.loads(self.rfile.read(length) or b"{}"))
         except (BadRequest, json.JSONDecodeError, AttributeError) as error:
             return self.reply(422, {"error": str(error)})
-        except (OSError, KeyError, IndexError, TypeError):
+        request = urllib.request.Request(KEV + "/v1/systemone", data=json.dumps(body).encode(),
+                                         headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(request, timeout=110) as r:
+                return self.reply(200, r.read())
+        except urllib.error.HTTPError as error:
+            return self.reply(error.code if error.code in (422, 503) else 502, {"error": "the model did not answer"})
+        except OSError:
             return self.reply(502, {"error": "the model did not answer"})
-        self.reply(200, {"model": os.path.basename(MODEL), "answers": answers})
 
 
 if __name__ == "__main__":
     start_model()
-    print(f"Tracker and model on port {PORT}", flush=True)
+    print(f"Tracker and Kev on port {PORT}", flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

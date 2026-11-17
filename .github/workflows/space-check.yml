@@ -1,0 +1,50 @@
+name: Check the Hugging Face Space
+
+# Builds the Space container with the real Kev-0.8B, starts it, and asks it the page's question about a few
+# made-up notes, so a change to the Space is tried before it reaches Hugging Face.
+on:
+  pull_request:
+    paths:
+      - space/**
+      - scripts/build-space.sh
+      - scripts/check-space.py
+      - .github/workflows/space-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Build the Space and ask Kev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build the container
+        run: |
+          sh scripts/build-space.sh
+          docker build -t space space-build
+
+      - name: Start it and wait for Kev
+        run: |
+          docker run -d --name space -p 7860:7860 space
+          for i in $(seq 1 120); do
+            if curl -sf http://localhost:7860/v1/version; then echo; exit 0; fi
+            sleep 5
+          done
+          docker logs space
+          exit 1
+
+      - name: Ask about a few notes
+        run: |
+          python3 scripts/check-space.py http://localhost:7860
+          curl -sf http://localhost:7860/ | grep -q "Filing Problem Tracker"
+
+      - name: Container log
+        if: always()
+        run: docker logs space 2>&1 | tail -40
