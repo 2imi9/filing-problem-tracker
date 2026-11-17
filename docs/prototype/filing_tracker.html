@@ -786,20 +786,33 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     return { text: t, removed: said.join(", ") };
   }
 
-  // Sorting model (OpenJev Flash 9B). Used only where the page is served next to the model at the same
-  // address: on this computer by scripts/serve-local.py, or on a Hugging Face Space by space/server.py.
-  // The static site never looks for it.
+  // Sorting model. Used only where the page is served next to the model at the same address: Kev-0.8B on
+  // this computer by scripts/serve-local.py, or OpenJev Flash 9B on a Hugging Face Space by space/server.py.
+  // The static site never looks for it. Only the Space's model writes its reasoning; Kev only picks.
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
-  var MODEL_NAME = "OpenJev (AI)", MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space";
-  if (MODEL_HOST) $("aiNote").textContent = "AI use: the OpenJev Flash 9B model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list. The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
+  var MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space", MODEL_WRITES = !ON_THIS_COMPUTER;
+  var MODEL_SHORT, MODEL_NAME, MODEL_FULL, MODEL_ID, MIN_CONFIDENCE;
+  // The server says which model it runs in GET /v1/version, e.g. { "model": "jaredpalmer/kev-0.8b@v1.0" }.
+  function nameModel(id) {
+    var kev = /kev/i.test(id), size = /kev-([\d.]+b)/i.exec(id);
+    MODEL_SHORT = kev ? "Kev" : "OpenJev"; MODEL_NAME = MODEL_SHORT + " (AI)";
+    MODEL_FULL = kev ? "Kev" + (size ? "-" + size[1].toUpperCase() : "") : "OpenJev Flash 9B";
+    MODEL_ID = kev ? "kev-latest" : "openjev-flash-9b";
+    // Kev-0.8B spreads its chances more thinly than OpenJev, so its top pick shows at a lower cut-off, marked low confidence.
+    MIN_CONFIDENCE = kev ? 0.1 : 0.6;
+    if (MODEL_HOST) $("aiNote").textContent = "AI use: the " + MODEL_FULL + " model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. "
+      + (MODEL_WRITES ? "It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list." : "It picks the problem and the reason from a fixed list and writes nothing of its own.")
+      + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
+  }
+  nameModel(ON_THIS_COMPUTER ? "kev-0.8b" : "openjev");
   function fetchWithin(ms, url, options) {
     var ctl = window.AbortController ? new AbortController() : null;
     var timer = ctl && setTimeout(function () { ctl.abort(); }, ms);
     options = options || {}; if (ctl) options.signal = ctl.signal;
     return fetch(url, options).then(function (r) { clearTimeout(timer); return r; }, function (e) { clearTimeout(timer); throw e; });
   }
-  var MIN_CONFIDENCE = 0.6, HIGH_CONFIDENCE = 0.8, NONE_OF_THESE = "None of these";
+  var HIGH_CONFIDENCE = 0.8, NONE_OF_THESE = "None of these";
   var TAG_HELP = {
     "Missing signature": "The filing or a page of it was not signed.",
     "Wrong form": "The wrong form, or an old version of the form, was used.",
@@ -828,14 +841,14 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     ["Pages missing or unreadable", "the note says pages are missing, blank or unreadable"],
     [NONE_OF_THESE, "the note does not say what was wrong with the filing"]
   ];
-  // OpenJev thinks the note through in its own words before it picks a problem. onText gets the cleaned
-  // text so far; the promise gives the final text, or "" where the server cannot write (the Mac helper).
+  // On the Space, OpenJev thinks the note through in its own words before it picks a problem. onText gets the
+  // cleaned text so far; the promise gives the final text, or "" where the model does not write (Kev).
   function tidy(t) {
     t = scrub(t.replace(/\s+/g, " ").trim()).text;
     return t.length > 360 ? t.slice(0, 360).replace(/\s+\S*$/, "") + "..." : t;
   }
   function thinkModel(caseType, form, note, stale, onText) {
-    if (!window.fetch || !window.ReadableStream || !window.TextDecoder) return Promise.resolve("");
+    if (!MODEL_WRITES || !window.fetch || !window.ReadableStream || !window.TextDecoder) return Promise.resolve("");
     var text = "";
     return fetchWithin(120000, "/v1/explain", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -863,19 +876,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     d.appendChild(el("p", { "class": "by" }, MODEL_NAME + ", in its own words. It can be wrong."));
     return d;
   }
-  function confWord(c) { return c >= HIGH_CONFIDENCE ? "high confidence" : "medium confidence"; }
+  function confWord(c) { return c >= HIGH_CONFIDENCE ? "high confidence" : c >= 0.6 ? "medium confidence" : "low confidence"; }
   // Says on the Import tab whether the model is there, so its work is not invisible.
   var modelReady = null, modelCheckedAt = 0;
   function showModel(ready) {
     modelReady = ready; modelCheckedAt = Date.now();
     if (!MODEL_HOST) return;
-    $("aiLine").textContent = ready ? "OpenJev (AI) suggests here, running " + MODEL_PLACE + "." : "OpenJev (AI) is not ready yet, so keyword rules suggest.";
-    $("modelLine").textContent = ready ? "OpenJev (AI) sorts the rows the keyword rules cannot, running " + MODEL_PLACE + "." : "OpenJev (AI) is not ready yet, so keyword rules sort every row.";
+    $("aiLine").textContent = ready ? MODEL_NAME + " suggests here, running " + MODEL_PLACE + "." : MODEL_NAME + " is not ready yet, so keyword rules suggest.";
+    $("modelLine").textContent = ready ? MODEL_NAME + " sorts the rows the keyword rules cannot, running " + MODEL_PLACE + "." : MODEL_NAME + " is not ready yet, so keyword rules sort every row.";
   }
   function modelAvailable() {
     if (!MODEL_HOST || !window.fetch) return Promise.resolve(false);
-    return fetchWithin(5000, "/v1/version").then(function (r) { return r.ok; }, function () { return false; })
-      .then(function (ok) { showModel(ok); return ok; });
+    return fetchWithin(5000, "/v1/version").then(function (r) {
+      return r.json().then(function (j) { if (j && typeof j.model === "string") nameModel(j.model); }, function () {}).then(function () { return r.ok; });
+    }, function () { return false; }).then(function (ok) { showModel(ok); return ok; });
   }
   modelAvailable();
   // One typed decision per note: { tag, why, confidence }. tag is null when the model is unsure or picks
@@ -886,7 +900,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     return fetchWithin(120000, "/v1/systemone", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "openjev-flash-9b",
+        model: MODEL_ID,
         state: thought ? { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text, your_reasoning: thought }
           : { case_type: caseType || "not given", form: form || "not given", clerk_note: scrub(note).text },
         questions: { problem: { type: "choice", instructions: "A court clerk turned this filing away and typed the note. Which problem does the note describe, and why?", criteria: criteria } }
@@ -909,8 +923,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     });
   }
   // ---------- Live suggestion on the Tag tab ----------
-  // Where the model is served, OpenJev first thinks the note through in its own words (shown as it writes),
-  // then picks one problem from the fixed list. Elsewhere the keyword rules suggest at once.
+  // Where the model is served, it picks one problem from the fixed list; on the Space, OpenJev first thinks
+  // the note through in its own words (shown as it writes). Elsewhere the keyword rules suggest at once.
   // Nothing is ticked until the clerk clicks Accept.
   var sugg = null, accepted = {}, liveTimer = null, liveRun = 0, lastNote = "", thinking = null;
   function sameTags(a, b) { return a && b && a.items.map(function (i) { return i.tag; }).join("|") === b.items.map(function (i) { return i.tag; }).join("|"); }
@@ -926,8 +940,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       return;
     }
     if (sugg.items.length) {
-      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? "OpenJev (AI) suggests"
-        : "Keyword rules suggest" + (sugg.modelUnsure ? " (OpenJev was not sure)" : MODEL_HOST && !modelReady ? " (OpenJev not ready)" : "")));
+      box.appendChild(el("div", { "class": "label-sm src" }, sugg.by === "model" ? MODEL_NAME + " suggests"
+        : "Keyword rules suggest" + (sugg.modelUnsure ? " (" + MODEL_SHORT + " was not sure)" : MODEL_HOST && !modelReady ? " (" + MODEL_SHORT + " not ready)" : "")));
       var ul = el("ul");
       sugg.items.forEach(function (it) {
         var li = el("li");
@@ -978,7 +992,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var tryModel = MODEL_HOST && window.fetch && (modelReady || Date.now() - modelCheckedAt > 30000);
     if (!tryModel) { useRules(); return; }
     var caseType = $("logCase").value, form = $("logForm1").value;
-    thinking = { text: "" }; var mine = thinking; renderSuggest();
+    thinking = { text: "", deciding: !MODEL_WRITES }; var mine = thinking; renderSuggest();
     (modelReady ? Promise.resolve(true) : modelAvailable()).then(function (ok) {
       if (stale()) return;
       if (!ok) { useRules(); return; }
@@ -1166,7 +1180,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var td = el("td"); var box = el("div", { "class": "tags" });
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); });
       td.appendChild(box);
-      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " is thinking... " + p.thinking + " ▍"));
+      if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, MODEL_WRITES ? MODEL_NAME + " is thinking... " + p.thinking + " ▍" : MODEL_NAME + " is choosing a problem..."));
       if (p.sortedBy === "model") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + "."));
       else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
       else if (p.why && p.why.length) {
@@ -1514,7 +1528,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     }
     var sentN = records.filter(function (r) { return r.sentToModel; }).length;
     p.textContent = "Showing only your rows: " + records.length.toLocaleString() + " filings from " + myLabel + ", " + monthLabel(curMonths[0]) + " to " + monthLabel(curMonths[curMonths.length - 1]) + ". "
-      + (sentN ? "They stay in this browser, except " + sentN + (sentN === 1 ? " reason" : " reasons") + " the keyword rules could not sort, sent to OpenJev with names and numbers taken out." : "They stay in this browser and are not sent anywhere.");
+      + (sentN ? "They stay in this browser, except " + sentN + (sentN === 1 ? " reason" : " reasons") + " the keyword rules could not sort, sent to " + MODEL_NAME + " with names and numbers taken out." : "They stay in this browser and are not sent anywhere.");
     box.appendChild(p);
     var b = el("button", { type: "button", "class": "linkish" }, "Show the made-up sample");
     b.addEventListener("click", function () { useData("sample"); var t = $("dataText"); if (t) t.focus(); });
