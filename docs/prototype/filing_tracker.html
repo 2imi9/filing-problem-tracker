@@ -208,8 +208,8 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .compare .down { color: var(--good); } .compare .up { color: var(--bad); }
 .compare .s { font-size: 0.85rem; color: var(--muted); }
 /* County map: one shade of navy per step, grey where the pilot has no data. */
-.map-grid { display: grid; grid-template-columns: minmax(300px, 540px) minmax(0, 1fr); gap: 48px; align-items: start; }
-@media (max-width: 860px) { .map-grid { grid-template-columns: minmax(0, 1fr); } .map { max-width: 540px; } }
+.map-grid { display: grid; grid-template-columns: minmax(280px, 440px) minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 860px) { .map-grid { grid-template-columns: minmax(0, 1fr); } .map { max-width: 440px; } }
 .map { margin: 0; display: grid; gap: 12px; }
 #inMap { width: 100%; height: auto; display: block; }
 #inMap path { stroke: var(--surface); stroke-width: 0.8; stroke-linejoin: round; }
@@ -233,6 +233,10 @@ svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
 .data-line { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: -24px; }
 .data-line p { min-width: 0; overflow-wrap: anywhere; }
 .data-line p:focus { outline: none; }
+/* Summary at the top of the dashboard (Hugging Face copy only): plain text under a small label, no box. */
+.synth { display: grid; gap: 8px; max-width: 76ch; }
+.synth-text { font-family: var(--font-head); font-size: clamp(1.15rem, 1rem + 0.4vw, 1.35rem); line-height: 1.45; color: var(--ink); margin: 0; }
+.synth .by { margin: 0; }
 .county-panel h3, .kpi .v.sm, #heat td:first-child { overflow-wrap: anywhere; }
 #heat th.right { text-align: right; }
 #times th.num, #times td.mid { text-align: center; }
@@ -384,6 +388,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     <section class="view" id="view-dashboard" aria-labelledby="h-dash" hidden>
       <p class="intro">Where filings get sent back, on which forms, when, and what to fix first.</p>
       <div class="data-line" id="dataLine"></div>
+      <div class="synth" id="synth" hidden></div>
       <div class="panel plain">
         <h2>By county <small>click a county to filter</small></h2>
         <div class="map-grid">
@@ -792,6 +797,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   var ON_THIS_COMPUTER = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   var MODEL_HOST = ON_THIS_COMPUTER || /\.hf\.space$/.test(location.hostname);
   var MODEL_PLACE = ON_THIS_COMPUTER ? "on this computer" : "in this Space", MODEL_WRITES = !ON_THIS_COMPUTER;
+  // The Hugging Face copy shows the original proposal, including a preview of the dashboard summary.
+  var PROPOSAL = /\.hf\.space$/.test(location.hostname);
   var MODEL_SHORT, MODEL_NAME, MODEL_FULL, MODEL_ID, MIN_CONFIDENCE;
   // The server says which model it runs in GET /v1/version, e.g. { "model": "jaredpalmer/kev-0.8b@v1.0" }.
   function nameModel(id) {
@@ -803,7 +810,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     MIN_CONFIDENCE = kev ? 0.1 : 0.6;
     if (MODEL_HOST) $("aiNote").textContent = "AI use: the " + MODEL_FULL + " model suggests a problem while a clerk types a note on the Tag tab, and sorts the rows the keyword rules cannot on Import. "
       + (MODEL_WRITES ? "It first thinks the note through in its own words, which can be wrong, then picks the problem from a fixed list." : "It picks the problem and the reason from a fixed list and writes nothing of its own.")
-      + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code.";
+      + " The clerk makes every final call, names and case numbers are taken out before a note is sent, the dashboard uses no AI, and every number is counted by code."
+      + (PROPOSAL ? " The summary at the top of the dashboard is a preview of a proposed AI feature: on this copy, code writes it from the counts." : "");
   }
   nameModel(ON_THIS_COMPUTER ? "kev-0.8b" : "openjev");
   function fetchWithin(ms, url, options) {
@@ -1509,7 +1517,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     ft.appendChild(fb);
 
     renderMap();
-    renderInsights(rs, every);
+    var found = renderInsights(rs, every);
+    renderSummary(rs, every, te, topC, found);
     renderTimes(rs, every);
     $("evPanel").hidden = dataMode !== "sample";
     if (dataMode === "sample") renderEvent();
@@ -1614,6 +1623,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     function pairItem(pr) {
       var tc = topEntries(pr.counties)[0], many = Object.keys(pr.counties).length > 1;
       return {
+        pair: pr,
         head: pr.form + ": " + pr.n + " flagged for \u201c" + pr.tag.toLowerCase() + "\u201d.",
         body: "That is " + pct(pr.n, formN[pr.form]) + " of the flagged filings on this form." + (!oneCounty && many ? " " + tc[0] + (isCounty(tc[0]) ? " County" : "") + " has the most, " + tc[1] + "." : ""),
         fix: FIXES[pr.tag]
@@ -1662,6 +1672,52 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       list.appendChild(li);
     });
     if (!items.length) list.appendChild(el("li", null, "Not enough flagged filings here to point anywhere yet."));
+    return items;
+  }
+
+  // ---------- Summary at the top of the dashboard (Hugging Face copy only) ----------
+  // A preview of the proposed AI summary. Here code writes it from the same counts as the panels and types it
+  // out the way a model would; the label says so. Nothing is sent anywhere.
+  var synthText = "", synthTimer = null;
+  function q(t) { return "\u201c" + t.toLowerCase() + "\u201d"; }
+  function summaryText(rs, every, te, topC, items) {
+    if (!rs.length) return "There are no flagged filings for these filters, so there is nothing to summarize yet. Try a wider range of months or all counties.";
+    var county = $("fCounty").value, ct = $("fCase").value;
+    var from = $("fFrom").value, to = $("fTo").value;
+    var span = from && to ? (from === to ? "in " + monthLabel(from) : "from " + monthLabel(from) + " to " + monthLabel(to)) : "";
+    var where = county ? " in " + county + (isCounty(county) ? " County" : "") : "";
+    var what = ct ? " " + ct.toLowerCase() : "";
+    var out = [];
+    var first = "Looking at " + rs.length.toLocaleString() + " flagged" + what + " filings" + where + (span ? " " + span : "");
+    if (curHasSubs) { var f = every.filter(isFlagged).length; first += ", " + pct(f, every.length) + " of the " + every.length.toLocaleString() + " filings sent came back flagged"; }
+    first += (te[0] ? ", the clearest pattern is " + q(te[0][0]) + ", on " + pct(te[0][1], rs.length) + " of them" + (te[1] ? ", followed by " + q(te[1][0]) + " at " + pct(te[1][1], rs.length) : "") : "") + ".";
+    out.push(first);
+    if (!county && topC) out.push(topC[0] + (isCounty(topC[0]) ? " County" : "") + " has the most flagged filings, " + topC[1].toLocaleString() + ", so a change there would reach the most people.");
+    var lead = items.filter(function (it) { return it.pair; })[0];
+    if (lead) out.push("The first place I would look is the " + lead.pair.form + ", where " + lead.pair.n + " filings were flagged for " + q(lead.pair.tag) + ". One fix to try: " + FIXES[lead.pair.tag].charAt(0).toLowerCase() + FIXES[lead.pair.tag].slice(1));
+    out.push("These counts show where filings are sent back, not why, so check a few of these filings with clerks before changing a form.");
+    return out.join(" ");
+  }
+  function renderSummary(rs, every, te, topC, items) {
+    if (!PROPOSAL) return;
+    var text = summaryText(rs, every, te, topC, items), box = $("synth");
+    if (text === synthText && !box.hidden) return;
+    synthText = text; clearInterval(synthTimer);
+    box.hidden = false; box.innerHTML = "";
+    box.appendChild(el("div", { "class": "label-sm" }, "AI summary, preview"));
+    var shown = el("p", { "class": "synth-text", "aria-hidden": "true" });
+    box.appendChild(shown);
+    box.appendChild(el("p", { "class": "sr" }, text));
+    box.appendChild(el("p", { "class": "by" }, "Preview of a proposed AI feature. On this copy, code writes it from the counts below. Check it against the panels."));
+    var words = text.split(" "), i = -14;  // a short pause first, as if reading
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { shown.textContent = text; return; }
+    shown.textContent = "Reading the dashboard... \u258d";
+    synthTimer = setInterval(function () {
+      i += 2;
+      if (i <= 0) return;
+      shown.textContent = words.slice(0, i).join(" ") + (i < words.length ? " \u258d" : "");
+      if (i >= words.length) clearInterval(synthTimer);
+    }, 45);
   }
 
   // ---------- County map and breakdown ----------
