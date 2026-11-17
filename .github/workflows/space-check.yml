@@ -8,6 +8,7 @@ on:
       - space/**
       - scripts/build-space.sh
       - scripts/check-space.py
+      - tests/space/**
       - .github/workflows/space-check.yml
   workflow_dispatch:
 
