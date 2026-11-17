@@ -20,6 +20,7 @@ names = {"REPEATED": "Missing repeated-conduct facts", "NONE_OF_THESE": NONE}
 block = re.search(r"var REASONS = \[\n(.*?)\n  \];", html, re.S).group(1)
 reasons = {names.get(t) or json.loads(t): r for t, r in re.findall(r'^\s*\[(REPEATED|NONE_OF_THESE|"[^"]+"), "([^"]+)"\],?\s*$', block, re.M)}
 criteria = {t: r[0].upper() + r[1:] + "." for t, r in reasons.items()}
+assert len(criteria) == block.count("\n") + 1, "could not read every reason from the page"
 instructions = re.search(r'instructions: "(.*?)", criteria', html).group(1)
 cut = float(re.search(r"MIN_CONFIDENCE = kev \? ([\d.]+)", html).group(1))
 print(f"{len(NOTES)} notes, {len(criteria)} problems, cut-off {cut}")

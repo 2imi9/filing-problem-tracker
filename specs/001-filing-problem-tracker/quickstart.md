@@ -94,7 +94,7 @@ sh scripts/start-kev.sh           # terminal 1: Kev-0.8B on 127.0.0.1:8009
 python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:8080
 ```
 
-The Tag and Import tabs say whether the model is ready. On Tag a filing, type a note such as "petition only talks about being followed home last week": after you stop typing, "Kev (AI) suggests" appears with a reason and an Accept button. On Import, rows the keyword rules cannot sort come back marked "Kev (AI)" with a reason, or "Kev (AI) was not sure". Kev only picks from the list, so there is no "Show reasoning". Stop terminal 1 and the page falls back to the rules alone. OpenJev Flash 9B also works: `sh scripts/start-openjev.sh`, then `python3 scripts/serve-local.py --model-url http://127.0.0.1:3000`.
+The Tag and Import tabs say whether the model is ready. On Tag a filing, type a note such as "petitioner did not sign page 3": after you stop typing, "Kev (AI) suggests" appears with a reason and an Accept button. On Import, rows the keyword rules cannot sort come back marked "Kev (AI)" with a reason, or "Kev (AI) was not sure". Kev only picks from the list, so there is no "Show reasoning". Stop terminal 1 and the page falls back to the rules alone. OpenJev Flash 9B also works: `sh scripts/start-openjev.sh`, then `python3 scripts/serve-local.py --model-url http://127.0.0.1:3000`.
 
 ## Run the demo page on a Hugging Face Space (optional)
 

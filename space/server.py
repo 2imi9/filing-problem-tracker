@@ -6,7 +6,7 @@ and passes POST /v1/systemone to it after checking the request is a small choice
 names the model once Kev is up. Kev only picks from a list, so there is no /v1/explain here and the page
 skips its thinking step. Standard library only.
 """
-import json, os, subprocess, sys, urllib.error, urllib.request
+import json, os, subprocess, sys, threading, urllib.error, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +25,13 @@ class BadRequest(ValueError):
 def start_model():
     if os.environ.get("KEV_URL"):
         return  # a model server is already running somewhere else (tests)
-    subprocess.Popen([sys.executable, "-m", "kev.serve", "--run", RUN, "--host", "127.0.0.1", "--port", "8009"])
+    kev = subprocess.Popen([sys.executable, "-m", "kev.serve", "--run", RUN, "--host", "127.0.0.1", "--port", "8009"])
+
+    def watch():  # if Kev exits, stop the whole container so the Space shows an error and can restart
+        code = kev.wait()
+        print(f"Kev exited with code {code}", flush=True)
+        os._exit(1)
+    threading.Thread(target=watch, daemon=True).start()
 
 
 def model_card():
@@ -84,11 +90,15 @@ class Handler(BaseHTTPRequestHandler):
         self.reply(404, {"error": "not found"})
 
     def do_POST(self):
-        length = int(self.headers.get("Content-Length") or 0)
-        if self.path.split("?")[0].rstrip("/") != "/v1/systemone":
-            return self.reply(404, {"error": "not found"})
-        if length > MAX_BODY:
-            return self.reply(413, {"error": "request too large"})
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = -1
+        if self.path.split("?")[0].rstrip("/") != "/v1/systemone" or not 0 <= length <= MAX_BODY:
+            self.close_connection = True  # the body is not read, so this connection cannot carry another request
+            if length < 0:
+                return self.reply(400, {"error": "bad Content-Length"})
+            return self.reply(404 if length <= MAX_BODY else 413, {"error": "not found" if length <= MAX_BODY else "request too large"})
         try:
             body = check(json.loads(self.rfile.read(length) or b"{}"))
         except (BadRequest, json.JSONDecodeError, AttributeError) as error:
