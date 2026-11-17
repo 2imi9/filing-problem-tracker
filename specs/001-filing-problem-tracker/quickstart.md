@@ -94,14 +94,14 @@ sh scripts/start-kev.sh           # terminal 1: Kev-0.8B on 127.0.0.1:8009
 python3 scripts/serve-local.py    # terminal 2: the tracker on http://localhost:8080
 ```
 
-The Tag and Import tabs say whether the model is ready. On Tag a filing, type a note such as "petition only talks about being followed home last week": after you stop typing, "Kev (AI) suggests" appears with a reason and an Accept button. On Import, rows the keyword rules cannot sort come back marked "Kev (AI)" with a reason, or "Kev (AI) was not sure". Kev only picks from the list, so "Show reasoning" appears on the Space only. Stop terminal 1 and the page falls back to the rules alone. OpenJev Flash 9B also works: `sh scripts/start-openjev.sh`, then `python3 scripts/serve-local.py --model-url http://127.0.0.1:3000`.
+The Tag and Import tabs say whether the model is ready. On Tag a filing, type a note such as "petition only talks about being followed home last week": after you stop typing, "Kev (AI) suggests" appears with a reason and an Accept button. On Import, rows the keyword rules cannot sort come back marked "Kev (AI)" with a reason, or "Kev (AI) was not sure". Kev only picks from the list, so there is no "Show reasoning". Stop terminal 1 and the page falls back to the rules alone. OpenJev Flash 9B also works: `sh scripts/start-openjev.sh`, then `python3 scripts/serve-local.py --model-url http://127.0.0.1:3000`.
 
 ## Run the demo page on a Hugging Face Space (optional)
 
-One free Docker Space serves the page and the model together (the 5.6 GB build on llama.cpp, no GPU, so each leftover row takes a while).
+One free Docker Space serves the page and Kev-0.8B together, on the free CPU. The image installs Kev and keeps its 1.6 GB of weights, so a restart downloads nothing; each note takes a few seconds. On the dashboard, this copy also shows a chat panel whose summary and answers are written by code from the counts, as a preview of a proposed AI feature.
 
 ```bash
 sh scripts/build-space.sh   # collects six files into space-build/
 ```
 
-Create a Space with the Docker SDK and upload the six files. The first build downloads the model. After that, `.github/workflows/space.yml` uploads the files again on every merge to `main` that changes them, once the repository has a secret named `HF_TOKEN` (a Hugging Face token with write access to the Space). Without the secret it does nothing.
+Create a Space with the Docker SDK and upload the six files. The first build installs Kev and downloads the model. `.github/workflows/space-check.yml` builds the same container on every pull request that changes it and asks Kev about a set of made-up notes. After that, `.github/workflows/space.yml` uploads the files again on every merge to `main` that changes them, once the repository has a secret named `HF_TOKEN` (a Hugging Face token with write access to the Space). Without the secret it does nothing.
