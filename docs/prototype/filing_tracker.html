@@ -139,9 +139,11 @@ label.btn { display: inline-flex; align-items: center; gap: 8px; }
 .recent .meta { font-family: var(--font-data); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
 .recent .tags, td .tags { display: flex; flex-wrap: wrap; column-gap: 0; row-gap: 2px; }
 .tag { font-size: 0.9rem; color: var(--ink); }
-.tag:not(:last-child)::after { content: ","; margin-right: 6px; }
+.tag:not(:last-of-type)::after { content: ","; margin-right: 6px; }
 .tag.none { color: var(--bad); font-weight: 700; }
 .by { font-size: 0.78rem; color: var(--muted); }
+td select.fix { width: auto; max-width: 100%; min-height: 36px; padding: 6px 10px; margin-top: 4px; font-size: 0.9rem; }
+td .linkish.change { font-size: 0.78rem; margin-left: 6px; }
 /* Suggestion under the note: plain text and two quiet buttons, no box. The clerk makes the final call. */
 .ai-line { margin-top: -10px; }
 /* While a suggestion shows, its own label says where it came from. */
@@ -417,7 +419,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         <div class="actions">
           <button class="btn" type="button" id="csvOnly">Show these rows on the dashboard</button>
         </div>
-        <p class="hint">Rows marked "Needs review" keep that label until a clerk tags them.</p>
+        <p class="hint">Rows marked "Needs review" keep that label until a clerk picks a problem for them. "Change" fixes any other row by hand.</p>
       </div>
     </section>
 
@@ -1083,8 +1085,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
   var pending = [], pendingAccepted = [], pendingSkipped = 0, pendingUndecided = 0, pendingName = "";
   // What was last added: the text plus the column matching, so a corrected matching can be added again.
-  var addedText = null, addedHow = "", sorting = false;
-  function importKey() { return $("csvText").value + "\u0000" + colHead + "\u0000" + JSON.stringify(colMap || {}); }
+  var addedText = null, addedHow = "", sorting = false, handFixes = 0;
+  function importKey() { return $("csvText").value + "\u0000" + colHead + "\u0000" + JSON.stringify(colMap || {}) + "\u0000" + handFixes; }
   var sortRun = 0, PREVIEW_MAX = 200;
 
   // ----- Column matching -----
@@ -1221,8 +1223,9 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     var body = $("previewBody"); body.innerHTML = "";
     var review = 0, byModel = 0;
     pending.forEach(function (p) { if (p.tags[0] === NEEDS_REVIEW) review++; if (p.sortedBy === "model") byModel++; });
-    pending.slice(0, PREVIEW_MAX).forEach(function (p) {
-      var tr = el("tr");
+    var byHandCount = pending.filter(function (p) { return p.sortedBy === "clerk"; }).length;
+    pending.filter(function (p, i) { return i < PREVIEW_MAX || p.tags[0] === NEEDS_REVIEW || p.editing; }).forEach(function (p) {
+      var tr = el("tr", { "data-row": String(pending.indexOf(p)) });
       tr.appendChild(el("td", { "class": "num" }, p.date + (p.time ? " " + p.time : "")));
       tr.appendChild(el("td", null, p.county));
       tr.appendChild(el("td", null, p.caseType));
@@ -1231,7 +1234,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       p.tags.forEach(function (t) { box.appendChild(el("span", { "class": "tag" + (t === NEEDS_REVIEW ? " none" : "") }, t)); });
       td.appendChild(box);
       if (p.thinking != null) td.appendChild(el("div", { "class": "by" }, MODEL_WRITES ? MODEL_NAME + " is thinking... " + p.thinking + " ▍" : MODEL_NAME + " is choosing a problem..."));
-      if (p.sortedBy === "model") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + "."));
+      if (p.sortedBy === "clerk") td.appendChild(el("div", { "class": "by" }, "Tagged by hand"));
+      else if (p.sortedBy === "model") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + ", " + confWord(p.confidence) + ": because " + p.why + "."));
       else if (p.sortedBy === "unsure") td.appendChild(el("div", { "class": "by" }, MODEL_NAME + " was not sure"));
       else if (p.why && p.why.length) {
         // A quote of the whole reason only repeats the row, so it is left out.
@@ -1239,21 +1243,50 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
         td.appendChild(el("div", { "class": "by" }, "Keyword rules" + (whys.length ? ": because " + whys.join("; ") + "." : "")));
       }
       if (p.thought && p.thinking == null) td.appendChild(reasoningBox(p.thought));
+      if (p.thinking == null) {
+        // A clerk fixes a row by hand: rows that need review get a problem list, the others a "Change" link.
+        if (p.tags[0] === NEEDS_REVIEW || p.editing) td.appendChild(fixPicker(p));
+        else {
+          var ch = el("button", { type: "button", "class": "linkish change", "aria-label": "Change the problem for " + p.date + ", " + p.county }, "Change");
+          ch.addEventListener("click", function () { p.editing = true; renderPreview(); var f = $("previewBody").querySelector("select.fix[data-row='" + pending.indexOf(p) + "']"); if (f) f.focus(); });
+          td.querySelector(".tags").appendChild(ch);
+        }
+      }
       tr.appendChild(td);
       body.appendChild(tr);
     });
     var total = pending.length + pendingAccepted.length, sorted = pending.length - review;
     var parts = [total.toLocaleString() + (total === 1 ? " row read" : " rows read")];
     if (pendingAccepted.length) parts.push(pendingAccepted.length.toLocaleString() + " accepted");
-    parts.push((sorted - byModel) + " sorted by keyword rules");
+    parts.push((sorted - byModel - byHandCount) + " sorted by keyword rules");
     if (byModel) parts.push(byModel + " by " + MODEL_NAME);
+    var byHand = pending.filter(function (p) { return p.sortedBy === "clerk"; }).length;
+    if (byHand) parts.push(byHand + " by hand");
     parts.push(review + " need review");
     if (pendingSkipped) parts.push(pendingSkipped + " skipped for no readable date");
     if (pendingUndecided) parts.push(pendingUndecided + " left out because the status says not decided yet");
     $("previewSummary").textContent = parts.join(", ");
     $("previewCap").hidden = pending.length <= PREVIEW_MAX;
-    $("previewCap").textContent = "The table shows the first " + PREVIEW_MAX + " of " + pending.length.toLocaleString() + " rows that were sent back. Accepted rows are counted but not listed.";
+    $("previewCap").textContent = "The table shows the first " + PREVIEW_MAX + " of " + pending.length.toLocaleString() + " rows that were sent back, plus any later row that needs review. Accepted rows are counted but not listed.";
     $("previewPanel").hidden = false;
+  }
+  function fixPicker(p) {
+    var i = pending.indexOf(p);
+    var sel = el("select", { "class": "fix", "data-row": String(i), "aria-label": "Problem for " + p.date + ", " + p.county + ": " + p.reason });
+    sel.appendChild(el("option", { value: "" }, p.editing ? "Pick a different problem..." : "Pick a problem..."));
+    TAGS.forEach(function (t) { var o = el("option", { value: t }, t); sel.appendChild(o); });
+    sel.addEventListener("change", function () {
+      if (!sel.value) return;
+      p.tags = [sel.value]; p.sortedBy = "clerk"; p.why = null; p.thought = null; p.confidence = null; p.editing = false;
+      handFixes++; renderPreview(); if (!sorting) previewReady();
+      var back = $("previewBody").querySelector("tr[data-row='" + i + "'] button.change"); if (back) back.focus();
+    });
+    sel.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !p.editing) return;
+      p.editing = false; renderPreview();
+      var back = $("previewBody").querySelector("tr[data-row='" + i + "'] button.change"); if (back) back.focus();
+    });
+    return sel;
   }
   function previewReady(note) {
     var already = importKey() === addedText;
@@ -1274,7 +1307,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (colMap.date == null) { fail("Pick the column that holds the date each filing was sent."); return; }
     if (colMap.reason == null) { fail("Pick the column that holds the reason a filing was sent back."); return; }
     function cell(r, k) { return colMap[k] == null ? "" : String(r[colMap[k]] || "").trim(); }
-    pending = []; pendingAccepted = []; pendingSkipped = 0; pendingUndecided = 0;
+    pending = []; pendingAccepted = []; pendingSkipped = 0; pendingUndecided = 0; handFixes = 0;
     var hasStatus = colMap.status != null;
     rows.slice(1).forEach(function (r) {
       var when = parseWhen(cell(r, "date"));
@@ -1302,16 +1335,18 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       if (run !== sortRun) return;
       if (!ok) { sorting = false; previewReady(); return; }
       $("csvStatus").textContent = "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with " + MODEL_NAME + "...";
-      var i = 0, sorted = 0;
+      var i = 0, sorted = 0, checked = 0;
       function done(note) { if (run !== sortRun) return; sorting = false; renderPreview(); previewReady(note); }
       (function next() {
         if (run !== sortRun) return;
         if (i >= left.length) {
-          done(MODEL_NAME + " checked " + left.length + (left.length === 1 ? " row" : " rows") + ": sorted " + sorted + ", left " + (left.length - sorted) + " for review. ");
+          var still = left.filter(function (p) { return p.tags[0] === NEEDS_REVIEW; }).length;
+          done(MODEL_NAME + " checked " + checked + (checked === 1 ? " row" : " rows") + ": sorted " + sorted + ", left " + still + " for review. ");
           return;
         }
         var p = left[i++];
-        p.thinking = ""; renderPreview();
+        if (p.sortedBy === "clerk" || p.tags[0] !== NEEDS_REVIEW) { next(); return; }  // a clerk already tagged it by hand
+        p.thinking = ""; checked++; renderPreview();
         // Only the cleaned reason and a case type or form from our own lists go to the model, never other free text.
         var ct = caseNames.indexOf(p.caseType) >= 0 ? p.caseType : "", fm = caseNames.some(function (c) { return CASES[c].indexOf(p.form) >= 0; }) ? p.form : "";
         p.sentToModel = true;
@@ -1321,6 +1356,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           return askModel(ct, fm, p.reason, thought);
         }).then(function (ans) {
           if (run !== sortRun || !ans) return;
+          if (p.sortedBy === "clerk") { next(); return; }
           if (ans.tag) { p.tags = [ans.tag]; p.why = ans.why; p.confidence = ans.confidence; p.sortedBy = "model"; sorted++; } else p.sortedBy = "unsure";
           renderPreview();
           next();
