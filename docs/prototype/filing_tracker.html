@@ -421,7 +421,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
             <tbody id="previewBody"></tbody>
           </table>
         </div>
-        <p class="hint" id="previewCap" hidden></p>
+        <p class="hint" id="previewCap" hidden><span id="previewCapText"></span> <button type="button" class="linkish" id="listMore" hidden></button></p>
         <div class="actions">
           <button class="btn" type="button" id="csvOnly">Show these rows on the dashboard</button>
         </div>
@@ -930,7 +930,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // "Show reasoning": the model's own words, folded away once the suggestion is up.
   function reasoningBox(text) {
     var d = el("details", { "class": "reasoning" });
-    d.appendChild(el("summary", null, "Show reasoning"));
+    d.appendChild(el("summary", { "data-act": "why" }, "Show reasoning"));
     d.appendChild(el("p", null, text));
     d.appendChild(el("p", { "class": "by" }, MODEL_NAME + ", in its own words. It can be wrong."));
     return d;
@@ -1095,9 +1095,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // The labels are part of the key, so the rows count as added only while their problems match what was added.
   function importKey() { return $("csvText").value + "\u0000" + colHead + "\u0000" + JSON.stringify(colMap || {}) + "\u0000" + JSON.stringify(pending.map(function (p) { return p.tags; })); }
   var sortRun = 0, PREVIEW_MAX = 200;
-  // Problems a clerk picked by hand, by row, so sorting again (or matching a column again) keeps them.
-  var handFix = {}, editing = null;
-  function fixKey(p) { return [p.src, p.date, p.county, p.caseType, p.reason].join("\u0000"); }
+  // Problems a clerk picked by hand, by the row's date and reason (the nth row with the same pair is told apart by n),
+  // so sorting again, matching a column again or removing another line keeps them. lastFixed survives a failed sort.
+  var handFix = {}, lastFixed = {}, editing = null;
+  function fixKey(p) { return p.src; }
 
   // ----- Column matching -----
   // The fields the tracker reads, with header names it recognises. Matching ignores case, spaces and punctuation.
@@ -1230,14 +1231,15 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   }
 
   // The table lists the first PREVIEW_MAX rows, plus later rows that needed review, a page at a time.
-  // A later row stays listed once it is, so fixing it (by hand or by the model) never makes it vanish.
+  // A later row stays listed once it is, so fixing it (by hand or by the model) never makes it vanish, and a page
+  // also takes rows that needed review but were sorted meanwhile, so none of the model's picks is out of reach.
   function listMore() {
     for (var i = PREVIEW_MAX, n = 0; i < pending.length && n < PREVIEW_MAX; i++) {
-      if (!pending[i].keep && pending[i].tags[0] === NEEDS_REVIEW) { pending[i].keep = true; n++; }
+      if (!pending[i].keep && pending[i].review) { pending[i].keep = true; n++; }
     }
   }
   function listed(p) { return p.row < PREVIEW_MAX || p.keep; }
-  function rowName(p) { var r = p.reason.length > 60 ? p.reason.slice(0, 60).trim() + "…" : p.reason; return p.date + ", " + p.county + ", “" + r + "”"; }
+  function rowName(p) { var r = p.reason.length > 60 ? p.reason.slice(0, 60).trim() + "…" : p.reason; return "row " + (p.row + 1) + ", " + p.date + (p.time ? " " + p.time : "") + ", " + p.county + ", “" + r + "”"; }
   // Rows are rebuilt while the model sorts; focus goes back to the same control in the same row.
   function focusSpot() {
     var a = document.activeElement, tr = a && a.closest && a.closest("#previewBody tr");
@@ -1295,24 +1297,17 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (pendingSkipped) parts.push(pendingSkipped + " skipped for no readable date");
     if (pendingUndecided) parts.push(pendingUndecided + " left out because the status says not decided yet");
     $("previewSummary").textContent = parts.join(", ");
-    var cap = $("previewCap"), later = 0, unlisted = 0;
-    cap.hidden = pending.length <= PREVIEW_MAX;
-    if (cap.hidden) return;
-    for (var i = PREVIEW_MAX; i < pending.length; i++) { if (pending[i].keep) later++; else if (pending[i].tags[0] === NEEDS_REVIEW) unlisted++; }
-    cap.textContent = "The table lists the first " + PREVIEW_MAX + " of " + pending.length.toLocaleString() + " rows that were sent back" +
-      (later ? ", plus " + later.toLocaleString() + (later === 1 ? " later row that needed review" : " later rows that needed review") : "") + ". Accepted rows are counted but not listed. ";
-    if (unlisted) {
-      var more = el("button", { type: "button", "class": "linkish", id: "listMore" }, "List " + Math.min(PREVIEW_MAX, unlisted) + " more that need review (" + unlisted.toLocaleString() + " not listed)");
-      more.addEventListener("click", function () {
-        var from = pending.filter(function (p) { return p.keep; }).length;
-        listMore(); renderPreview();
-        var first = pending.filter(function (p) { return p.keep; })[from];
-        var b = first && $("previewBody").querySelector("tr[data-row='" + first.row + "'] [data-act='change']");
-        if (b) b.focus(); else if ($("listMore")) $("listMore").focus();
-      });
-      cap.appendChild(more);
-    }
+    var later = 0, unlisted = 0;
+    $("previewCap").hidden = pending.length <= PREVIEW_MAX;
+    if (pending.length <= PREVIEW_MAX) return;
+    for (var i = PREVIEW_MAX; i < pending.length; i++) { if (pending[i].keep) later++; else if (pending[i].review) unlisted++; }
+    // Only text changes here: the button is never replaced, so focus on it and clicks are not lost while rows update.
+    setText($("previewCapText"), "The table lists the first " + PREVIEW_MAX + " of " + pending.length.toLocaleString() + " rows that were sent back" +
+      (later ? ", plus " + later.toLocaleString() + (later === 1 ? " later row that needed review" : " later rows that needed review") : "") + ". Accepted rows are counted but not listed.");
+    $("listMore").hidden = !unlisted;
+    if (unlisted) setText($("listMore"), "List " + Math.min(PREVIEW_MAX, unlisted) + " more that needed review (" + unlisted.toLocaleString() + " not listed)");
   }
+  function setText(n, t) { if (n.textContent !== t) n.textContent = t; }
   function renderPreview() {
     var spot = focusSpot(), body = $("previewBody"); body.innerHTML = "";
     pending.forEach(function (p) { if (listed(p)) body.appendChild(buildRow(p)); });
@@ -1323,9 +1318,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
   // One row changed: only that row is redrawn, so a list or link the clerk is using elsewhere stays put.
   function renderRow(p) {
     var old = $("previewBody").querySelector("tr[data-row='" + p.row + "']");
-    if (old) { var spot = focusSpot(); old.parentNode.replaceChild(buildRow(p), old); restoreFocus(spot); }
+    if (old) {
+      var spot = focusSpot(), open = !!old.querySelector("details.reasoning[open]"), nu = buildRow(p);
+      if (open && nu.querySelector("details.reasoning")) nu.querySelector("details.reasoning").open = true;
+      old.parentNode.replaceChild(nu, old); restoreFocus(spot);
+    }
     renderPreviewSummary();
   }
+  $("listMore").addEventListener("click", function () {
+    var from = pending.filter(function (p) { return p.keep; }).length;
+    listMore(); renderPreview();
+    var first = pending.filter(function (p) { return p.keep; })[from];
+    var b = first && $("previewBody").querySelector("tr[data-row='" + first.row + "'] [data-act='change']");
+    if (b) b.focus(); else if (!$("listMore").hidden) $("listMore").focus();
+  });
   function focusRow(p, act) { var n = $("previewBody").querySelector("tr[data-row='" + p.row + "'] [data-act='" + act + "']"); if (n) n.focus(); }
   function openFix(p) {
     var was = editing && editing.p;
@@ -1358,7 +1364,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       // In the order of the list, like rows the rules sort.
       p.tags = TAGS.filter(function (t) { return editing.tags.indexOf(t) >= 0; });
       p.sortedBy = "clerk"; p.why = null; p.thought = null; p.confidence = null;
-      handFix[fixKey(p)] = p.tags.slice();
+      handFix[fixKey(p)] = p.tags.slice(); lastFixed[fixKey(p)] = true;
       closeFix(p);
       if (!sorting) previewReady();
     });
@@ -1387,10 +1393,10 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
     if (colMap.date == null) { fail("Pick the column that holds the date each filing was sent."); return; }
     if (colMap.reason == null) { fail("Pick the column that holds the reason a filing was sent back."); return; }
     function cell(r, k) { return colMap[k] == null ? "" : String(r[colMap[k]] || "").trim(); }
-    var hadFix = pending.filter(function (p) { return p.sortedBy === "clerk"; }).map(fixKey);
+    var hadFix = Object.keys(lastFixed), copies = {};
     pending = []; pendingAccepted = []; pendingSkipped = 0; pendingUndecided = 0; editing = null;
     var hasStatus = colMap.status != null;
-    rows.slice(1).forEach(function (r, n) {
+    rows.slice(1).forEach(function (r) {
       var when = parseWhen(cell(r, "date"));
       if (!when) { pendingSkipped++; return; }
       var reason = cell(r, "reason");
@@ -1403,14 +1409,20 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       var found = classifyWhy(reason), tags = found.map(function (o) { return o.tag; });
       rec.tags = tags.length ? tags : [NEEDS_REVIEW];
       rec.why = found.map(function (o) { return o.why; });
-      rec.src = n; rec.row = pending.length;
+      var says = rec.date + "\u0000" + reason;  // the two columns every file has, so matching an optional column again keeps picks
+      copies[says] = (copies[says] || 0) + 1;
+      rec.src = says + "\u0000" + copies[says]; rec.row = pending.length;
+      // review: the rules left it for review. Such rows past the first PREVIEW_MAX are listed a page at a time,
+      // also once the model or a clerk has sorted them, so every pick can be checked and changed.
+      rec.review = rec.tags[0] === NEEDS_REVIEW;
       var fix = handFix[fixKey(rec)];
-      if (fix) { rec.tags = fix.slice(); rec.why = null; rec.sortedBy = "clerk"; }
+      if (fix) { rec.tags = fix.slice(); rec.why = null; rec.sortedBy = "clerk"; if (rec.row >= PREVIEW_MAX) rec.keep = true; }
       pending.push(rec);
     });
     if (!pending.length && !pendingAccepted.length) { fail(pendingUndecided ? "Every row's status says it is not decided yet, so there is nothing to count." : "No rows with a readable date. Dates can look like 2026-09-14 or 9/14/2026."); return; }
     // Say what happened to the problems picked by hand, so sorting again never drops them without a word.
     var now = {}; pending.forEach(function (p) { if (p.sortedBy === "clerk") now[fixKey(p)] = true; });
+    lastFixed = now;
     var kept = Object.keys(now).length, lost = hadFix.filter(function (k) { return !now[k]; }).length;
     var fixNote = (kept ? kept + (kept === 1 ? " row keeps the problem" : " rows keep the problems") + " picked by hand. " : "") +
       (lost ? lost + (lost === 1 ? " row picked by hand no longer matches a row here, so its pick is not used. " : " rows picked by hand no longer match rows here, so their picks are not used. ") : "");
@@ -1426,7 +1438,8 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
       if (!ok) { sorting = false; previewReady(fixNote); return; }
       $("csvStatus").textContent = fixNote + "Sorting " + left.length + (left.length === 1 ? " leftover row" : " leftover rows") + " with " + MODEL_NAME + "...";
       var i = 0;
-      function done(note) { if (run !== sortRun) return; sorting = false; renderPreview(); previewReady(fixNote + note); }
+      // Each row was redrawn as it changed, so only the summary is redrawn here (an open reasoning stays open).
+      function done(note) { if (run !== sortRun) return; sorting = false; renderPreviewSummary(); previewReady(fixNote + note); }
       (function next() {
         if (run !== sortRun) return;
         if (i >= left.length) {
@@ -1458,7 +1471,7 @@ footer .wrap { text-wrap: balance; padding-block: 28px 40px; color: var(--muted)
           }
           renderRow(p);
           next();
-        }, function () { p.asking = false; p.thinking = null; renderRow(p); showModel(false); done(MODEL_NAME + " stopped answering. "); });
+        }, function () { if (run !== sortRun) return; p.asking = false; p.thinking = null; renderRow(p); showModel(false); done(MODEL_NAME + " stopped answering. "); });
       })();
     });
   }
